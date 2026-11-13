@@ -825,7 +825,7 @@ $("locate").onclick = () => {
       if (!top || near[0].d > 30000) return;
       const a = ybInfo(top.st[0]);
       const dist = top.d < 1000 ? Math.round(top.d) + " 公尺" : (top.d / 1000).toFixed(1) + " 公里";
-      msg.textContent = `最近的捷運站：${near[0].st.name}。最近的 YouBike：${top.st[1]}（${dist}${a && a[0] === 1 ? `，可借 ${a[1]} 台` : ""}）`;
+      msg.textContent = `最近的捷運站：${near[0].st.name}。${a ? "最近有車的 YouBike" : "最近的 YouBike"}：${top.st[1]}（${dist}${a && a[0] === 1 ? `，可借 ${a[1]} 台` : ""}）`;
     });
     $("nearList").innerHTML = `<div class="neartitle">最近的捷運站</div>` + near.map(n => {
       const dist = n.d < 1000 ? Math.round(n.d) + " 公尺" : (n.d / 1000).toFixed(1) + " 公里";
@@ -941,7 +941,7 @@ async function ybNearest(me) {
   }).join("");
   if (map && !yb.on) { yb.on = true; $("ybToggle").setAttribute("aria-pressed", "true"); }
   ybDraw();
-  return ranked[0];
+  return withBike[0] || ranked[0];
 }
 
 // ---------- 分頁 ----------
