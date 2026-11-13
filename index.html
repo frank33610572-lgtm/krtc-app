@@ -13,11 +13,18 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="高捷班次｜高雄捷運班次查詢">
+<meta property="og:description" content="選起訖站就知道下一班幾分鐘後到、幾點抵達，美麗島轉乘、最近車站與 YouBike 一次看。可安裝到手機、離線使用。">
+<meta property="og:image" content="https://frank33610572-lgtm.github.io/krtc-app/icon-512.png">
+<meta property="og:url" content="https://frank33610572-lgtm.github.io/krtc-app/">
+<meta name="twitter:card" content="summary">
+<script>
+  try { const t = localStorage.getItem("krtc-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 /* 版面：手機為單欄 App（底部分頁列）；寬螢幕左欄放行程與發車看板、右欄放班次清單與地圖。
    唯一的大膽處是深色「發車看板」與琥珀色大數字，其餘保持安靜；紅、橘只用來代表路線。 */
@@ -83,6 +90,7 @@ body.is-offline .offline{display:inline-block}
 .stn+.stn{border-top:1px dashed var(--line)}
 .stn select{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer;font-size:16px}
 .stn .k{display:block;font-size:12px;color:var(--muted);font-weight:500;line-height:1.2;letter-spacing:.08em}
+.stn .v::after{content:"";display:inline-block;width:7px;height:7px;margin-left:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-4px) rotate(45deg)}
 .stn .v{display:block;font-size:22px;font-weight:900;line-height:1.25;letter-spacing:.02em;overflow-wrap:anywhere}
 .stn .chev{position:absolute;right:0;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none}
 .stn:focus-within{outline:2px solid var(--focus);outline-offset:-2px;border-radius:10px}
@@ -300,6 +308,10 @@ body.is-offline .offline{display:inline-block}
 .stepper button{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--soft);cursor:pointer;font-size:20px}
 .stepper output{font-family:var(--font-display);font-size:32px;font-weight:700;min-width:44px;text-align:center}
 .about{font-size:13px;color:var(--muted);display:grid;gap:6px}
+.seg3{grid-template-columns:repeat(3,1fr)}
+.install[hidden]{display:none}
+.install ol{margin:0;padding-left:20px;font-size:14px;display:grid;gap:4px}
+.install ol b{color:var(--ink)}
 .about p{margin:0}
 
 /* ---------- 底部分頁 ---------- */
@@ -407,6 +419,20 @@ body.is-offline .offline{display:inline-block}
             <button type="button" id="xPlus" aria-label="增加一分鐘">+</button>
           </div>
           <p class="hint">紅線、橘線互轉時，在美麗島站換月台需要的時間。走得快可以調低。</p>
+        </div>
+        <div class="card">
+          <h2>外觀</h2>
+          <div class="seg seg3" role="radiogroup" aria-label="外觀">
+            <input type="radio" name="theme" id="thAuto" value="auto"><label for="thAuto">跟隨手機</label>
+            <input type="radio" name="theme" id="thLight" value="light"><label for="thLight">淺色</label>
+            <input type="radio" name="theme" id="thDark" value="dark"><label for="thDark">深色</label>
+          </div>
+        </div>
+        <div class="card install" id="installCard" hidden>
+          <h2>安裝到手機</h2>
+          <p class="hint">裝到主畫面後，點圖示就能全螢幕開啟，沒網路也能查班次。</p>
+          <button type="button" class="btn primary" id="installBtn" hidden>安裝 App</button>
+          <ol id="installSteps"></ol>
         </div>
         <div class="card about">
           <h2 style="color:var(--ink)">關於資料</h2>
@@ -534,6 +560,7 @@ function paintStations() {
 $("days").innerHTML = DATA.days.map((d, i) =>
   `<div class="dayopt"><input type="radio" name="day" id="day${i}" value="${i}"><label for="day${i}"><span>${DAY_SHORT[i]}　<small>${DAY_SUB[i]}</small></span>${i === todayDay ? "<em>今天</em>" : ""}</label></div>`).join("");
 function setRange(r) {
+  state.autoSpan = r === "all" ? null : r;
   const n = nowSvc();
   if (r === "all") { els.tFrom.value = "05:30"; els.tTo.value = "01:00"; }
   else { els.tFrom.value = fmt(n); els.tTo.value = fmt(n + r); }
@@ -705,7 +732,19 @@ function renderNote(force) {
   $("nAdd").onclick = () => { noteEditing = true; renderNote(true); };
 }
 
-// ---------- 地圖（MapLibre 向量地圖 + OpenFreeMap） ----------
+// ---------- 地圖（MapLibre 向量地圖 + OpenFreeMap，進地圖頁才載入） ----------
+const ML = "https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/";
+let mapLibP = null;
+function loadMapLib() {
+  if (window.maplibregl) return Promise.resolve();
+  return mapLibP ||= new Promise((res, rej) => {
+    const css = document.createElement("link"); css.rel = "stylesheet"; css.href = ML + "maplibre-gl.min.css";
+    document.head.insertBefore(css, document.querySelector("style"));
+    const js = document.createElement("script"); js.src = ML + "maplibre-gl.min.js";
+    js.onload = res; js.onerror = () => { mapLibP = null; js.remove(); css.remove(); rej(new Error("load")); };
+    document.head.appendChild(js);
+  });
+}
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const lineColor = L_ => cssVar(L_ === "R" ? "--red" : "--orange");
 const darkMQ = matchMedia("(prefers-color-scheme: dark)");
@@ -835,7 +874,7 @@ function initMap() {
     const st = yb.byUid?.[e.features[0].properties.uid]; if (st) openPopup(e.features[0].geometry.coordinates, ybPopup(st));
   });
   map.getContainer().addEventListener("click", onStationAct);
-  darkMQ.addEventListener?.("change", () => { styleReady = false; map.setStyle(styleURL(), {diff: false}); });
+  darkMQ.addEventListener?.("change", () => { if (document.documentElement.dataset.theme) return; styleReady = false; map.setStyle(styleURL(), {diff: false}); });
   return true;
 }
 function onStationAct(e) {
@@ -975,9 +1014,11 @@ function showView(v) {
   document.querySelectorAll(".view").forEach(s => { s.hidden = s.dataset.view !== v; });
   document.querySelectorAll(".tabbar button").forEach(b => { if (b.dataset.tab === v) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
   if (v === "map") {
-    if (!initMap()) { $("locMsg").textContent = "地圖需要網路才能第一次載入。"; return; }
-    setTimeout(() => { map.resize(); drawRoute(); }, 60);
-    $("locMsg").hidden = false;
+    if (!map) {
+      $("locMsg").textContent = "地圖載入中…";
+      loadMapLib().then(() => { initMap(); $("locMsg").textContent = "點車站看下一班車，也能設成起站、終站或導航過去"; })
+        .catch(() => { $("locMsg").textContent = "地圖第一次載入需要網路，連上網路後再點一次「地圖」"; });
+    } else setTimeout(() => { map.resize(); drawRoute(); }, 60);
   }
   if (matchMedia("(max-width: 979px)").matches) window.scrollTo({top: v === "list" ? 0 : document.querySelector(".col-main").offsetTop - 10, behavior: "instant"});
 }
@@ -989,13 +1030,45 @@ els.from.onchange = () => { state.from = els.from.value; render(); };
 els.to.onchange = () => { state.to = els.to.value; render(); };
 $("swap").onclick = () => { [state.from, state.to] = [state.to, state.from]; const s = $("swap"); s.classList.toggle("spin"); render(); };
 for (const id of ["modeDep", "modeArr"]) $(id).onchange = e => { state.mode = e.target.value; render(); };
-els.tFrom.oninput = els.tTo.oninput = render;
+els.tFrom.oninput = els.tTo.oninput = () => { state.autoSpan = null; render(); };
 document.querySelectorAll("[data-range]").forEach(b => b.onclick = () => { setRange(b.dataset.range === "all" ? "all" : +b.dataset.range); render(); });
 $("days").onchange = e => { state.day = +e.target.value; render(); };
 $("xMinus").onclick = () => { state.xfer = Math.max(1, state.xfer - 1); render(); };
 $("xPlus").onclick = () => { state.xfer = Math.min(15, state.xfer + 1); render(); };
-setInterval(render, 20000);
-document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
+const tick = () => {
+  if (state.autoSpan) setRange(state.autoSpan);        // 「現在起 N 小時」會跟著時間往前滾
+  if (autoDay(new Date()) !== todayDay) location.reload(); // 過了營運日換日，重新載入以套用新日別
+  render();
+};
+setInterval(tick, 20000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+
+// ---------- 外觀 ----------
+function applyTheme(t) {
+  if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme;
+  store.set("krtc-theme", t);
+  $({auto: "thAuto", light: "thLight", dark: "thDark"}[t] || "thAuto").checked = true;
+  document.querySelector('meta[name="theme-color"]').content = isDark() ? "#05080d" : "#0d1420";
+  if (map) { styleReady = false; map.setStyle(styleURL(), {diff: false}); }
+  render();
+}
+document.querySelectorAll('input[name="theme"]').forEach(r => r.onchange = () => applyTheme(r.value));
+$({light: "thLight", dark: "thDark"}[store.get("krtc-theme", "auto")] || "thAuto").checked = true;
+darkMQ.addEventListener?.("change", () => { if (!document.documentElement.dataset.theme) render(); });
+
+// ---------- 安裝到手機 ----------
+const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+if (!standalone) {
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  $("installSteps").innerHTML = ios
+    ? "<li>用 <b>Safari</b> 開啟這個網址</li><li>點下方的<b>分享</b>按鈕</li><li>選<b>「加入主畫面」</b>，再按「新增」</li>"
+    : "<li>用 <b>Chrome</b> 開啟這個網址</li><li>點右上角 <b>⋮</b></li><li>選<b>「安裝應用程式」</b>或「加到主畫面」</li>";
+  $("installCard").hidden = false;
+  let deferred = null;
+  addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred = e; $("installBtn").hidden = false; });
+  $("installBtn").onclick = async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice.catch(() => {}); deferred = null; $("installBtn").hidden = true; };
+  addEventListener("appinstalled", () => { $("installCard").hidden = true; });
+}
 
 const syncOnline = () => document.body.classList.toggle("is-offline", !navigator.onLine);
 addEventListener("online", syncOnline); addEventListener("offline", syncOnline); syncOnline();
