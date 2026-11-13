@@ -292,6 +292,8 @@ body.is-offline .offline{display:inline-block}
 .ybtag svg{width:18px;height:18px}
 .ybtag.off{background:var(--muted)}
 .ybpop .ybnum{border-top:1px solid var(--line);padding-top:10px}
+.acts a.ybapp{border-color:var(--good);color:var(--good);gap:6px}
+.acts a.ybapp svg{width:16px;height:16px}
 
 /* ---------- 設定 ---------- */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:grid;gap:12px}
@@ -897,6 +899,9 @@ const walkMin = d => Math.max(1, Math.round(d * 1.25 / 70));
 // ---------- YouBike ----------
 const TDX = "https://tdx.transportdata.tw/api/basic/v2/Bike/";
 const BIKE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9 9h6l3.5 7.5M9 9 7.5 6H5M15 9l-2.5 7.5"/></svg>';
+const IS_IOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const YB_APP = IS_IOS ? "https://apps.apple.com/tw/app/id1483423095" : "https://play.google.com/store/search?q=YouBike%E5%BE%AE%E7%AC%91%E5%96%AE%E8%BB%8A&c=apps";
+const ybActs = st => `<div class="acts"><a class="gmap" href="${walkLink(st[2], st[3])}" target="_blank" rel="noopener">導航過去</a><a class="ybapp" href="${YB_APP}" target="_blank" rel="noopener">${BIKE_SVG}用 YouBike App 租車</a></div>`;
 const yb = {stations: null, byUid: null, avail: null, availAt: 0, on: false, loading: null};
 const ybIndex = () => { yb.byUid = {}; for (const st of yb.stations) yb.byUid[st[0]] = st; };
 const ybCached = store.get("krtc-yb-st", null);
@@ -941,7 +946,7 @@ function ybNumsHTML(uid) {
 function ybPopup(st) {
   const off = ybState(st[0]) === "off" || ybState(st[0]) === "empty";
   return `<div class="pop ybpop"><div class="pop-h"><span class="ybtag${off ? " off" : ""}">${BIKE_SVG}</span><div><h4 style="font-size:15px">${esc(st[1])}</h4><p>YouBike 2.0・${st[4]} 柱・${ybAge() || "按 YouBike 按鈕載入即時數量"}</p></div></div>
-    ${ybNumsHTML(st[0])}<div class="acts"><a class="gmap" href="${walkLink(st[2], st[3])}" target="_blank" rel="noopener">導航過去</a></div></div>`;
+    ${ybNumsHTML(st[0])}${ybActs(st)}<p class="hint">到站後用 YouBike App 掃描車上的 QR Code，或用一卡通、悠遊卡感應車機就能借車。</p></div>`;
 }
 function ybDraw() {
   if (!map || !styleReady) return;
@@ -970,7 +975,7 @@ async function ybNearest(me) {
   const picks = [ranked[0], ...withBike.filter(x => x !== ranked[0]).slice(0, 2)].slice(0, 3);
   box.innerHTML = `<div class="neartitle">最近的 YouBike<span>${note || ybAge()}</span></div>` + picks.map(x => {
     const s_ = ybState(x.st[0]), emptyCls = s_ === "off" || s_ === "empty" ? " empty" : "";
-    return `<div class="nearrow ybrow${emptyCls}"><div class="nm"><span class="ybtag${emptyCls ? " off" : ""}">${BIKE_SVG}</span><span style="font-size:15px">${esc(x.st[1])}</span><span class="dist"><b>${walkMin(x.d)} 分</b>步行・${distText(x.d)}</span></div>${ybNumsHTML(x.st[0])}<div class="acts"><a class="gmap" href="${walkLink(x.st[2], x.st[3])}" target="_blank" rel="noopener">導航過去</a></div></div>`;
+    return `<div class="nearrow ybrow${emptyCls}"><div class="nm"><span class="ybtag${emptyCls ? " off" : ""}">${BIKE_SVG}</span><span style="font-size:15px">${esc(x.st[1])}</span><span class="dist"><b>${walkMin(x.d)} 分</b>步行・${distText(x.d)}</span></div>${ybNumsHTML(x.st[0])}${ybActs(x.st)}</div>`;
   }).join("");
   if (!yb.on) { yb.on = true; $("ybToggle").setAttribute("aria-pressed", "true"); }
   ybDraw();
