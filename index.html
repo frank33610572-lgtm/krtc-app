@@ -230,6 +230,8 @@ body.is-offline .offline{display:inline-block}
 .leaflet-control-attribution{background:color-mix(in srgb,var(--surface) 80%,transparent)!important;color:var(--muted)!important;font-size:10px!important}
 .leaflet-control-attribution a{color:var(--muted)!important}
 .leaflet-container{font-family:var(--font-body);background:var(--soft)}
+.leaflet-tile-pane{filter:grayscale(1) contrast(.88) brightness(1.06) saturate(0)}
+.tiles-dark .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) grayscale(1) brightness(.78) contrast(.92)}
 .stlabel{background:none;border:0;box-shadow:none;padding:0 2px;font:700 12px var(--font-body);color:var(--ink);text-shadow:0 0 3px var(--surface),0 0 3px var(--surface),0 0 3px var(--surface);display:none}
 .stlabel::before{display:none}
 .show-labels .stlabel{display:block}
@@ -693,11 +695,8 @@ const lineColor = L_ => cssVar(L_ === "R" ? "--red" : "--orange");
 const darkMQ = matchMedia("(prefers-color-scheme: dark)");
 let map = null, tiles = null, baseLayer = null, routeLayer = null, userLayer = null;
 
-function tileURL() {
-  const theme = document.documentElement.dataset.theme;
-  const dark = theme ? theme === "dark" : darkMQ.matches;
-  return `https://{s}.basemaps.cartocdn.com/${dark ? "dark_all" : "light_all"}/{z}/{x}/{y}{r}.png`;
-}
+const isDark = () => { const t = document.documentElement.dataset.theme; return t ? t === "dark" : darkMQ.matches; };
+const syncTileTheme = () => map && map.getContainer().classList.toggle("tiles-dark", isDark());
 function nextDeps(name, count = 2) {
   const st = byName[name], now = nowSvc(), live = state.day === todayDay, groups = {};
   for (const id of st.ids) for (const t of (tripsBy[state.day]?.[lineOf[id]] || [])) {
@@ -745,12 +744,13 @@ function initMap() {
   if (typeof L === "undefined") return false;
   map = L.map("map", {zoomSnap: .5, zoomControl: true, attributionControl: true}).setView([22.665, 120.315], 12);
   map.zoomControl.setPosition("topright");
-  tiles = L.tileLayer(tileURL(), {maxZoom: 19, subdomains: "abcd", detectRetina: false,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'}).addTo(map);
+  tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> 貢獻者'}).addTo(map);
+  syncTileTheme();
   const syncLabels = () => map.getContainer().classList.toggle("show-labels", map.getZoom() >= 13);
   map.on("zoomend", syncLabels); syncLabels();
   map.getContainer().addEventListener("click", onStationAct);
-  darkMQ.addEventListener?.("change", () => { tiles.setUrl(tileURL()); drawBase(); drawRoute(); });
+  darkMQ.addEventListener?.("change", () => { syncTileTheme(); drawBase(); lastRouteKey = ""; drawRoute(); });
   drawBase(); drawRoute(true);
   return true;
 }
