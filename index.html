@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="高捷班次">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>高捷班次查詢</title>
@@ -146,6 +148,29 @@ select:focus-visible,input:focus-visible,button:focus-visible,summary:focus-visi
 .empty{padding:28px 18px;text-align:center;color:var(--muted)}
 .empty strong{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
 footer{grid-column:1/-1;font-size:12px;color:var(--muted)}
+.tabs{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:4px;max-width:420px}
+.tabs button{font:inherit;font-size:15px;border:0;border-radius:7px;background:transparent;color:var(--muted);padding:9px 6px;cursor:pointer;min-height:42px}
+.tabs button[aria-selected="true"]{background:var(--panel);color:var(--ink);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+body.view-map #form, body.view-map .results{display:none}
+.mapview{grid-column:1/-1;display:grid;gap:12px}
+.mapview[hidden]{display:none}
+.maptools{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#map{height:62vh;min-height:360px;border-radius:12px;border:1px solid var(--line);z-index:0}
+.near{display:grid;gap:8px}
+.near:empty{display:none}
+.nearrow{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.nearrow .nm{font-weight:700;display:flex;align-items:center;gap:8px}
+.nearrow .dist{font-size:13px;color:var(--muted);font-weight:400}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.acts a,.acts button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:7px;padding:6px 10px;cursor:pointer;text-decoration:none;min-height:36px;display:inline-flex;align-items:center}
+.acts a.gmap{border-color:var(--accent);color:var(--accent)}
+.leaflet-popup-content{margin:12px 14px;font-family:var(--font-body)}
+.pop h4{margin:0 0 2px;font-size:15px}
+.pop p{margin:0 0 8px;font-size:12px;color:#5d6470}
+.pop .acts a,.pop .acts button{background:#f3f4f6;color:#16191f;border-color:#dfe2e7}
+.pop .acts a.gmap{color:#1d4f91;border-color:#1d4f91}
+.endtag{background:var(--ink);color:var(--panel);font:700 12px var(--font-body);border-radius:999px;padding:2px 7px;white-space:nowrap;border:0;box-shadow:none}
+.leaflet-tooltip.endtag::before{display:none}
 .wrap{padding-top:max(20px,env(safe-area-inset-top));padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-bottom:max(40px,env(safe-area-inset-bottom))}
 .offline{display:none;font-size:12px;font-weight:700;color:var(--good);border:1px solid var(--good);border-radius:999px;padding:1px 9px}
 body.is-offline .offline{display:inline-block}
@@ -171,6 +196,20 @@ body.is-offline .offline{display:inline-block}
     <div class="legend"><span><i class="dot R"></i>紅線</span><span><i class="dot O"></i>橘線</span><span>紅橘互轉：美麗島站</span></div>
     <span class="offline">離線模式・時刻表照常可查</span>
   </header>
+
+  <nav class="tabs" role="tablist" aria-label="切換畫面">
+    <button type="button" role="tab" id="tabList" aria-selected="true">查班次</button>
+    <button type="button" role="tab" id="tabMap" aria-selected="false">地圖・最近車站</button>
+  </nav>
+
+  <section class="mapview" id="mapView" hidden>
+    <div class="maptools">
+      <button type="button" class="nbtn primary" id="locate">找離我最近的車站</button>
+      <span class="hint" id="locMsg">點地圖上的車站，可以設成起站、終站，或用 Google 地圖導航過去。</span>
+    </div>
+    <div id="map" role="application" aria-label="高雄捷運路線地圖"></div>
+    <div class="near" id="nearList"></div>
+  </section>
 
   <form class="panel" id="form" autocomplete="off">
     <div class="favs" id="favs" aria-label="常用路線"></div>
@@ -534,6 +573,120 @@ document.querySelectorAll("[data-range]").forEach(btn => btn.addEventListener("c
 }));
 setInterval(render, 30000);   // 每 30 秒更新倒數
 $("foot").textContent = `資料來源：${DATA.src}。標「約」的時間為終點站到站時間，由站間行駛時間推算。實際以高雄捷運現場公告為準。`;
+// ---------- 地圖 ----------
+const COORDS = {"O1":[22.62149,120.27451],"O2":[22.6235,120.28378],"O4":[22.62893,120.29477],"O5":[22.63128,120.30325],"O6":[22.63068,120.31139],"O7":[22.63022,120.31763],"O8":[22.62941,120.32773],"O9":[22.6272,120.33465],"O10":[22.62505,120.34104],"O11":[22.62527,120.34812],"O12":[22.62595,120.35517],"O13":[22.62518,120.3635],"O14":[22.62466,120.37133],"OT1":[22.62212,120.39053],"R3":[22.56478,120.35381],"R4":[22.57017,120.34177],"R4A":[22.58035,120.32857],"R5":[22.58848,120.32169],"R6":[22.59676,120.31512],"R7":[22.60605,120.30808],"R8":[22.61398,120.30459],"R9":[22.62484,120.30121],"R10":[22.63139,120.30199],"R11":[22.63969,120.3027],"R12":[22.6485,120.30341],"R13":[22.65727,120.30324],"R14":[22.66616,120.30336],"R15":[22.67669,120.30662],"R16":[22.68838,120.30889],"R17":[22.70184,120.30253],"R18":[22.70887,120.30232],"R19":[22.71865,120.30724],"R20":[22.72232,120.31637],"R21":[22.72953,120.32101],"R22":[22.74434,120.3178],"R22A":[22.75316,120.3147],"R23":[22.76025,120.31098],"R24":[22.78064,120.30188],"RK1":[22.79245,120.29923]};
+const gmapLink = id => `https://www.google.com/maps/dir/?api=1&destination=${COORDS[id][0]},${COORDS[id][1]}&travelmode=walking`;
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let map = null, routeLayer = null, userLayer = null;
+
+function stationActs(name, id) {
+  return `<div class="acts">
+    <button type="button" data-act="from" data-name="${name}">設為起站</button>
+    <button type="button" data-act="to" data-name="${name}">設為終站</button>
+    <a class="gmap" href="${gmapLink(id)}" target="_blank" rel="noopener">Google 地圖導航</a></div>`;
+}
+function initMap() {
+  if (map || typeof L === "undefined") return !!map;
+  map = L.map("map", {zoomControl: true}).setView([22.665, 120.315], 12);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> 貢獻者'
+  }).addTo(map);
+  for (const Ln of LINES) {
+    const col = cssVar(Ln === "R" ? "--red" : "--orange");
+    L.polyline(DATA.lines[Ln].map(([id]) => COORDS[id]), {color: col, weight: 6, opacity: .85}).addTo(map);
+  }
+  for (const st of stations) {
+    const id = st.ids[0], xfer = st.ids.length > 1;
+    const col = cssVar(lineOf[id] === "R" ? "--red" : "--orange");
+    L.circleMarker(COORDS[id], {radius: xfer ? 9 : 6, color: xfer ? "#16191f" : col, weight: 3, fillColor: "#fff", fillOpacity: 1})
+      .addTo(map)
+      .bindTooltip(st.name, {direction: "top", offset: [0, -6]})
+      .bindPopup(`<div class="pop"><h4>${st.name}</h4><p>${st.ids.join("・")}${xfer ? "・紅橘轉乘站" : ""}</p>${stationActs(st.name, id)}</div>`);
+  }
+  map.getContainer().addEventListener("click", onStationAct);
+  $("nearList").addEventListener("click", onStationAct);
+  drawRoute();
+  return true;
+}
+function onStationAct(e) {
+  const b = e.target.closest("button[data-act]");
+  if (!b) return;
+  const prevFrom = els.from.value, prevTo = els.to.value, name = b.dataset.name;
+  if (b.dataset.act === "from") { els.from.value = name; if (name === prevTo) els.to.value = prevFrom; }
+  else { els.to.value = name; if (name === prevFrom) els.from.value = prevTo; }
+  render(); map && map.closePopup(); showView("list");
+}
+function pathIds(o, d) {
+  const O = byName[o], D = byName[d];
+  for (const oid of O.ids) for (const did of D.ids) if (lineOf[oid] === lineOf[did]) {
+    const seq = DATA.lines[lineOf[oid]].map(x => x[0]), i = seq.indexOf(oid), j = seq.indexOf(did);
+    return [i <= j ? seq.slice(i, j + 1) : seq.slice(j, i + 1).reverse()];
+  }
+  return [...pathIds(o, "美麗島"), ...pathIds("美麗島", d)];
+}
+function drawRoute() {
+  if (!map) return;
+  if (routeLayer) routeLayer.remove();
+  const o = els.from.value, d = els.to.value;
+  if (!byName[o] || !byName[d] || o === d) return;
+  routeLayer = L.layerGroup().addTo(map);
+  for (const seg of pathIds(o, d)) {
+    const col = cssVar(lineOf[seg[0]] === "R" ? "--red" : "--orange");
+    L.polyline(seg.map(id => COORDS[id]), {color: "#16191f", weight: 12, opacity: .35}).addTo(routeLayer);
+    L.polyline(seg.map(id => COORDS[id]), {color: col, weight: 7}).addTo(routeLayer);
+  }
+  L.tooltip({permanent: true, direction: "right", className: "endtag", offset: [10, 0]}).setLatLng(COORDS[byName[o].ids[0]]).setContent("起 " + o).addTo(routeLayer);
+  L.tooltip({permanent: true, direction: "right", className: "endtag", offset: [10, 0]}).setLatLng(COORDS[byName[d].ids[0]]).setContent("終 " + d).addTo(routeLayer);
+}
+function haversine(a, b) {
+  const R = 6371000, r = x => x * Math.PI / 180;
+  const dLat = r(b[0] - a[0]), dLon = r(b[1] - a[1]);
+  const h = Math.sin(dLat/2)**2 + Math.cos(r(a[0])) * Math.cos(r(b[0])) * Math.sin(dLon/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+$("locate").addEventListener("click", () => {
+  const msg = $("locMsg");
+  if (!navigator.geolocation) { msg.textContent = "這個瀏覽器不支援定位，請直接點地圖上的車站。"; return; }
+  msg.textContent = "定位中…";
+  navigator.geolocation.getCurrentPosition(pos => {
+    const me = [pos.coords.latitude, pos.coords.longitude];
+    const near = stations.map(st => ({st, id: st.ids[0], d: haversine(me, COORDS[st.ids[0]])})).sort((a, b) => a.d - b.d).slice(0, 3);
+    if (near[0].d > 30000) msg.textContent = "你目前離高雄捷運很遠，下面是直線距離最近的車站。";
+    else msg.textContent = "距離為直線距離，步行時間以每分鐘 70 公尺估算。";
+    $("nearList").innerHTML = near.map(n => {
+      const dist = n.d < 1000 ? Math.round(n.d) + " 公尺" : (n.d / 1000).toFixed(1) + " 公里";
+      const walk = Math.max(1, Math.round(n.d * 1.25 / 70));
+      return `<div class="nearrow"><div class="nm"><span class="dot ${lineOf[n.id]}"></span>${n.st.name}<span class="dist">${dist}・步行約 ${walk} 分</span></div>${stationActs(n.st.name, n.id)}</div>`;
+    }).join("");
+    if (map) {
+      if (userLayer) userLayer.remove();
+      userLayer = L.layerGroup([
+        L.circle(me, {radius: Math.min(pos.coords.accuracy, 300), color: "#2f7bf6", weight: 1, fillOpacity: .12}),
+        L.circleMarker(me, {radius: 7, color: "#fff", weight: 3, fillColor: "#2f7bf6", fillOpacity: 1}).bindTooltip("你的位置")
+      ]).addTo(map);
+      map.fitBounds(L.latLngBounds([me, ...near.map(n => COORDS[n.id])]).pad(0.25));
+    }
+  }, err => {
+    msg.textContent = err.code === 1 ? "沒有定位權限。請在手機設定裡允許這個 App 使用位置，或直接點地圖上的車站。" : "暫時抓不到位置，請稍後再試，或直接點地圖上的車站。";
+  }, {enableHighAccuracy: true, timeout: 12000, maximumAge: 60000});
+});
+function showView(v) {
+  const isMap = v === "map";
+  document.body.classList.toggle("view-map", isMap);
+  $("mapView").hidden = !isMap;
+  $("tabList").setAttribute("aria-selected", String(!isMap));
+  $("tabMap").setAttribute("aria-selected", String(isMap));
+  if (isMap) {
+    if (!initMap()) { $("locMsg").textContent = "地圖需要網路才能第一次載入，連上網路後再打開這一頁。"; return; }
+    setTimeout(() => map.invalidateSize(), 50);
+    drawRoute();
+  }
+}
+$("tabList").addEventListener("click", () => showView("list"));
+$("tabMap").addEventListener("click", () => showView("map"));
+$("form").addEventListener("input", drawRoute);
+$("swap").addEventListener("click", drawRoute);
+
 render();
 const syncOnline = () => document.body.classList.toggle("is-offline", !navigator.onLine);
 addEventListener("online", syncOnline); addEventListener("offline", syncOnline); syncOnline();
