@@ -815,7 +815,8 @@ function drawRoute(fit) {
 }
 function openPopup(ll, html) {
   popup && popup.remove();
-  popup = new maplibregl.Popup({maxWidth: "310px", offset: 14, focusAfterOpen: false}).setLngLat(ll).setHTML(html).addTo(map);
+  map.easeTo({center: ll, offset: [0, -Math.round(map.getContainer().clientHeight * 0.22)], duration: 450});
+  popup = new maplibregl.Popup({maxWidth: "310px", offset: 14, focusAfterOpen: false, anchor: "top"}).setLngLat(ll).setHTML(html).addTo(map);
 }
 function initMap() {
   if (map) return true;
