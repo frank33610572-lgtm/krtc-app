@@ -16,8 +16,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"></script>
 <style>
 /* 版面：手機為單欄 App（底部分頁列）；寬螢幕左欄放行程與發車看板、右欄放班次清單與地圖。
    唯一的大膽處是深色「發車看板」與琥珀色大數字，其餘保持安靜；紅、橘只用來代表路線。 */
@@ -215,45 +215,49 @@ body.is-offline .offline{display:inline-block}
 
 /* ---------- 地圖 ---------- */
 .mapview{display:grid;gap:12px}
-.mapwrap{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--line);background:var(--soft)}
-#map{height:calc(100dvh - 170px - env(safe-area-inset-bottom));min-height:420px;z-index:0;background:var(--soft)}
+.mapwrap{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--line);background:var(--soft);box-shadow:0 10px 30px rgba(10,20,40,.08)}
+#map{height:calc(100dvh - 170px - env(safe-area-inset-bottom));min-height:440px;background:var(--soft)}
+#map canvas{outline:none}
 @media (min-width:980px){#map{height:calc(100vh - 90px)}}
-.maptoast{position:absolute;left:12px;right:72px;top:12px;z-index:500;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:13px;color:var(--ink);box-shadow:0 4px 18px rgba(0,0,0,.12);pointer-events:none}
-.mapfabs{position:absolute;right:12px;bottom:calc(16px + 0px);z-index:500;display:grid;gap:10px}
-.fab{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.18)}
+.maptoast{position:absolute;left:12px;right:64px;top:12px;z-index:3;background:color-mix(in srgb,var(--surface) 86%,transparent);backdrop-filter:blur(12px) saturate(1.4);-webkit-backdrop-filter:blur(12px) saturate(1.4);border:1px solid color-mix(in srgb,var(--line) 70%,transparent);border-radius:14px;padding:9px 13px;font-size:13px;line-height:1.45;color:var(--ink);box-shadow:0 6px 20px rgba(0,0,0,.12);pointer-events:none}
+.mapfabs{position:absolute;right:12px;bottom:36px;z-index:3;display:grid;gap:10px}
+.fab{width:48px;height:48px;border-radius:16px;border:1px solid color-mix(in srgb,var(--line) 70%,transparent);background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--ink);display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.16);transition:transform .15s}
+.fab:active{transform:scale(.94)}
 .fab svg{width:22px;height:22px}
 .fab.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.fab[aria-pressed="true"]{background:var(--good);border-color:var(--good);color:#fff}
 .fab.busy svg{animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.leaflet-control-zoom{border:0!important;box-shadow:0 4px 16px rgba(0,0,0,.18)!important;border-radius:12px!important;overflow:hidden;margin-top:64px!important}
-.leaflet-control-zoom a{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--line)!important;width:40px!important;height:40px!important;line-height:40px!important}
-.leaflet-control-attribution{background:color-mix(in srgb,var(--surface) 80%,transparent)!important;color:var(--muted)!important;font-size:10px!important}
-.leaflet-control-attribution a{color:var(--muted)!important}
-.leaflet-container{font-family:var(--font-body);background:var(--soft)}
-.leaflet-tile-pane{filter:grayscale(1) contrast(.88) brightness(1.06) saturate(0)}
-.tiles-dark .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) grayscale(1) brightness(.78) contrast(.92)}
-.stlabel{background:none;border:0;box-shadow:none;padding:0 2px;font:700 12px var(--font-body);color:var(--ink);text-shadow:0 0 3px var(--surface),0 0 3px var(--surface),0 0 3px var(--surface);display:none}
-.stlabel::before{display:none}
-.show-labels .stlabel{display:block}
-.stlabel.xf{font-size:13px}
-.endpin{display:flex;align-items:center;gap:5px;transform:translate(-14px,-38px);white-space:nowrap}
-.endpin b{display:grid;place-items:center;width:28px;height:28px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);background:var(--ink);box-shadow:0 3px 10px rgba(0,0,0,.3)}
-.endpin b span{transform:rotate(45deg);color:var(--surface);font-size:13px;font-weight:900}
-.endpin.to b{background:var(--good)}
-.endpin em{font-style:normal;font-size:12px;font-weight:700;background:var(--surface);color:var(--ink);border-radius:999px;padding:2px 8px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
-.me{position:relative;width:18px;height:18px}
-.me i{position:absolute;inset:0;border-radius:50%;background:#2f6fd6;border:3px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.35)}
-.me::before{content:"";position:absolute;inset:-14px;border-radius:50%;background:#2f6fd6;opacity:.25;animation:pulse 2s ease-out infinite}
-@keyframes pulse{from{transform:scale(.3);opacity:.45}to{transform:scale(1.3);opacity:0}}
-.leaflet-popup-content-wrapper{border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:0 10px 30px rgba(0,0,0,.25)}
-.leaflet-popup-tip{background:var(--surface)}
-.leaflet-popup-content{margin:14px 16px;min-width:230px}
-.leaflet-container a.leaflet-popup-close-button{color:var(--muted);top:6px;right:6px}
+.maplibregl-ctrl-top-right{top:6px;right:6px}
+.maplibregl-ctrl-group{background:color-mix(in srgb,var(--surface) 90%,transparent)!important;backdrop-filter:blur(10px);border-radius:14px!important;box-shadow:0 6px 18px rgba(0,0,0,.16)!important;overflow:hidden}
+.maplibregl-ctrl-group button{width:40px!important;height:40px!important}
+.maplibregl-ctrl-group button+button{border-top:1px solid var(--line)!important}
+.maplibregl-ctrl-attrib{background:color-mix(in srgb,var(--surface) 80%,transparent)!important;color:var(--muted);font-size:10px}
+.maplibregl-ctrl-attrib a{color:var(--muted)!important}
+.maplibregl-ctrl-attrib-button{filter:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .maplibregl-ctrl-icon,:root:not([data-theme="light"]) .maplibregl-ctrl-attrib-button{filter:invert(1)}}
+:root[data-theme="dark"] .maplibregl-ctrl-icon,:root[data-theme="dark"] .maplibregl-ctrl-attrib-button{filter:invert(1)}
+.maplibregl-popup{z-index:4}
+.maplibregl-popup-content{border-radius:18px;background:var(--surface);color:var(--ink);box-shadow:0 14px 40px rgba(0,0,0,.28);padding:14px 16px;font-family:var(--font-body);min-width:240px}
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip{border-top-color:var(--surface)}
+.maplibregl-popup-anchor-top .maplibregl-popup-tip,.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,.maplibregl-popup-anchor-top-right .maplibregl-popup-tip{border-bottom-color:var(--surface)}
+.maplibregl-popup-anchor-left .maplibregl-popup-tip{border-right-color:var(--surface)}
+.maplibregl-popup-anchor-right .maplibregl-popup-tip{border-left-color:var(--surface)}
+.maplibregl-popup-close-button{font-size:20px;color:var(--muted);right:8px;top:6px;border-radius:8px;width:28px;height:28px}
+.maplibregl-popup-close-button:hover{background:var(--soft)}
+.endpin{display:flex;align-items:center;gap:6px;pointer-events:none}
+.endpin b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--surface);font-size:13px;font-weight:900;border:2.5px solid var(--surface);box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.endpin.to b{background:var(--good);color:#fff}
+.endpin em{font-style:normal;font-size:12px;font-weight:700;background:var(--surface);color:var(--ink);border-radius:999px;padding:3px 9px;box-shadow:0 3px 10px rgba(0,0,0,.18)}
+.me{position:relative;width:20px;height:20px}
+.me i{position:absolute;inset:0;border-radius:50%;background:#2f6fd6;border:3px solid #fff;box-shadow:0 1px 8px rgba(0,0,0,.4)}
+.me::before{content:"";position:absolute;inset:-16px;border-radius:50%;background:#2f6fd6;opacity:.25;animation:pulse 2s ease-out infinite}
+@keyframes pulse{from{transform:scale(.3);opacity:.5}to{transform:scale(1.3);opacity:0}}
 .pop{display:grid;gap:10px}
-.pop-h{display:flex;align-items:center;gap:10px}
-.pop-h h4{margin:0;font-size:18px;font-weight:900}
+.pop-h{display:flex;align-items:center;gap:10px;padding-right:22px}
+.pop-h h4{margin:0;font-size:18px;font-weight:900;line-height:1.25}
 .pop-h p{margin:0;font-size:12px;color:var(--muted)}
-.deps{display:grid;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.deps{display:grid;gap:7px;border-top:1px solid var(--line);padding-top:10px}
 .dep{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:13px}
 .dep i{width:8px;height:8px;border-radius:50%}
 .dep i.R{background:var(--red)} .dep i.O{background:var(--orange)}
@@ -261,11 +265,14 @@ body.is-offline .offline{display:inline-block}
 .dep b small{font-family:var(--font-body);font-size:11px;color:var(--good);font-weight:700;margin-left:4px}
 .dep .none{color:var(--muted);font-size:12px}
 .acts{display:flex;gap:6px;flex-wrap:wrap}
-.acts a,.acts button{font-size:13px;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:9px;padding:7px 11px;cursor:pointer;text-decoration:none;min-height:38px;display:inline-flex;align-items:center;font-weight:500}
+.acts a,.acts button{font-size:13px;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:10px;padding:7px 11px;cursor:pointer;text-decoration:none;min-height:38px;display:inline-flex;align-items:center;font-weight:500}
 .acts a.gmap{background:var(--ink);border-color:var(--ink);color:var(--surface)!important}
 .near{display:grid;gap:8px}
 .near:empty{display:none}
-.fab[aria-pressed="true"]{background:var(--good);border-color:var(--good);color:#fff}
+.nearrow{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:grid;gap:10px}
+.nearrow .nm{font-weight:900;font-size:16px;display:flex;align-items:center;gap:10px}
+.nearrow .dist{font-size:12px;color:var(--muted);font-weight:500;margin-left:auto;text-align:right;white-space:nowrap}
+.nearrow .dist b{display:block;font-family:var(--font-display);font-size:20px;color:var(--ink)}
 .neartitle{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.06em;padding:4px 4px 0;display:flex;justify-content:space-between;gap:8px}
 .neartitle span{font-weight:400;letter-spacing:0}
 .ybrow{border-left:4px solid var(--good)}
@@ -273,14 +280,10 @@ body.is-offline .offline{display:inline-block}
 .ybnum{display:flex;gap:16px;font-size:12px;color:var(--muted)}
 .ybnum b{font-family:var(--font-display);font-size:24px;color:var(--ink);font-weight:700;margin-right:3px}
 .ybnum .zero b{color:var(--red)}
-.ybtag{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--good);color:#fff;flex:none}
+.ybtag{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--good);color:#fff;flex:none}
 .ybtag svg{width:18px;height:18px}
 .ybtag.off{background:var(--muted)}
 .ybpop .ybnum{border-top:1px solid var(--line);padding-top:10px}
-.nearrow{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:10px}
-.nearrow .nm{font-weight:900;font-size:16px;display:flex;align-items:center;gap:10px}
-.nearrow .dist{font-size:12px;color:var(--muted);font-weight:500;margin-left:auto;text-align:right}
-.nearrow .dist b{display:block;font-family:var(--font-display);font-size:20px;color:var(--ink)}
 
 /* ---------- 設定 ---------- */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:grid;gap:12px}
@@ -702,15 +705,19 @@ function renderNote(force) {
   $("nAdd").onclick = () => { noteEditing = true; renderNote(true); };
 }
 
-// ---------- 地圖 ----------
-const gmapLink = id => `https://www.google.com/maps/dir/?api=1&destination=${COORDS[id][0]},${COORDS[id][1]}&travelmode=walking`;
+// ---------- 地圖（MapLibre 向量地圖 + OpenFreeMap） ----------
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const lineColor = L_ => cssVar(L_ === "R" ? "--red" : "--orange");
 const darkMQ = matchMedia("(prefers-color-scheme: dark)");
-let map = null, tiles = null, baseLayer = null, routeLayer = null, userLayer = null;
-
 const isDark = () => { const t = document.documentElement.dataset.theme; return t ? t === "dark" : darkMQ.matches; };
-const syncTileTheme = () => map && map.getContainer().classList.toggle("tiles-dark", isDark());
+const styleURL = () => `https://tiles.openfreemap.org/styles/${isDark() ? "dark" : "positron"}`;
+const LL = id => [COORDS[id][1], COORDS[id][0]];
+const walkLink = (lat, lon) => `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=walking`;
+const gmapLink = id => walkLink(COORDS[id][0], COORDS[id][1]);
+const HOME = {center: [120.315, 22.668], zoom: 11.3};
+const fc = f => ({type: "FeatureCollection", features: f});
+let map = null, styleReady = false, pins = [], meMarker = null, popup = null;
+
 function nextDeps(name, count = 2) {
   const st = byName[name], now = nowSvc(), live = state.day === todayDay, groups = {};
   for (const id of st.ids) for (const t of (tripsBy[state.day]?.[lineOf[id]] || [])) {
@@ -723,59 +730,14 @@ function nextDeps(name, count = 2) {
   return Object.entries(groups).map(([k, v]) => { const [L_, head] = k.split("|"); return {L: L_, head, deps: v.sort((a, b) => a - b).slice(0, count)}; })
     .sort((a, b) => (a.L + a.head).localeCompare(b.L + b.head));
 }
+const stationActs = (name, id) => `<div class="acts"><button type="button" data-act="from" data-name="${name}">設為起站</button><button type="button" data-act="to" data-name="${name}">設為終站</button><a class="gmap" href="${gmapLink(id)}" target="_blank" rel="noopener">導航過去</a></div>`;
 function popupHTML(name) {
-  const st = byName[name], id = st.ids[0], now = nowSvc(), live = state.day === todayDay;
-  const deps = nextDeps(name);
+  const st = byName[name], now = nowSvc(), live = state.day === todayDay, deps = nextDeps(name);
   const rows = deps.length ? deps.map(g => `<div class="dep"><i class="${g.L}"></i><span>往${g.head}</span><span>${g.deps.length ? g.deps.map((d, k) => `<b>${fmt(d)}${k === 0 && live ? `<small>${d - now <= 0 ? "現在" : (d - now) + "分"}</small>` : ""}</b>`).join("　") : '<span class="none">今天已無班次</span>'}</span></div>`).join("")
     : '<div class="dep"><span class="none">今天已無班次</span></div>';
-  return `<div class="pop">
-    <div class="pop-h"><span class="badges${st.ids.length > 1 ? " two" : ""}">${badgeHTML(name)}</span><div><h4>${name}</h4><p>${st.ids.length > 1 ? "紅橘轉乘站・" : ""}${live ? "接下來的班次" : DAY_SHORT[state.day] + "時刻表的頭兩班"}</p></div></div>
-    <div class="deps">${rows}</div>
-    ${stationActs(name, id)}</div>`;
+  return `<div class="pop"><div class="pop-h"><span class="badges${st.ids.length > 1 ? " two" : ""}">${badgeHTML(name)}</span><div><h4>${name}</h4><p>${st.ids.length > 1 ? "紅橘轉乘站・" : ""}${live ? "接下來的班次" : DAY_SHORT[state.day] + "時刻表的頭兩班"}</p></div></div>
+    <div class="deps">${rows}</div>${stationActs(name, st.ids[0])}</div>`;
 }
-const stationActs = (name, id) => `<div class="acts"><button type="button" data-act="from" data-name="${name}">設為起站</button><button type="button" data-act="to" data-name="${name}">設為終站</button><a class="gmap" href="${gmapLink(id)}" target="_blank" rel="noopener">導航過去</a></div>`;
-
-function drawBase() {
-  if (baseLayer) baseLayer.remove();
-  baseLayer = L.layerGroup().addTo(map);
-  const hasRoute = state.from !== state.to;
-  for (const Ln of LINES) {
-    const pts = DATA.lines[Ln].map(([id]) => COORDS[id]);
-    L.polyline(pts, {color: cssVar("--surface"), weight: 9, opacity: hasRoute ? .5 : .95, interactive: false}).addTo(baseLayer);
-    L.polyline(pts, {color: lineColor(Ln), weight: 5, opacity: hasRoute ? .35 : .95, interactive: false}).addTo(baseLayer);
-  }
-  for (const st of stations) {
-    const id = st.ids[0], xf = st.ids.length > 1;
-    const m = L.circleMarker(COORDS[id], {radius: xf ? 8 : 5, color: xf ? cssVar("--ink") : lineColor(lineOf[id]), weight: xf ? 3.5 : 2.5, fillColor: cssVar("--surface"), fillOpacity: 1})
-      .addTo(baseLayer)
-      .bindTooltip(st.name, {permanent: true, direction: "right", offset: [8, 0], className: "stlabel" + (xf ? " xf" : "")})
-      .bindPopup(() => popupHTML(st.name), {maxWidth: 300, autoPanPaddingTopLeft: [12, 70]});
-    m.on("mouseover", () => m.setStyle({radius: xf ? 10 : 7})).on("mouseout", () => m.setStyle({radius: xf ? 8 : 5}));
-  }
-}
-function initMap() {
-  if (map) return true;
-  if (typeof L === "undefined") return false;
-  map = L.map("map", {zoomSnap: .5, zoomControl: true, attributionControl: true}).setView([22.665, 120.315], 12);
-  map.zoomControl.setPosition("topright");
-  tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> 貢獻者'}).addTo(map);
-  syncTileTheme();
-  const syncLabels = () => map.getContainer().classList.toggle("show-labels", map.getZoom() >= 13);
-  map.on("zoomend", syncLabels); syncLabels();
-  map.getContainer().addEventListener("click", onStationAct);
-  darkMQ.addEventListener?.("change", () => { syncTileTheme(); drawBase(); lastRouteKey = ""; drawRoute(); });
-  drawBase(); drawRoute(true);
-  return true;
-}
-function onStationAct(e) {
-  const b = e.target.closest("button[data-act]"); if (!b) return;
-  const name = b.dataset.name, pf = state.from, pt = state.to;
-  if (b.dataset.act === "from") { state.from = name; if (name === pt) state.to = pf; }
-  else { state.to = name; if (name === pf) state.from = pt; }
-  map && map.closePopup(); render(); showView("list");
-}
-$("nearList").addEventListener("click", onStationAct);
 function pathIds(o, d) {
   for (const oid of byName[o].ids) for (const did of byName[d].ids) if (lineOf[oid] === lineOf[did]) {
     const seq = DATA.lines[lineOf[oid]].map(x => x[0]), i = seq.indexOf(oid), j = seq.indexOf(did);
@@ -783,78 +745,124 @@ function pathIds(o, d) {
   }
   return [...pathIds(o, "美麗島"), ...pathIds("美麗島", d)];
 }
+const linesFC = () => fc(LINES.map(Ln => ({type: "Feature", properties: {line: Ln}, geometry: {type: "LineString", coordinates: DATA.lines[Ln].map(([id]) => LL(id))}})));
+const stationsFC = () => fc(stations.map(st => ({type: "Feature", properties: {name: st.name, line: lineOf[st.ids[0]], xf: st.ids.length > 1 ? 1 : 0}, geometry: {type: "Point", coordinates: LL(st.ids[0])}})));
+const routeFC = () => state.from === state.to ? fc([]) : fc(pathIds(state.from, state.to).map(seg => ({type: "Feature", properties: {line: lineOf[seg[0]]}, geometry: {type: "LineString", coordinates: seg.map(LL)}})));
+
+function setupLayers() {
+  const style = map.getStyle();
+  const zh = ["coalesce", ["get", "name:zh-Hant"], ["get", "name:zh"], ["get", "name:nonlatin"], ["get", "name"]];
+  for (const l of style.layers) {
+    if (l.type === "symbol" && l.layout && l.layout["text-field"] && JSON.stringify(l.layout["text-field"]).includes("name")) map.setLayoutProperty(l.id, "text-field", zh);
+  }
+  const fontStack = JSON.stringify(style.layers.map(l => l.layout?.["text-font"]).filter(Boolean)).includes("Noto Sans Bold") ? ["Noto Sans Bold"] : ["Noto Sans Regular"];
+  const surf = cssVar("--surface"), ink = cssVar("--ink");
+  const colorExpr = ["match", ["get", "line"], "R", lineColor("R"), lineColor("O")];
+  const w = (a, b, c) => ["interpolate", ["exponential", 1.4], ["zoom"], 10, a, 13, b, 17, c];
+  const round = {"line-join": "round", "line-cap": "round"};
+  map.addSource("krtc-lines", {type: "geojson", data: linesFC()});
+  map.addSource("krtc-route", {type: "geojson", data: routeFC()});
+  map.addSource("krtc-stations", {type: "geojson", data: stationsFC()});
+  map.addSource("yb", {type: "geojson", data: ybFC()});
+  map.addLayer({id: "lines-casing", type: "line", source: "krtc-lines", layout: round, paint: {"line-color": surf, "line-width": w(4.5, 9, 18)}});
+  map.addLayer({id: "lines", type: "line", source: "krtc-lines", layout: round, paint: {"line-color": colorExpr, "line-width": w(2.5, 5, 11)}});
+  map.addLayer({id: "route-glow", type: "line", source: "krtc-route", layout: round, paint: {"line-color": colorExpr, "line-width": w(12, 22, 40), "line-opacity": .2, "line-blur": 6}});
+  map.addLayer({id: "route-casing", type: "line", source: "krtc-route", layout: round, paint: {"line-color": surf, "line-width": w(7, 12, 22)}});
+  map.addLayer({id: "route", type: "line", source: "krtc-route", layout: round, paint: {"line-color": colorExpr, "line-width": w(4, 7.5, 14)}});
+  map.addLayer({id: "yb", type: "circle", source: "yb", minzoom: 11.5, layout: {visibility: yb.on ? "visible" : "none"},
+    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 2.5, 14, 4.5, 16.5, 8],
+      "circle-color": ["match", ["get", "s"], "ok", cssVar("--good"), "empty", lineColor("R"), "off", "#9aa3b1", cssVar("--muted")],
+      "circle-stroke-color": surf, "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 12, .8, 16, 2]}});
+  map.addLayer({id: "stations", type: "circle", source: "krtc-stations",
+    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 10, ["case", ["==", ["get", "xf"], 1], 4.5, 2.5], 13, ["case", ["==", ["get", "xf"], 1], 8, 5], 16, ["case", ["==", ["get", "xf"], 1], 12, 8]],
+      "circle-color": surf, "circle-stroke-width": ["case", ["==", ["get", "xf"], 1], 3.5, 2.5], "circle-stroke-color": ["case", ["==", ["get", "xf"], 1], ink, colorExpr]}});
+  map.addLayer({id: "station-labels", type: "symbol", source: "krtc-stations", minzoom: 11.8,
+    layout: {"text-field": ["get", "name"], "text-font": fontStack, "text-size": ["interpolate", ["linear"], ["zoom"], 12, 11.5, 16, 15], "text-variable-anchor": ["left", "right", "top", "bottom"], "text-radial-offset": 1.1, "text-justify": "auto", "text-optional": true, "symbol-sort-key": ["-", 1, ["get", "xf"]]},
+    paint: {"text-color": ink, "text-halo-color": surf, "text-halo-width": 2, "text-halo-blur": .5}});
+  styleReady = true;
+  lastRouteKey = "";
+  drawRoute();
+  ybDraw();
+}
+function applyRouteDim() {
+  const has = state.from !== state.to;
+  map.setPaintProperty("lines", "line-opacity", has ? .32 : 1);
+  map.setPaintProperty("lines-casing", "line-opacity", has ? .55 : 1);
+}
+function updatePins() {
+  pins.forEach(p => p.remove()); pins = [];
+  if (state.from === state.to) return;
+  for (const [t, nm, cls] of [["起", state.from, "from"], ["終", state.to, "to"]]) {
+    const el = document.createElement("div");
+    el.innerHTML = `<div class="endpin ${cls}"><b>${t}</b><em>${esc(nm)}</em></div>`;
+    pins.push(new maplibregl.Marker({element: el, anchor: "left", offset: [-15, 0]}).setLngLat(LL(byName[nm].ids[0])).addTo(map));
+  }
+}
+function fitTo(list, maxZoom = 15) {
+  const b = new maplibregl.LngLatBounds(); list.forEach(c => b.extend(c));
+  map.fitBounds(b, {padding: {top: 80, bottom: 70, left: 50, right: 90}, maxZoom, duration: 800});
+}
+const fitRoute = () => fitTo(pathIds(state.from, state.to).flat().map(LL));
 let lastRouteKey = "";
 function drawRoute(fit) {
-  if (!map) return;
+  if (!map || !styleReady) return;
   const key = routeKey();
-  if (key !== lastRouteKey) { drawBase(); }
-  if (routeLayer) routeLayer.remove();
-  const o = state.from, d = state.to;
-  if (o === d) { lastRouteKey = key; return; }
-  routeLayer = L.layerGroup().addTo(map);
-  const pts = [];
-  for (const seg of pathIds(o, d)) {
-    const ll = seg.map(id => COORDS[id]); pts.push(...ll);
-    const c = lineColor(lineOf[seg[0]]);
-    L.polyline(ll, {color: c, weight: 18, opacity: .18, interactive: false}).addTo(routeLayer);
-    L.polyline(ll, {color: cssVar("--surface"), weight: 11, interactive: false}).addTo(routeLayer);
-    L.polyline(ll, {color: c, weight: 7, interactive: false}).addTo(routeLayer);
-  }
-  const pin = (nm, t, cls) => L.marker(COORDS[byName[nm].ids[0]], {interactive: false, keyboard: false,
-    icon: L.divIcon({className: "", html: `<div class="endpin ${cls}"><b><span>${t}</span></b><em>${nm}</em></div>`, iconSize: [0, 0]})}).addTo(routeLayer);
-  pin(o, "起", "from"); pin(d, "終", "to");
-  if (fit || key !== lastRouteKey) map.fitBounds(L.latLngBounds(pts).pad(.3), {paddingTopLeft: [10, 60], maxZoom: 15});
+  map.getSource("krtc-route").setData(routeFC());
+  applyRouteDim();
+  if (key !== lastRouteKey) updatePins();
+  if ((fit || key !== lastRouteKey) && state.from !== state.to) fitRoute();
   lastRouteKey = key;
 }
-$("fitRoute").onclick = () => { if (!map) return; if (state.from !== state.to) drawRoute(true); else map.setView([22.665, 120.315], 12); };
+function openPopup(ll, html) {
+  popup && popup.remove();
+  popup = new maplibregl.Popup({maxWidth: "310px", offset: 14, focusAfterOpen: false}).setLngLat(ll).setHTML(html).addTo(map);
+}
+function initMap() {
+  if (map) return true;
+  if (typeof maplibregl === "undefined") return false;
+  map = new maplibregl.Map({container: "map", style: styleURL(), ...HOME, attributionControl: false, pitchWithRotate: false, fadeDuration: 150});
+  map.addControl(new maplibregl.NavigationControl({showCompass: true}), "top-right");
+  map.addControl(new maplibregl.AttributionControl({compact: true}), "bottom-left");
+  map.on("style.load", setupLayers);
+  for (const id of ["stations", "yb"]) {
+    map.on("mouseenter", id, () => { map.getCanvas().style.cursor = "pointer"; });
+    map.on("mouseleave", id, () => { map.getCanvas().style.cursor = ""; });
+  }
+  map.on("click", "stations", e => { const f = e.features[0]; openPopup(f.geometry.coordinates, popupHTML(f.properties.name)); });
+  map.on("click", "yb", e => {
+    if (map.queryRenderedFeatures(e.point, {layers: ["stations"]}).length) return;
+    const st = yb.byUid?.[e.features[0].properties.uid]; if (st) openPopup(e.features[0].geometry.coordinates, ybPopup(st));
+  });
+  map.getContainer().addEventListener("click", onStationAct);
+  darkMQ.addEventListener?.("change", () => { styleReady = false; map.setStyle(styleURL(), {diff: false}); });
+  return true;
+}
+function onStationAct(e) {
+  const b = e.target.closest("button[data-act]"); if (!b) return;
+  const name = b.dataset.name, pf = state.from, pt = state.to;
+  if (b.dataset.act === "from") { state.from = name; if (name === pt) state.to = pf; }
+  else { state.to = name; if (name === pf) state.from = pt; }
+  popup && popup.remove(); render(); showView("list");
+}
+$("nearList").addEventListener("click", onStationAct);
+$("fitRoute").onclick = () => { if (!map) return; if (state.from !== state.to) fitRoute(); else map.easeTo({...HOME, duration: 700}); };
 function haversine(a, b) {
   const r = x => x * Math.PI / 180, dLat = r(b[0] - a[0]), dLon = r(b[1] - a[1]);
   const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a[0])) * Math.cos(r(b[0])) * Math.sin(dLon / 2) ** 2;
   return 12742000 * Math.asin(Math.sqrt(h));
 }
-$("locate").onclick = () => {
-  const msg = $("locMsg"), btn = $("locate");
-  if (!navigator.geolocation) { msg.textContent = "這個瀏覽器不支援定位，請直接點地圖上的車站"; return; }
-  msg.textContent = "定位中…"; btn.classList.add("busy");
-  navigator.geolocation.getCurrentPosition(pos => {
-    btn.classList.remove("busy");
-    const me = [pos.coords.latitude, pos.coords.longitude];
-    const near = stations.map(st => ({st, id: st.ids[0], d: haversine(me, COORDS[st.ids[0]])})).sort((x, y) => x.d - y.d).slice(0, 3);
-    msg.textContent = near[0].d > 30000 ? "你離高雄捷運很遠，下面是直線距離最近的車站" : `最近的捷運站是${near[0].st.name}`;
-    ybNearest(me).then(top => {
-      if (!top || near[0].d > 30000) return;
-      const a = ybInfo(top.st[0]);
-      const dist = top.d < 1000 ? Math.round(top.d) + " 公尺" : (top.d / 1000).toFixed(1) + " 公里";
-      msg.textContent = `最近的捷運站：${near[0].st.name}。${a ? "最近有車的 YouBike" : "最近的 YouBike"}：${top.st[1]}（${dist}${a && a[0] === 1 ? `，可借 ${a[1]} 台` : ""}）`;
-    });
-    $("nearList").innerHTML = `<div class="neartitle">最近的捷運站</div>` + near.map(n => {
-      const dist = n.d < 1000 ? Math.round(n.d) + " 公尺" : (n.d / 1000).toFixed(1) + " 公里";
-      const g = nextDeps(n.st.name, 1).filter(x => x.deps.length).map(x => `往${x.head} <b class="num">${fmt(x.deps[0])}</b>`).join("　");
-      return `<div class="nearrow"><div class="nm"><span class="badges${n.st.ids.length > 1 ? " two" : ""}">${badgeHTML(n.st.name)}</span>${n.st.name}<span class="dist"><b>${Math.max(1, Math.round(n.d * 1.25 / 70))} 分</b>步行・${dist}</span></div>${g ? `<div class="hint">下一班：${g}</div>` : ""}${stationActs(n.st.name, n.id)}</div>`;
-    }).join("");
-    if (map) {
-      if (userLayer) userLayer.remove();
-      userLayer = L.layerGroup([
-        L.circle(me, {radius: Math.min(pos.coords.accuracy, 300), color: "#2f6fd6", weight: 1, fillOpacity: .08, interactive: false}),
-        L.marker(me, {icon: L.divIcon({className: "", html: '<div class="me"><i></i></div>', iconSize: [18, 18], iconAnchor: [9, 9]}), interactive: false})
-      ]).addTo(map);
-      map.flyToBounds(L.latLngBounds([me, ...near.map(n => COORDS[n.id])]).pad(.3), {paddingTopLeft: [10, 60], maxZoom: 16, duration: .8});
-    }
-  }, err => {
-    btn.classList.remove("busy");
-    msg.textContent = err.code === 1 ? "沒有定位權限，請在手機設定允許這個 App 使用位置" : "暫時抓不到位置，請稍後再試";
-  }, {enableHighAccuracy: true, timeout: 12000, maximumAge: 60000});
-};
+const distText = d => d < 1000 ? Math.round(d) + " 公尺" : (d / 1000).toFixed(1) + " 公里";
+const walkMin = d => Math.max(1, Math.round(d * 1.25 / 70));
 
 // ---------- YouBike ----------
 const TDX = "https://tdx.transportdata.tw/api/basic/v2/Bike/";
 const BIKE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9 9h6l3.5 7.5M9 9 7.5 6H5M15 9l-2.5 7.5"/></svg>';
-const yb = {stations: null, avail: null, availAt: 0, layer: null, on: false, loading: null};
+const yb = {stations: null, byUid: null, avail: null, availAt: 0, on: false, loading: null};
+const ybIndex = () => { yb.byUid = {}; for (const st of yb.stations) yb.byUid[st[0]] = st; };
 const ybCached = store.get("krtc-yb-st", null);
-if (ybCached && Date.now() - ybCached.t < 7 * 864e5) yb.stations = ybCached.list;
+if (ybCached && Date.now() - ybCached.t < 7 * 864e5) { yb.stations = ybCached.list; ybIndex(); }
 const ybAvCached = store.get("krtc-yb-av", null);
 if (ybAvCached) { yb.avail = ybAvCached.map; yb.availAt = ybAvCached.t; }
-
 async function tdxGet(path) {
   const r = await fetch(TDX + path + (path.includes("?") ? "&" : "?") + "$format=JSON");
   if (r.status === 429) throw new Error("limit");
@@ -867,14 +875,13 @@ async function ybLoad(needAvail) {
     if (!yb.stations) {
       const j = await tdxGet("Station/City/Kaohsiung?$select=StationUID,StationName,StationPosition,BikesCapacity");
       yb.stations = j.map(x => [x.StationUID, (x.StationName?.Zh_tw || "").replace(/^YouBike2\.0_/, ""), +x.StationPosition.PositionLat.toFixed(5), +x.StationPosition.PositionLon.toFixed(5), x.BikesCapacity || 0]);
-      store.set("krtc-yb-st", {t: Date.now(), list: yb.stations});
+      ybIndex(); store.set("krtc-yb-st", {t: Date.now(), list: yb.stations});
     }
     if (needAvail && Date.now() - yb.availAt > 120000) {
       const j = await tdxGet("Availability/City/Kaohsiung?$select=StationUID,ServiceStatus,AvailableRentBikes,AvailableReturnBikes,AvailableRentBikesDetail");
       const m = {};
       for (const x of j) m[x.StationUID] = [x.ServiceStatus, x.AvailableRentBikes, x.AvailableReturnBikes, x.AvailableRentBikesDetail?.ElectricBikes || 0];
-      yb.avail = m; yb.availAt = Date.now();
-      store.set("krtc-yb-av", {t: yb.availAt, map: m});
+      yb.avail = m; yb.availAt = Date.now(); store.set("krtc-yb-av", {t: yb.availAt, map: m});
     }
   })().finally(() => { yb.loading = null; });
   return yb.loading;
@@ -882,35 +889,24 @@ async function ybLoad(needAvail) {
 const ybErr = e => !navigator.onLine ? "沒有網路，連上網路後才能查 YouBike"
   : e.message === "limit" ? "今天的 YouBike 查詢次數已達上限（免金鑰每天約 20 次），請晚點再試" : "YouBike 資料暫時抓不到，請稍後再試";
 const ybAge = () => { if (!yb.availAt) return ""; const m = Math.round((Date.now() - yb.availAt) / 60000); return m < 1 ? "剛剛更新" : `${m} 分鐘前更新`; };
-function ybInfo(uid) { return yb.avail?.[uid] || null; }
-function ybColor(uid) {
-  const a = ybInfo(uid);
-  if (!a) return cssVar("--muted");
-  if (a[0] !== 1) return "#9aa3b1";
-  return a[1] > 0 ? cssVar("--good") : cssVar("--red");
-}
+const ybInfo = uid => yb.avail?.[uid] || null;
+const ybState = uid => { const a = ybInfo(uid); return !a ? "unknown" : a[0] !== 1 ? "off" : a[1] > 0 ? "ok" : "empty"; };
+const ybFC = () => fc((yb.stations || []).map(st => ({type: "Feature", properties: {uid: st[0], s: ybState(st[0])}, geometry: {type: "Point", coordinates: [st[3], st[2]]}})));
 function ybNumsHTML(uid) {
   const a = ybInfo(uid);
   if (!a) return `<div class="ybnum"><span>即時車輛數尚未載入</span></div>`;
   if (a[0] !== 1) return `<div class="ybnum"><span>${a[0] === 2 ? "暫停營運" : "停止營運"}</span></div>`;
   return `<div class="ybnum"><span class="${a[1] ? "" : "zero"}"><b>${a[1]}</b>可借${a[3] ? `（電輔 ${a[3]}）` : ""}</span><span class="${a[2] ? "" : "zero"}"><b>${a[2]}</b>可還</span></div>`;
 }
-const walkLink = (lat, lon) => `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=walking`;
 function ybPopup(st) {
-  return `<div class="pop ybpop"><div class="pop-h"><span class="ybtag${ybInfo(st[0]) && ybInfo(st[0])[0] !== 1 ? " off" : ""}">${BIKE_SVG}</span><div><h4 style="font-size:15px">${esc(st[1])}</h4><p>YouBike 2.0・${st[4]} 柱・${ybAge() || "按 YouBike 按鈕載入即時數量"}</p></div></div>
+  const off = ybState(st[0]) === "off" || ybState(st[0]) === "empty";
+  return `<div class="pop ybpop"><div class="pop-h"><span class="ybtag${off ? " off" : ""}">${BIKE_SVG}</span><div><h4 style="font-size:15px">${esc(st[1])}</h4><p>YouBike 2.0・${st[4]} 柱・${ybAge() || "按 YouBike 按鈕載入即時數量"}</p></div></div>
     ${ybNumsHTML(st[0])}<div class="acts"><a class="gmap" href="${walkLink(st[2], st[3])}" target="_blank" rel="noopener">導航過去</a></div></div>`;
 }
 function ybDraw() {
-  if (!map || !yb.stations) return;
-  if (!yb.layer) {
-    const canvas = L.canvas({padding: .3});
-    yb.layer = L.layerGroup();
-    yb.markers = yb.stations.map(st => L.circleMarker([st[2], st[3]], {renderer: canvas, radius: 4, weight: 1.5, color: "#fff", fillColor: ybColor(st[0]), fillOpacity: .95})
-      .bindPopup(() => ybPopup(st), {maxWidth: 280}).addTo(yb.layer));
-    const sz = () => { const z = map.getZoom(), r = z >= 16 ? 7 : z >= 14 ? 5 : 3; yb.markers.forEach(m => m.setRadius(r)); };
-    map.on("zoomend", sz); sz();
-  } else yb.markers.forEach((m, i) => m.setStyle({fillColor: ybColor(yb.stations[i][0])}));
-  if (yb.on) yb.layer.addTo(map); else yb.layer.remove();
+  if (!map || !styleReady) return;
+  map.getSource("yb").setData(ybFC());
+  map.setLayoutProperty("yb", "visibility", yb.on ? "visible" : "none");
 }
 $("ybToggle").onclick = async () => {
   yb.on = !yb.on;
@@ -918,13 +914,11 @@ $("ybToggle").onclick = async () => {
   if (!yb.on) { ybDraw(); $("locMsg").textContent = "已隱藏 YouBike 站"; return; }
   btn.classList.add("busy"); $("locMsg").textContent = "載入 YouBike 站…";
   try {
-    await ybLoad(true);
-    ybDraw();
-    if (map.getZoom() < 13.5) map.setZoom(14);
+    await ybLoad(true); ybDraw();
+    if (map && map.getZoom() < 13.5) map.easeTo({zoom: 14, duration: 600});
     $("locMsg").textContent = `綠點有車可借、紅點沒車，${ybAge()}。按定位可找離你最近的 YouBike`;
-  } catch (e) {
-    ybDraw(); $("locMsg").textContent = ybErr(e);
-  } finally { btn.classList.remove("busy"); }
+  } catch (e) { ybDraw(); $("locMsg").textContent = ybErr(e); }
+  finally { btn.classList.remove("busy"); }
 };
 async function ybNearest(me) {
   const box = $("ybList");
@@ -935,14 +929,44 @@ async function ybNearest(me) {
   const withBike = ranked.filter(x => { const a = ybInfo(x.st[0]); return !a || (a[0] === 1 && a[1] > 0); });
   const picks = [ranked[0], ...withBike.filter(x => x !== ranked[0]).slice(0, 2)].slice(0, 3);
   box.innerHTML = `<div class="neartitle">最近的 YouBike<span>${note || ybAge()}</span></div>` + picks.map(x => {
-    const a = ybInfo(x.st[0]), emptyCls = a && (a[0] !== 1 || a[1] === 0) ? " empty" : "";
-    const dist = x.d < 1000 ? Math.round(x.d) + " 公尺" : (x.d / 1000).toFixed(1) + " 公里";
-    return `<div class="nearrow ybrow${emptyCls}"><div class="nm"><span class="ybtag${emptyCls ? " off" : ""}">${BIKE_SVG}</span><span style="font-size:15px">${esc(x.st[1])}</span><span class="dist"><b>${Math.max(1, Math.round(x.d * 1.25 / 70))} 分</b>步行・${dist}</span></div>${ybNumsHTML(x.st[0])}<div class="acts"><a class="gmap" href="${walkLink(x.st[2], x.st[3])}" target="_blank" rel="noopener">導航過去</a></div></div>`;
+    const s_ = ybState(x.st[0]), emptyCls = s_ === "off" || s_ === "empty" ? " empty" : "";
+    return `<div class="nearrow ybrow${emptyCls}"><div class="nm"><span class="ybtag${emptyCls ? " off" : ""}">${BIKE_SVG}</span><span style="font-size:15px">${esc(x.st[1])}</span><span class="dist"><b>${walkMin(x.d)} 分</b>步行・${distText(x.d)}</span></div>${ybNumsHTML(x.st[0])}<div class="acts"><a class="gmap" href="${walkLink(x.st[2], x.st[3])}" target="_blank" rel="noopener">導航過去</a></div></div>`;
   }).join("");
-  if (map && !yb.on) { yb.on = true; $("ybToggle").setAttribute("aria-pressed", "true"); }
+  if (!yb.on) { yb.on = true; $("ybToggle").setAttribute("aria-pressed", "true"); }
   ybDraw();
   return withBike[0] || ranked[0];
 }
+
+$("locate").onclick = () => {
+  const msg = $("locMsg"), btn = $("locate");
+  if (!navigator.geolocation) { msg.textContent = "這個瀏覽器不支援定位，請直接點地圖上的車站"; return; }
+  msg.textContent = "定位中…"; btn.classList.add("busy");
+  navigator.geolocation.getCurrentPosition(pos => {
+    btn.classList.remove("busy");
+    const me = [pos.coords.latitude, pos.coords.longitude];
+    const near = stations.map(st => ({st, id: st.ids[0], d: haversine(me, COORDS[st.ids[0]])})).sort((x, y) => x.d - y.d).slice(0, 3);
+    const far = near[0].d > 30000;
+    msg.textContent = far ? "你離高雄捷運很遠，下面是直線距離最近的車站" : `最近的捷運站是${near[0].st.name}`;
+    $("nearList").innerHTML = `<div class="neartitle">最近的捷運站</div>` + near.map(n => {
+      const g = nextDeps(n.st.name, 1).filter(x => x.deps.length).map(x => `往${x.head} <b class="num">${fmt(x.deps[0])}</b>`).join("　");
+      return `<div class="nearrow"><div class="nm"><span class="badges${n.st.ids.length > 1 ? " two" : ""}">${badgeHTML(n.st.name)}</span>${n.st.name}<span class="dist"><b>${walkMin(n.d)} 分</b>步行・${distText(n.d)}</span></div>${g ? `<div class="hint">下一班：${g}</div>` : ""}${stationActs(n.st.name, n.id)}</div>`;
+    }).join("");
+    if (map) {
+      meMarker && meMarker.remove();
+      const el = document.createElement("div"); el.className = "me"; el.innerHTML = "<i></i>";
+      meMarker = new maplibregl.Marker({element: el}).setLngLat([me[1], me[0]]).addTo(map);
+      if (!far) fitTo([[me[1], me[0]], ...near.map(n => LL(n.id))], 16);
+    }
+    ybNearest(me).then(top => {
+      if (!top || far) return;
+      const a = ybInfo(top.st[0]);
+      msg.textContent = `最近的捷運站：${near[0].st.name}。${a ? "最近有車的 YouBike" : "最近的 YouBike"}：${top.st[1]}（${distText(top.d)}${a && a[0] === 1 ? `，可借 ${a[1]} 台` : ""}）`;
+    });
+  }, err => {
+    btn.classList.remove("busy");
+    msg.textContent = err.code === 1 ? "沒有定位權限，請在手機設定允許這個 App 使用位置" : "暫時抓不到位置，請稍後再試";
+  }, {enableHighAccuracy: true, timeout: 12000, maximumAge: 60000});
+};
 
 // ---------- 分頁 ----------
 function showView(v) {
@@ -951,7 +975,7 @@ function showView(v) {
   document.querySelectorAll(".tabbar button").forEach(b => { if (b.dataset.tab === v) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
   if (v === "map") {
     if (!initMap()) { $("locMsg").textContent = "地圖需要網路才能第一次載入。"; return; }
-    setTimeout(() => { map.invalidateSize(); drawRoute(); }, 60);
+    setTimeout(() => { map.resize(); drawRoute(); }, 60);
     $("locMsg").hidden = false;
   }
   if (matchMedia("(max-width: 979px)").matches) window.scrollTo({top: v === "list" ? 0 : document.querySelector(".col-main").offsetTop - 10, behavior: "instant"});
