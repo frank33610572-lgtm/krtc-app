@@ -174,7 +174,8 @@ body.is-offline .offline{display:inline-block}
 .field select,.field textarea{width:100%;border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:9px 10px;min-height:44px;font-size:16px}
 .field textarea{min-height:72px;resize:vertical}
 .btn{border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:8px 14px;cursor:pointer;min-height:42px;font-size:14px;font-weight:500}
-.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--surface);font-weight:700}
+a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--ink)}
+.btn.primary,a.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--surface);font-weight:700}
 .btn.danger{color:var(--red);background:none;border-color:transparent}
 .row-actions{display:flex;gap:8px;flex-wrap:wrap}
 .hint{margin:0;font-size:12px;color:var(--muted)}
@@ -312,6 +313,12 @@ body.is-offline .offline{display:inline-block}
 .about{font-size:13px;color:var(--muted);display:grid;gap:6px}
 .seg3{grid-template-columns:repeat(3,1fr)}
 .install[hidden]{display:none}
+#ybCard[hidden]{display:none}
+.ybsteps{margin:0;padding-left:20px;font-size:14px;display:grid;gap:6px}
+.ybsteps b{color:var(--ink)}
+.ybsteps code{font-family:inherit;font-weight:700;background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:0 6px}
+.toggle{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;min-height:44px}
+.toggle input{width:22px;height:22px;accent-color:var(--good)}
 .install ol{margin:0;padding-left:20px;font-size:14px;display:grid;gap:4px}
 .install ol b{color:var(--ink)}
 .about p{margin:0}
@@ -421,6 +428,10 @@ body.is-offline .offline{display:inline-block}
             <button type="button" id="xPlus" aria-label="增加一分鐘">+</button>
           </div>
           <p class="hint">紅線、橘線互轉時，在美麗島站換月台需要的時間。走得快可以調低。</p>
+        </div>
+        <div class="card" id="ybCard" hidden>
+          <h2>一鍵開啟 YouBike App</h2>
+          <div id="ybCardBody"></div>
         </div>
         <div class="card">
           <h2>外觀</h2>
@@ -887,6 +898,11 @@ function onStationAct(e) {
   popup && popup.remove(); render(); showView("list");
 }
 $("nearList").addEventListener("click", onStationAct);
+document.addEventListener("click", e => {
+  if (!e.target.closest('[data-act="ybsetup"]')) return;
+  popup && popup.remove(); showView("settings");
+  setTimeout(() => $("ybCard").scrollIntoView({behavior: "smooth", block: "start"}), 80);
+});
 $("fitRoute").onclick = () => { if (!map) return; if (state.from !== state.to) fitRoute(); else map.easeTo({...HOME, duration: 700}); };
 function haversine(a, b) {
   const r = x => x * Math.PI / 180, dLat = r(b[0] - a[0]), dLon = r(b[1] - a[1]);
@@ -900,8 +916,23 @@ const walkMin = d => Math.max(1, Math.round(d * 1.25 / 70));
 const TDX = "https://tdx.transportdata.tw/api/basic/v2/Bike/";
 const BIKE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9 9h6l3.5 7.5M9 9 7.5 6H5M15 9l-2.5 7.5"/></svg>';
 const IS_IOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-const YB_APP = IS_IOS ? "https://apps.apple.com/tw/app/id1483423095" : "https://play.google.com/store/search?q=YouBike%E5%BE%AE%E7%AC%91%E5%96%AE%E8%BB%8A&c=apps";
-const ybActs = st => `<div class="acts"><a class="gmap" href="${walkLink(st[2], st[3])}" target="_blank" rel="noopener">導航過去</a><a class="ybapp" href="${YB_APP}" target="_blank" rel="noopener">${BIKE_SVG}用 YouBike App 租車</a></div>`;
+const IS_ANDROID = /android/i.test(navigator.userAgent);
+const YB_PKG = "tw.com.youbike.plus";
+const YB_PLAY = "https://play.google.com/store/apps/details?id=" + YB_PKG;
+const YB_IOS_STORE = "https://apps.apple.com/tw/app/id1483423095";
+const YB_SHORTCUT = "YouBike";
+const ybShortcutOn = () => store.get("krtc-yb-shortcut", false);
+function ybAppHref() {
+  if (IS_IOS) return ybShortcutOn() ? "shortcuts://run-shortcut?name=" + encodeURIComponent(YB_SHORTCUT) : YB_IOS_STORE;
+  if (IS_ANDROID) return `intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=${YB_PKG};S.browser_fallback_url=${encodeURIComponent(YB_PLAY)};end`;
+  return YB_PLAY;
+}
+const ybAppLink = (label = "開啟 YouBike 借車") => {
+  const href = ybAppHref(), web = href.startsWith("http");
+  return `<a class="ybapp" href="${href}"${web ? ' target="_blank" rel="noopener"' : ""}>${BIKE_SVG}${label}</a>`;
+};
+const ybActs = st => `<div class="acts"><a class="gmap" href="${walkLink(st[2], st[3])}" target="_blank" rel="noopener">導航過去</a>${ybAppLink()}</div>`
+  + (IS_IOS && !ybShortcutOn() ? `<button type="button" class="linkbtn" data-act="ybsetup">想按一下就直接開 YouBike？設定一次就好</button>` : "");
 const yb = {stations: null, byUid: null, avail: null, availAt: 0, on: false, loading: null};
 const ybIndex = () => { yb.byUid = {}; for (const st of yb.stations) yb.byUid[st[0]] = st; };
 const ybCached = store.get("krtc-yb-st", null);
@@ -946,7 +977,7 @@ function ybNumsHTML(uid) {
 function ybPopup(st) {
   const off = ybState(st[0]) === "off" || ybState(st[0]) === "empty";
   return `<div class="pop ybpop"><div class="pop-h"><span class="ybtag${off ? " off" : ""}">${BIKE_SVG}</span><div><h4 style="font-size:15px">${esc(st[1])}</h4><p>YouBike 2.0・${st[4]} 柱・${ybAge() || "按 YouBike 按鈕載入即時數量"}</p></div></div>
-    ${ybNumsHTML(st[0])}${ybActs(st)}<p class="hint">到站後用 YouBike App 掃描車上的 QR Code，或用一卡通、悠遊卡感應車機就能借車。</p></div>`;
+    ${ybNumsHTML(st[0])}${ybActs(st)}<p class="hint">開啟 YouBike App 後按「掃碼」，掃車上的 QR Code 就能借車；也可以用一卡通、悠遊卡感應車機。</p></div>`;
 }
 function ybDraw() {
   if (!map || !styleReady) return;
@@ -1047,6 +1078,32 @@ const tick = () => {
 };
 setInterval(tick, 20000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+
+// ---------- 一鍵開啟 YouBike ----------
+function renderYbCard() {
+  const card = $("ybCard"), body = $("ybCardBody");
+  if (IS_IOS) {
+    card.hidden = false;
+    const on = ybShortcutOn();
+    body.innerHTML = `<p class="hint">iPhone 不允許網頁直接打開其他 App，但可以透過內建的「捷徑」App 轉一手。設定一次後，按「開啟 YouBike 借車」就會直接進到 YouBike App。</p>
+      <ol class="ybsteps">
+        <li>先確認已安裝 <b>YouBike微笑單車 官方版</b></li>
+        <li>點下面的按鈕打開「捷徑」，新增一個捷徑</li>
+        <li>加入動作 <b>「打開 App」</b>，App 選 <b>YouBike微笑單車</b></li>
+        <li>把捷徑名稱改成 <code>${YB_SHORTCUT}</code>，按完成</li>
+        <li>回到這裡，勾選下面的「已設定好」</li>
+      </ol>
+      <div class="row-actions"><a class="btn" href="shortcuts://create-shortcut">打開「捷徑」新增捷徑</a>${on ? `<a class="btn primary" href="${ybAppHref()}">測試開啟 YouBike</a>` : ""}</div>
+      <label class="toggle"><input type="checkbox" id="ybShortcutChk"${on ? " checked" : ""}>已設定好名為「${YB_SHORTCUT}」的捷徑</label>
+      <p class="hint">第一次開啟時，iPhone 可能會詢問是否允許在「捷徑」中打開，選「打開」即可。</p>`;
+    $("ybShortcutChk").onchange = e => { store.set("krtc-yb-shortcut", e.target.checked); renderYbCard(); };
+  } else if (IS_ANDROID) {
+    card.hidden = false;
+    body.innerHTML = `<p class="hint">Android 不用設定：按「開啟 YouBike 借車」會直接打開 YouBike微笑單車 官方版。還沒安裝的話會帶你到 Google Play。</p>
+      <div class="acts">${ybAppLink("測試開啟 YouBike")}</div>`;
+  }
+}
+renderYbCard();
 
 // ---------- 外觀 ----------
 function applyTheme(t) {
