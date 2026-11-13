@@ -3,622 +3,683 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#13233d">
+<title>高捷班次</title>
+<meta name="description" content="高雄捷運紅線、橘線班次查詢：下一班倒數、到站時間、美麗島轉乘、最近車站與地圖。可離線使用。">
+<meta name="theme-color" content="#0d1420">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="高捷班次">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>高捷班次查詢</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-/* 版面：左側查詢面板（手機在上方），右側為發車看板式的結果清單；紅橘兩線色只用來標示路線 */
+/* 版面：手機為單欄 App（底部分頁列）；寬螢幕左欄放行程與發車看板、右欄放班次清單與地圖。
+   唯一的大膽處是深色「發車看板」與琥珀色大數字，其餘保持安靜；紅、橘只用來代表路線。 */
 :root{
-  --bg:#f3f4f6;
-  --panel:#ffffff;
-  --ink:#16191f;
-  --muted:#5d6470;
-  --line:#dfe2e7;
-  --accent:#1d4f91;
-  --red:#d6202e;
-  --orange:#ee8a00;
-  --good:#1f7a4d;
-  --soft:#eef1f5;
+  --bg:#eceef2;
+  --surface:#ffffff;
+  --ink:#121822;
+  --muted:#5c6575;
+  --line:#dde1e8;
+  --soft:#f4f5f8;
+  --board:#0d1420;
+  --board-ink:#e8edf5;
+  --amber:#ffb23e;
+  --red:#e1252f;
+  --orange:#f39800;
+  --good:#128556;
+  --focus:#2f6fd6;
+  --font-display:"Big Shoulders Display","Barlow Condensed","Arial Narrow",sans-serif;
   --font-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
-  --font-time:"Barlow Condensed","Roboto Condensed","Arial Narrow",var(--font-body);
+  --radius:16px;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0f1216; --panel:#181c22; --ink:#eceef2; --muted:#9aa2ae; --line:#2b313a;
-    --accent:#7fb0f0; --red:#ff5a63; --orange:#ffa733; --good:#5fcf95; --soft:#222831;
+    --bg:#090d13; --surface:#131922; --ink:#e9edf3; --muted:#9aa3b1; --line:#252d39; --soft:#1a212c;
+    --board:#05080d; --board-ink:#e8edf5; --amber:#ffb84d; --red:#ff4b55; --orange:#ffa526; --good:#3fcf8e; --focus:#7fb0ff;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0f1216; --panel:#181c22; --ink:#eceef2; --muted:#9aa2ae; --line:#2b313a;
-  --accent:#7fb0f0; --red:#ff5a63; --orange:#ffa733; --good:#5fcf95; --soft:#222831;
+  --bg:#090d13; --surface:#131922; --ink:#e9edf3; --muted:#9aa3b1; --line:#252d39; --soft:#1a212c;
+  --board:#05080d; --board-ink:#e8edf5; --amber:#ffb84d; --red:#ff4b55; --orange:#ffa526; --good:#3fcf8e; --focus:#7fb0ff;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.55}
-.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 40px;display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}
-header{grid-column:1/-1;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-header h1{margin:0;font-size:22px;font-weight:700;letter-spacing:.02em;text-wrap:balance}
-.legend{display:flex;gap:12px;color:var(--muted);font-size:13px}
-.legend span{display:inline-flex;align-items:center;gap:6px}
-.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
-.dot.R{background:var(--red)} .dot.O{background:var(--orange)}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:16px;position:sticky;top:12px}
-.field{display:grid;gap:6px}
-label,.lbl{font-size:13px;color:var(--muted);font-weight:500}
-select,input[type=time],input[type=number]{width:100%;font:inherit;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:9px 10px;min-height:42px}
-select:focus-visible,input:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.od{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
-.od .stack{display:grid;gap:10px}
-.swap{width:42px;height:94px;border-radius:8px;border:1px solid var(--line);background:var(--soft);color:var(--ink);font-size:18px;cursor:pointer}
-.swap:hover{border-color:var(--accent)}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px;gap:3px}
-.seg input{position:absolute;opacity:0;pointer-events:none}
-.seg label{text-align:center;padding:7px 4px;border-radius:6px;cursor:pointer;color:var(--muted);font-size:14px}
-.seg input:checked+label{background:var(--panel);color:var(--ink);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.12)}
-.seg input:focus-visible+label{outline:2px solid var(--accent)}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font:inherit;font-size:13px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:4px 11px;cursor:pointer}
-.chip:hover{border-color:var(--accent);color:var(--accent)}
-.hint{font-size:12px;color:var(--muted);margin:0}
-.favs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.num{font-family:var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+
+/* ---------- 外框 ---------- */
+.app{max-width:560px;margin:0 auto;min-height:100%;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) calc(92px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));display:grid;gap:14px;align-content:start}
+.col-side,.col-main{display:grid;gap:14px;align-content:start;min-width:0}
+@media (min-width:980px){
+  .app{max-width:1160px;grid-template-columns:400px 1fr;gap:24px;padding:28px 28px 40px;align-items:start}
+  .col-side{position:sticky;top:20px}
+}
+
+/* ---------- 頂列 ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:19px;letter-spacing:.04em}
+.brand svg{width:30px;height:30px;flex:none}
+.offline{display:none;font-size:11px;font-weight:700;color:var(--good);border:1px solid currentColor;border-radius:999px;padding:1px 8px;letter-spacing:0}
+body.is-offline .offline{display:inline-block}
+.daychip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;min-height:36px}
+.daychip i{width:7px;height:7px;border-radius:50%;background:var(--good)}
+.daychip.manual i{background:var(--amber)}
+
+/* ---------- 行程卡 ---------- */
+.journey{background:var(--surface);border-radius:var(--radius);border:1px solid var(--line);position:relative;padding:6px 64px 6px 16px}
+.stn{position:relative;display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center;padding:12px 0;min-height:66px}
+.stn+.stn{border-top:1px dashed var(--line)}
+.stn select{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer;font-size:16px}
+.stn .k{font-size:12px;color:var(--muted);font-weight:500;line-height:1.2}
+.stn .v{font-size:22px;font-weight:900;line-height:1.25;letter-spacing:.02em;overflow-wrap:anywhere}
+.stn .chev{position:absolute;right:0;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none}
+.stn:focus-within{outline:2px solid var(--focus);outline-offset:-2px;border-radius:10px}
+.badges{display:flex;flex-direction:column;gap:3px;align-items:center}
+.badge{display:inline-grid;place-items:center;min-width:40px;height:30px;padding:0 5px;border-radius:7px;color:#fff;font-family:var(--font-display);font-weight:800;font-size:17px;letter-spacing:.02em;line-height:1}
+.badge.R{background:var(--red)} .badge.O{background:var(--orange)}
+.badges.two .badge{height:22px;font-size:14px;min-width:38px}
+.swap{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--soft);cursor:pointer;display:grid;place-items:center;transition:transform .25s}
+.swap:hover{border-color:var(--focus)}
+.swap.spin{transform:translateY(-50%) rotate(180deg)}
+.swap svg{width:18px;height:18px}
+.star{position:absolute;right:12px;top:10px;border:0;background:none;cursor:pointer;font-size:20px;line-height:1;color:var(--muted);padding:4px;min-width:32px;min-height:32px}
+.star.on{color:var(--amber)}
+.favs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -2px;padding:0 2px}
+.favs::-webkit-scrollbar{display:none}
 .favs:empty{display:none}
-.fav{flex:none;display:inline-flex;align-items:center;border:1px solid var(--line);background:var(--soft);border-radius:999px;font-size:14px}
-.fav button{font:inherit;background:none;border:0;color:var(--ink);cursor:pointer;padding:8px 4px 8px 13px;min-height:40px}
-.fav button.x{color:var(--muted);padding:8px 12px 8px 6px;font-size:13px}
-.fav.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-.favbtn{font:inherit;font-size:14px;justify-self:start;background:none;border:0;color:var(--accent);cursor:pointer;padding:4px 0;min-height:36px}
-.more{border-top:1px solid var(--line);padding-top:12px}
-.more .field{margin-top:12px}
-.more>summary{cursor:pointer;font-size:14px;font-weight:500;color:var(--ink);min-height:32px;display:flex;align-items:center;gap:8px}
-.more>summary span{color:var(--muted);font-weight:400;font-size:13px}
-.notecard{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--good);border-radius:12px;padding:14px 16px;display:grid;gap:10px}
-.notecard[hidden]{display:none}
-.notecard h3{margin:0;font-size:14px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.ncar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px}
+.fav{flex:none;display:inline-flex;align-items:center;gap:2px;border:1px solid var(--line);background:var(--surface);border-radius:999px;font-size:14px;font-weight:500}
+.fav button{border:0;background:none;cursor:pointer;padding:7px 4px 7px 12px;min-height:38px}
+.fav button.x{color:var(--muted);padding:7px 11px 7px 4px;font-size:12px}
+.fav.on{border-color:var(--ink)}
+
+/* ---------- 時間 ---------- */
+.when{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px;display:grid;gap:10px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--soft);border-radius:10px;padding:3px;gap:3px}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{text-align:center;padding:7px 4px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:14px;font-weight:500}
+.seg input:checked+label{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.seg input:focus-visible+label{outline:2px solid var(--focus)}
+.range{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
+.range input{width:100%;border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:8px 10px;min-height:44px;font-size:16px}
+.range span{color:var(--muted);font-size:13px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer;min-height:34px}
+.chip:hover{border-color:var(--ink)}
+
+/* ---------- 發車看板 ---------- */
+.board{position:relative;overflow:hidden;background:var(--board);color:var(--board-ink);border-radius:20px;padding:18px 18px 16px;display:grid;gap:14px;isolation:isolate}
+.board::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.13;background-image:radial-gradient(circle,#fff 1px,transparent 1.3px);background-size:6px 6px;-webkit-mask-image:linear-gradient(115deg,#000 0%,transparent 70%);mask-image:linear-gradient(115deg,#000 0%,transparent 70%)}
+.board::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--red) 0 50%,var(--orange) 50% 100%)}
+.b-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;letter-spacing:.12em;color:#9fb0c8}
+.b-head b{color:var(--amber);font-weight:700;letter-spacing:.12em}
+.b-main{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.b-count{display:flex;align-items:baseline;gap:8px;color:var(--amber)}
+.b-count .big{font-family:var(--font-display);font-weight:800;font-size:92px;line-height:.82;font-variant-numeric:tabular-nums}
+.b-count .unit{font-size:16px;font-weight:700}
+.b-count.small .big{font-size:64px}
+.b-times{display:flex;align-items:center;gap:10px}
+.b-times div{display:grid;gap:2px}
+.b-times small{font-size:11px;color:#9fb0c8;letter-spacing:.1em}
+.b-times b{font-family:var(--font-display);font-size:34px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.b-times .arr{color:#6f819b;font-size:18px;align-self:end;padding-bottom:4px}
+.b-route{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.lchip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px 3px 4px;font-size:13px;font-weight:700;background:rgba(255,255,255,.08)}
+.lchip i{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:10px;color:#fff;font-family:var(--font-display)}
+.lchip i.R{background:var(--red)} .lchip i.O{background:var(--orange)}
+.lchip.x{background:none;border:1px dashed rgba(255,255,255,.3);padding:3px 10px;font-weight:500}
+.b-stats{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#9fb0c8;border-top:1px solid rgba(255,255,255,.1);padding-top:10px;padding-bottom:4px}
+.b-stats b{font-family:var(--font-display);font-size:20px;color:var(--board-ink);font-weight:700;margin-right:2px}
+.b-empty{font-size:16px;font-weight:700;color:var(--board-ink)}
+.b-empty small{display:block;font-weight:400;font-size:13px;color:#9fb0c8;margin-top:4px}
+.tick{animation:tick .5s ease}
+@keyframes tick{from{opacity:.2;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------- 備註 ---------- */
+.note{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;display:grid;gap:8px}
+.note[hidden]{display:none}
+.note h3{margin:0;font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--muted);letter-spacing:.06em}
+.ncar{display:flex;gap:10px;align-items:center;font-size:14px}
 .ncar b{color:var(--good)}
-.cars{display:inline-flex;gap:3px;vertical-align:middle}
-.cars i{width:22px;height:12px;border-radius:3px;border:1.5px solid var(--muted);display:inline-block}
+.cars{display:inline-flex;gap:3px}
+.cars i{width:20px;height:11px;border-radius:3px;border:1.5px solid var(--muted)}
 .cars i.on{background:var(--good);border-color:var(--good)}
+.cars i:first-child{border-top-left-radius:7px;border-bottom-left-radius:7px}
 .ntext{margin:0;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
-.nbtn{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:8px;padding:7px 14px;cursor:pointer;min-height:40px}
-.nbtn.primary{background:var(--good);border-color:var(--good);color:var(--panel);font-weight:700}
-.nbtn.link{background:none;border:0;color:var(--accent);padding:4px 0;min-height:32px}
-.nbtn.danger{color:var(--red)}
-.addnote{font:inherit;font-size:14px;text-align:left;background:none;border:1px dashed var(--line);border-radius:8px;color:var(--accent);padding:10px 12px;cursor:pointer;min-height:44px}
+.addnote{text-align:left;background:none;border:0;color:var(--muted);padding:2px 0;cursor:pointer;font-size:14px;min-height:36px;display:flex;align-items:center;gap:8px}
+.addnote b{color:var(--ink)}
+.linkbtn{border:0;background:none;color:var(--focus);cursor:pointer;font-size:13px;padding:4px 0;min-height:32px}
 .nedit{display:grid;gap:10px}
-.nedit textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:9px 10px;min-height:70px;resize:vertical}
-.nactions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.pill.less{border-color:var(--good);color:var(--good)}
-.results{display:grid;gap:12px;min-width:0}
-.summary{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:grid;gap:10px}
-.route{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:18px;font-weight:700}
-.route .arrow{color:var(--muted);font-weight:400}
-.stats{display:flex;gap:22px;flex-wrap:wrap}
-.stat .k{font-size:12px;color:var(--muted)}
-.stat .v{font-family:var(--font-time);font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
-.stat .v small{font-family:var(--font-body);font-size:13px;font-weight:500;color:var(--muted);margin-left:3px}
-.note{font-size:13px;color:var(--muted);margin:0}
-.list{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.trip{border-top:1px solid var(--line)}
-.trip:first-child{border-top:0}
-.trip>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:12px 16px 12px 12px}
-.trip>summary::-webkit-details-marker{display:none}
-.trip>summary:hover{background:var(--soft)}
-.stripe{width:5px;align-self:stretch;border-radius:3px;display:flex;flex-direction:column;overflow:hidden}
-.stripe i{flex:1}
-.stripe .R{background:var(--red)} .stripe .O{background:var(--orange)}
-.times{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;min-width:0}
-.t{font-family:var(--font-time);font-size:30px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
-.t.arr{font-size:22px;color:var(--muted);font-weight:500}
-.sep{color:var(--muted)}
-.meta{font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center;width:100%}
-.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:1px 9px;font-size:12px;font-weight:500;border:1px solid var(--line);color:var(--ink);white-space:nowrap}
-.pill.R{border-color:var(--red);color:var(--red)} .pill.O{border-color:var(--orange);color:var(--orange)}
-.pill.xfer{background:var(--soft)}
-.right{text-align:right;display:grid;gap:2px;justify-items:end}
-.dur{font-family:var(--font-time);font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
-.dur small{font-family:var(--font-body);font-size:12px;color:var(--muted);font-weight:400;margin-left:2px}
-.wait{font-size:12px;font-weight:700;color:var(--good);white-space:nowrap}
-.trip.next{background:color-mix(in srgb,var(--good) 7%,transparent)}
-.trip.next .wait{background:var(--good);color:var(--panel);padding:1px 8px;border-radius:999px}
-.trip.past{opacity:.5}
-.legs{padding:4px 16px 16px 31px;display:grid;gap:12px}
-.leg h4{margin:0 0 6px;font-size:13px;font-weight:700;display:flex;gap:8px;align-items:center}
-.stops{list-style:none;margin:0;padding:0 0 0 12px;border-left:3px solid var(--line);display:grid;gap:2px}
-.leg.R .stops{border-color:var(--red)} .leg.O .stops{border-color:var(--orange)}
-.stops li{display:grid;grid-template-columns:52px 1fr;font-size:13px;color:var(--muted)}
-.stops li b{font-family:var(--font-time);font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink)}
+.field{display:grid;gap:5px}
+.field label,.lbl{font-size:12px;color:var(--muted);font-weight:500}
+.field select,.field textarea{width:100%;border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:9px 10px;min-height:44px;font-size:16px}
+.field textarea{min-height:72px;resize:vertical}
+.btn{border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:8px 14px;cursor:pointer;min-height:42px;font-size:14px;font-weight:500}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--surface);font-weight:700}
+.btn.danger{color:var(--red);background:none;border-color:transparent}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap}
+.hint{margin:0;font-size:12px;color:var(--muted)}
+
+/* ---------- 班次清單 ---------- */
+.listhead{display:flex;justify-content:space-between;align-items:baseline;padding:2px 4px}
+.listhead h2{margin:0;font-size:15px;font-weight:700}
+.listhead span{font-size:12px;color:var(--muted)}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.row{border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:76px 1fr 64px;gap:12px;align-items:center;padding:12px 14px}
+.row>summary::-webkit-details-marker{display:none}
+.row>summary:hover{background:var(--soft)}
+.r-time b,.r-end b{display:block;font-family:var(--font-display);font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.r-time b{font-size:30px}
+.r-time small{font-size:12px;color:var(--good);font-weight:700;white-space:nowrap}
+.r-end{text-align:right}
+.r-end b{font-size:22px;color:var(--muted);font-weight:600}
+.r-end small{font-size:12px;color:var(--muted)}
+.r-mid{display:grid;gap:6px;min-width:0}
+.jbar{display:flex;height:8px;gap:2px;transform-origin:left;animation:grow .5s ease both}
+.jbar i{border-radius:4px;min-width:4px}
+.jbar i.R{background:var(--red)} .jbar i.O{background:var(--orange)}
+.jbar i.w{background:repeating-linear-gradient(90deg,var(--muted) 0 3px,transparent 3px 6px);opacity:.6;height:2px;align-self:center}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.r-meta{font-size:12px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.r-meta .less{color:var(--good);font-weight:700}
+.list.calm .jbar{animation:none}
+.row.past{opacity:.45}
+.row.next{background:color-mix(in srgb,var(--amber) 9%,transparent)}
+.est{font-size:.6em;color:var(--muted);margin-right:2px;font-family:var(--font-body);font-weight:500}
+.detail{padding:2px 16px 16px 16px;display:grid;gap:12px}
+.leg h4{margin:0 0 6px;font-size:13px;display:flex;gap:8px;align-items:center}
+.stops{list-style:none;margin:0;padding:0;display:grid;position:relative}
+.stops li{display:grid;grid-template-columns:52px 18px 1fr;align-items:center;font-size:13px;color:var(--muted);min-height:24px}
+.stops li b{font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.stops li .pt{width:10px;height:10px;border-radius:50%;background:var(--surface);border:2.5px solid var(--c);justify-self:center;position:relative;z-index:1}
 .stops li.end{color:var(--ink);font-weight:700}
-.xferline{font-size:13px;color:var(--muted);padding-left:12px}
+.stops li.end .pt{background:var(--c)}
+.stops::before{content:"";position:absolute;left:60px;top:12px;bottom:12px;width:3px;background:var(--c);border-radius:2px}
+.leg.R{--c:var(--red)} .leg.O{--c:var(--orange)}
+.xline{font-size:13px;color:var(--muted);padding:6px 10px;border:1px dashed var(--line);border-radius:10px}
 .empty{padding:28px 18px;text-align:center;color:var(--muted)}
-.empty strong{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
-footer{grid-column:1/-1;font-size:12px;color:var(--muted)}
-.tabs{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:4px;max-width:420px}
-.tabs button{font:inherit;font-size:15px;border:0;border-radius:7px;background:transparent;color:var(--muted);padding:9px 6px;cursor:pointer;min-height:42px}
-.tabs button[aria-selected="true"]{background:var(--panel);color:var(--ink);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.12)}
-body.view-map #form, body.view-map .results{display:none}
-.mapview{grid-column:1/-1;display:grid;gap:12px}
-.mapview[hidden]{display:none}
-.maptools{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-#map{height:62vh;min-height:360px;border-radius:12px;border:1px solid var(--line);z-index:0}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+
+/* ---------- 地圖 ---------- */
+.mapview{display:grid;gap:12px}
+.maptools{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#map{height:calc(100dvh - 300px);min-height:380px;border-radius:var(--radius);border:1px solid var(--line);z-index:0;background:var(--soft)}
+@media (min-width:980px){#map{height:calc(100vh - 170px)}}
 .near{display:grid;gap:8px}
 .near:empty{display:none}
-.nearrow{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.nearrow{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .nearrow .nm{font-weight:700;display:flex;align-items:center;gap:8px}
-.nearrow .dist{font-size:13px;color:var(--muted);font-weight:400}
+.nearrow .dist{font-size:12px;color:var(--muted);font-weight:400}
 .acts{display:flex;gap:6px;flex-wrap:wrap}
-.acts a,.acts button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:7px;padding:6px 10px;cursor:pointer;text-decoration:none;min-height:36px;display:inline-flex;align-items:center}
-.acts a.gmap{border-color:var(--accent);color:var(--accent)}
+.acts a,.acts button{font-size:13px;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer;text-decoration:none;min-height:36px;display:inline-flex;align-items:center}
+.acts a.gmap{border-color:var(--focus);color:var(--focus)}
 .leaflet-popup-content{margin:12px 14px;font-family:var(--font-body)}
+.leaflet-container{font-family:var(--font-body)}
 .pop h4{margin:0 0 2px;font-size:15px}
-.pop p{margin:0 0 8px;font-size:12px;color:#5d6470}
-.pop .acts a,.pop .acts button{background:#f3f4f6;color:#16191f;border-color:#dfe2e7}
-.pop .acts a.gmap{color:#1d4f91;border-color:#1d4f91}
-.endtag{background:var(--ink);color:var(--panel);font:700 12px var(--font-body);border-radius:999px;padding:2px 7px;white-space:nowrap;border:0;box-shadow:none}
+.pop p{margin:0 0 8px;font-size:12px;color:#5c6575}
+.pop .acts a,.pop .acts button{background:#f4f5f8;color:#121822;border-color:#dde1e8}
+.pop .acts a.gmap{color:#2f6fd6;border-color:#2f6fd6}
+.leaflet-tooltip.endtag{background:#121822;color:#fff;font:700 12px var(--font-body);border-radius:999px;padding:2px 8px;border:0;box-shadow:none}
 .leaflet-tooltip.endtag::before{display:none}
-.wrap{padding-top:max(20px,env(safe-area-inset-top));padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-bottom:max(40px,env(safe-area-inset-bottom))}
-.offline{display:none;font-size:12px;font-weight:700;color:var(--good);border:1px solid var(--good);border-radius:999px;padding:1px 9px}
-body.is-offline .offline{display:inline-block}
-@media (max-width:760px){
-  body{font-size:16px}
-  .wrap{grid-template-columns:1fr;gap:14px;padding:14px 12px 32px}
-  header h1{font-size:20px}
-  .panel{position:static;padding:14px;gap:12px}
-  select,input[type=time],input[type=number]{font-size:16px;min-height:46px}
-  .swap{height:102px}
-  .chip{padding:7px 13px;font-size:14px}
-  .t{font-size:28px}
-  .trip>summary{padding:14px 14px 14px 10px;gap:12px}
-  .stats{gap:16px}
+
+/* ---------- 設定 ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:grid;gap:12px}
+.card h2{margin:0;font-size:15px}
+.days{display:grid;gap:8px}
+.dayopt{position:relative}
+.dayopt input{position:absolute;opacity:0}
+.dayopt label{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:11px 14px;cursor:pointer;min-height:48px}
+.dayopt label small{color:var(--muted);font-size:12px}
+.dayopt label em{font-style:normal;font-size:11px;font-weight:700;color:var(--good);border:1px solid currentColor;border-radius:999px;padding:0 7px}
+.dayopt input:checked+label{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);font-weight:700}
+.dayopt input:focus-visible+label{outline:2px solid var(--focus)}
+.stepper{display:flex;align-items:center;gap:12px}
+.stepper button{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--soft);cursor:pointer;font-size:20px}
+.stepper output{font-family:var(--font-display);font-size:32px;font-weight:700;min-width:44px;text-align:center}
+.about{font-size:13px;color:var(--muted);display:grid;gap:6px}
+.about p{margin:0}
+
+/* ---------- 底部分頁 ---------- */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);padding:6px max(10px,env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom))}
+.tabbar button{border:0;background:none;cursor:pointer;display:grid;justify-items:center;gap:2px;font-size:11px;font-weight:500;color:var(--muted);padding:6px 0;min-height:52px}
+.tabbar svg{width:24px;height:24px}
+.tabbar button[aria-current="page"]{color:var(--ink);font-weight:700}
+.tabbar button[aria-current="page"] svg{color:var(--red)}
+@media (min-width:980px){
+  .tabbar{position:static;grid-column:1;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:6px;backdrop-filter:none}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.view[hidden]{display:none!important}
+.footer{font-size:11px;color:var(--muted);padding:0 4px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>高捷班次查詢</h1>
-    <div class="legend"><span><i class="dot R"></i>紅線</span><span><i class="dot O"></i>橘線</span><span>紅橘互轉：美麗島站</span></div>
-    <span class="offline">離線模式・時刻表照常可查</span>
-  </header>
-
-  <nav class="tabs" role="tablist" aria-label="切換畫面">
-    <button type="button" role="tab" id="tabList" aria-selected="true">查班次</button>
-    <button type="button" role="tab" id="tabMap" aria-selected="false">地圖・最近車站</button>
-  </nav>
-
-  <section class="mapview" id="mapView" hidden>
-    <div class="maptools">
-      <button type="button" class="nbtn primary" id="locate">找離我最近的車站</button>
-      <span class="hint" id="locMsg">點地圖上的車站，可以設成起站、終站，或用 Google 地圖導航過去。</span>
+<div class="app">
+  <div class="col-side">
+    <div class="topbar">
+      <div class="brand">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0d1420"/><rect x="14" y="5" width="4" height="22" rx="2" fill="#e1252f"/><rect x="5" y="14" width="22" height="4" rx="2" fill="#f39800"/><circle cx="16" cy="16" r="5" fill="#fff"/><circle cx="16" cy="16" r="2.4" fill="#0d1420"/></svg>
+        高捷班次
+        <span class="offline">離線</span>
+      </div>
+      <button type="button" class="daychip" id="dayChip" aria-label="更改時刻表日別"><i></i><span id="dayChipText">平日</span></button>
     </div>
-    <div id="map" role="application" aria-label="高雄捷運路線地圖"></div>
-    <div class="near" id="nearList"></div>
-  </section>
 
-  <form class="panel" id="form" autocomplete="off">
+    <section class="journey" aria-label="行程">
+      <div class="stn">
+        <span class="badges" id="fromBadge"></span>
+        <span><span class="k">出發</span><span class="v" id="fromName"></span></span>
+        <select id="from" aria-label="起站"></select>
+      </div>
+      <div class="stn">
+        <span class="badges" id="toBadge"></span>
+        <span><span class="k">抵達</span><span class="v" id="toName"></span></span>
+        <select id="to" aria-label="終站"></select>
+      </div>
+      <button type="button" class="swap" id="swap" aria-label="對調起站與終站"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4 3 8M7 4l4 4M17 20V4m0 16-4-4m4 4 4-4"/></svg></button>
+    </section>
     <div class="favs" id="favs" aria-label="常用路線"></div>
-    <div class="od">
-      <div class="stack">
-        <div class="field"><label for="from">起站</label><select id="from"></select></div>
-        <div class="field"><label for="to">終站</label><select id="to"></select></div>
+
+    <section class="when" aria-label="時間範圍">
+      <div class="seg" role="radiogroup" aria-label="時間範圍是指">
+        <input type="radio" name="mode" id="modeDep" value="dep" checked><label for="modeDep">依上車時間</label>
+        <input type="radio" name="mode" id="modeArr" value="arr"><label for="modeArr">依抵達時間</label>
       </div>
-      <button type="button" class="swap" id="swap" aria-label="對調起站與終站" title="對調起站與終站">⇅</button>
-    </div>
-    <button type="button" class="favbtn" id="favbtn">☆ 加入常用路線</button>
-
-    <div class="field">
-      <span class="lbl" id="modeLbl">時間範圍是指</span>
-      <div class="seg" role="radiogroup" aria-labelledby="modeLbl">
-        <input type="radio" name="mode" id="modeDep" value="dep" checked><label for="modeDep">上車時間</label>
-        <input type="radio" name="mode" id="modeArr" value="arr"><label for="modeArr">抵達時間</label>
+      <div class="range">
+        <input type="time" id="tFrom" step="60" aria-label="從">
+        <span>到</span>
+        <input type="time" id="tTo" step="60" aria-label="到">
       </div>
-    </div>
-
-    <div class="row2">
-      <div class="field"><label for="tFrom">從</label><input type="time" id="tFrom" step="60"></div>
-      <div class="field"><label for="tTo">到</label><input type="time" id="tTo" step="60"></div>
-    </div>
-    <div class="chips" aria-label="快速設定時間範圍">
-      <button type="button" class="chip" data-range="60">現在起 1 小時</button>
-      <button type="button" class="chip" data-range="180">現在起 3 小時</button>
-      <button type="button" class="chip" data-range="all">整天</button>
-    </div>
-
-    <details class="more" id="more">
-      <summary>更多設定<span id="moreSum"></span></summary>
-      <div class="field">
-        <label for="day">日別</label>
-        <select id="day"></select>
-        <p class="hint" id="dayHint"></p>
+      <div class="chips">
+        <button type="button" class="chip" data-range="60">現在起 1 小時</button>
+        <button type="button" class="chip" data-range="180">3 小時</button>
+        <button type="button" class="chip" data-range="all">整天</button>
       </div>
-      <div class="field">
-        <label for="xfer">轉乘預留時間（分鐘）</label>
-        <input type="number" id="xfer" min="1" max="15" value="4" inputmode="numeric">
-        <p class="hint">只在紅橘線互轉時使用，代表在美麗島站換月台所需的時間。</p>
+    </section>
+
+    <section class="board view" id="board" data-view="list" aria-live="polite"></section>
+
+    <nav class="tabbar" aria-label="主選單">
+      <button type="button" data-tab="list" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>班次</button>
+      <button type="button" data-tab="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>地圖</button>
+      <button type="button" data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>設定</button>
+    </nav>
+  </div>
+
+  <main class="col-main">
+    <section class="view" data-view="list">
+      <div style="display:grid;gap:12px">
+        <div class="note" id="note"></div>
+        <div class="listhead"><h2 id="listTitle">班次</h2><span>點一班看沿途每站</span></div>
+        <div class="list" id="list"></div>
       </div>
-    </details>
-  </form>
+    </section>
 
-  <section class="results" aria-live="polite">
-    <div class="summary" id="summary"></div>
-    <div class="notecard" id="noteCard"></div>
-    <div class="list" id="list"></div>
-  </section>
+    <section class="view mapview" data-view="map" hidden>
+      <div class="maptools">
+        <button type="button" class="btn primary" id="locate">找離我最近的車站</button>
+        <span class="hint" id="locMsg">點車站可設成起站、終站，或用 Google 地圖導航過去。</span>
+      </div>
+      <div id="map" role="application" aria-label="高雄捷運路線地圖"></div>
+      <div class="near" id="nearList"></div>
+    </section>
 
-  <footer id="foot"></footer>
+    <section class="view" data-view="settings" hidden>
+      <div style="display:grid;gap:12px">
+        <div class="card">
+          <h2>時刻表日別</h2>
+          <div class="days" id="days" role="radiogroup" aria-label="時刻表日別"></div>
+          <p class="hint">會依今天日期自動選擇。國定假日請選「假日」，國定假日前一天請選「假日前一天」。</p>
+        </div>
+        <div class="card">
+          <h2>美麗島轉乘預留時間</h2>
+          <div class="stepper">
+            <button type="button" id="xMinus" aria-label="減少一分鐘">−</button>
+            <output id="xVal">4</output><span>分鐘</span>
+            <button type="button" id="xPlus" aria-label="增加一分鐘">+</button>
+          </div>
+          <p class="hint">紅線、橘線互轉時，在美麗島站換月台需要的時間。走得快可以調低。</p>
+        </div>
+        <div class="card about">
+          <h2 style="color:var(--ink)">關於資料</h2>
+          <p id="srcText"></p>
+          <p>標「約」的時間是終點站到站時間，由站間行駛時間推算，誤差約一分鐘。實際以高雄捷運現場公告為準。</p>
+          <p>即時車廂擁擠度請看高雄捷運官方 App「高雄捷運—通勤助理」。常用路線與車廂備註只存在這支手機。</p>
+        </div>
+      </div>
+    </section>
+    <p class="footer" id="footer"></p>
+  </main>
 </div>
 
 <script>
 const DATA = {"lines":{"R":[["R3","小港"],["R4","高雄國際機場"],["R4A","草衙"],["R5","前鎮高中"],["R6","凱旋"],["R7","獅甲"],["R8","三多商圈"],["R9","中央公園"],["R10","美麗島"],["R11","高雄車站"],["R12","後驛"],["R13","凹子底"],["R14","巨蛋"],["R15","生態園區"],["R16","左營"],["R17","世運"],["R18","油廠國小"],["R19","楠梓科技園區"],["R20","後勁"],["R21","都會公園"],["R22","青埔"],["R22A","橋頭糖廠"],["R23","橋頭火車站"],["R24","岡山高醫"],["RK1","岡山車站"]],"O":[["O1","哈瑪星"],["O2","鹽埕埔"],["O4","前金"],["O5","美麗島"],["O6","信義國小"],["O7","文化中心"],["O8","五塊厝"],["O9","苓雅運動園區"],["O10","衛武營"],["O11","鳳山西站"],["O12","鳳山"],["O13","大東"],["O14","鳳山國中"],["OT1","大寮"]]},"days":["平日（週一至週四）","假日前一天（週五）","假日（週六、國定假日）","週日"],"pats":["1222122121224","1121224","2221212121322","11212222","122","2221212121312","2121212121222","11211222","2221212212222","2221212121222","222222222222223123131242","122222223123131232","222222222222222222222142","222222222222223132132142","222222222312223222222142","222222312312223222222142","222231312312232222222142","232221312321232222222142","232222212321232222222232","222222222222223123221242","232222222222223122222232","232222221322222222222232","222222222222223122222232","232222222222222222222142","222222221321232222222232","222222222321232222222232","233233232222222222222232","141222222232213122222232","12232122222223222","141222222232213122232232","141222222232213123222232","232222222232122222222232","231231321322222123222232","232222222232213122232232","232131321322222222222232","232222222222222222222232","232222222222222222222322","231231321322222122222232","231231321322222122223222","232222222232212222223222","232222222232212222222232","232222212312223222131232","232222212322223123131242","222222222222223222222232","233233232222222222222142","12232212222223222","141222222232213123223232","232222222222222222232232","232222222222222222223232","232222222222222222132222","222231312321322222222242","232222222222213122222232"],"trips":[[0,0,0,24,355,29],[0,0,0,17,355,28],[0,0,0,24,363,29],[0,0,0,24,371,29],[0,0,0,24,379,29],[0,0,0,24,387,29],[0,0,0,24,392,30],[0,0,0,24,397,29],[0,0,0,24,402,30],[0,0,0,24,406,29],[0,0,0,24,409,31],[0,0,0,24,413,32],[0,0,0,24,416,33],[0,0,0,24,421,34],[0,0,0,24,425,35],[0,0,0,24,429,36],[0,0,0,24,434,37],[0,0,0,24,438,35],[0,0,0,24,443,29],[0,0,0,24,447,35],[0,0,0,24,452,27],[0,0,0,24,457,27],[0,0,0,24,461,35],[0,0,0,24,466,30],[0,0,0,24,470,29],[0,0,0,24,474,29],[0,0,0,24,478,29],[0,0,0,24,483,27],[0,0,0,24,487,35],[0,0,0,24,492,35],[0,0,0,24,497,35],[0,0,0,24,503,30],[0,0,0,24,508,29],[0,0,0,24,515,29],[0,0,0,24,520,35],[0,0,0,24,526,29],[0,0,0,24,532,29],[0,0,0,24,540,29],[0,0,0,24,548,29],[0,0,0,24,556,29],[0,0,0,24,564,29],[0,0,0,24,572,29],[0,0,0,24,580,29],[0,0,0,24,588,29],[0,0,0,24,596,29],[0,0,0,24,604,29],[0,0,0,24,612,29],[0,0,0,24,620,29],[0,0,0,24,628,29],[0,0,0,24,636,29],[0,0,0,24,644,29],[0,0,0,24,652,29],[0,0,0,24,660,29],[0,0,0,24,668,29],[0,0,0,24,676,29],[0,0,0,24,684,29],[0,0,0,24,692,29],[0,0,0,24,700,29],[0,0,0,24,708,29],[0,0,0,24,716,29],[0,0,0,24,724,29],[0,0,0,24,732,29],[0,0,0,24,740,29],[0,0,0,24,748,29],[0,0,0,24,756,29],[0,0,0,24,764,29],[0,0,0,24,772,29],[0,0,0,24,780,29],[0,0,0,24,788,29],[0,0,0,24,796,29],[0,0,0,24,804,29],[0,0,0,24,812,29],[0,0,0,24,820,29],[0,0,0,24,828,29],[0,0,0,24,836,29],[0,0,0,24,844,29],[0,0,0,24,852,29],[0,0,0,24,860,29],[0,0,0,24,868,29],[0,0,0,24,876,29],[0,0,0,24,884,29],[0,0,0,24,892,29],[0,0,0,24,900,29],[0,0,0,24,908,29],[0,0,0,24,916,29],[0,0,0,24,920,27],[0,0,0,24,924,29],[0,0,0,24,932,27],[0,0,0,24,940,27],[0,0,0,24,948,27],[0,0,0,24,956,29],[0,0,0,24,964,29],[0,0,0,24,972,29],[0,0,0,24,980,29],[0,0,0,24,987,29],[0,0,0,24,991,35],[0,0,0,24,996,29],[0,0,0,24,1000,35],[0,0,0,24,1005,29],[0,0,0,24,1009,35],[0,0,0,24,1014,35],[0,0,0,24,1018,35],[0,0,0,24,1023,29],[0,0,0,24,1027,35],[0,0,0,24,1032,29],[0,0,0,24,1036,35],[0,0,0,24,1041,29],[0,0,0,24,1045,35],[0,0,0,24,1050,29],[0,0,0,24,1054,35],[0,0,0,24,1059,29],[0,0,0,24,1063,48],[0,0,0,24,1068,29],[0,0,0,24,1072,35],[0,0,0,24,1077,30],[0,0,0,24,1081,35],[0,0,0,24,1086,29],[0,0,0,24,1090,35],[0,0,0,24,1095,27],[0,0,0,24,1099,35],[0,0,0,24,1104,29],[0,0,0,24,1109,35],[0,0,0,24,1117,30],[0,0,0,24,1124,29],[0,0,0,24,1130,29],[0,0,0,24,1135,27],[0,0,0,24,1142,29],[0,0,0,24,1149,29],[0,0,0,24,1154,29],[0,0,0,24,1159,27],[0,0,0,24,1164,29],[0,0,0,24,1172,29],[0,0,0,24,1180,29],[0,0,0,24,1188,29],[0,0,0,24,1196,29],[0,0,0,24,1204,29],[0,0,0,24,1212,29],[0,0,0,24,1220,29],[0,0,0,24,1228,29],[0,0,0,24,1236,29],[0,0,0,24,1244,29],[0,0,0,24,1252,29],[0,0,0,24,1260,29],[0,0,0,24,1268,29],[0,0,0,24,1276,29],[0,0,0,24,1284,29],[0,0,0,24,1292,29],[0,0,0,24,1300,29],[0,0,0,24,1308,29],[0,0,0,24,1316,29],[0,0,0,24,1324,29],[0,0,0,24,1332,29],[0,0,0,24,1340,29],[0,0,0,24,1347,51],[0,0,0,24,1356,29],[0,0,0,24,1364,29],[0,0,0,24,1372,29],[0,0,0,24,1380,29],[0,0,0,24,1400,29],[0,0,0,24,1420,29],[0,0,0,24,1440,29],[0,0,1,0,355,10],[0,0,1,6,355,11],[0,0,1,0,363,12],[0,0,1,0,371,12],[0,0,1,0,379,10],[0,0,1,0,387,10],[0,0,1,0,392,10],[0,0,1,0,397,12],[0,0,1,0,402,10],[0,0,1,0,406,10],[0,0,1,0,410,13],[0,0,1,0,414,14],[0,0,1,0,418,15],[0,0,1,0,422,16],[0,0,1,0,426,17],[0,0,1,0,430,18],[0,0,1,0,436,10],[0,0,1,0,441,10],[0,0,1,0,446,10],[0,0,1,0,451,10],[0,0,1,0,456,10],[0,0,1,0,461,10],[0,0,1,0,465,10],[0,0,1,0,469,10],[0,0,1,0,473,10],[0,0,1,0,477,18],[0,0,1,0,481,18],[0,0,1,0,485,18],[0,0,1,0,491,10],[0,0,1,0,496,10],[0,0,1,0,502,10],[0,0,1,0,508,10],[0,0,1,0,515,10],[0,0,1,0,521,10],[0,0,1,0,527,18],[0,0,1,0,534,10],[0,0,1,0,541,10],[0,0,1,0,548,10],[0,0,1,0,552,10],[0,0,1,0,557,10],[0,0,1,0,564,10],[0,0,1,0,572,10],[0,0,1,0,580,10],[0,0,1,0,588,10],[0,0,1,0,596,10],[0,0,1,0,604,10],[0,0,1,0,612,10],[0,0,1,0,620,10],[0,0,1,0,628,10],[0,0,1,0,636,10],[0,0,1,0,644,10],[0,0,1,0,652,10],[0,0,1,0,660,10],[0,0,1,0,668,10],[0,0,1,0,676,10],[0,0,1,0,684,10],[0,0,1,0,692,10],[0,0,1,0,700,10],[0,0,1,0,708,10],[0,0,1,0,716,10],[0,0,1,0,724,10],[0,0,1,0,732,10],[0,0,1,0,740,10],[0,0,1,0,748,10],[0,0,1,0,756,10],[0,0,1,0,764,10],[0,0,1,0,772,10],[0,0,1,0,780,10],[0,0,1,0,788,10],[0,0,1,0,796,10],[0,0,1,0,804,10],[0,0,1,0,812,10],[0,0,1,0,820,10],[0,0,1,0,828,10],[0,0,1,0,836,10],[0,0,1,0,844,10],[0,0,1,0,852,10],[0,0,1,0,860,10],[0,0,1,0,868,10],[0,0,1,0,876,10],[0,0,1,0,884,10],[0,0,1,0,892,10],[0,0,1,0,900,10],[0,0,1,0,908,10],[0,0,1,0,916,10],[0,0,1,0,924,10],[0,0,1,0,932,10],[0,0,1,0,940,10],[0,0,1,0,948,10],[0,0,1,0,956,43],[0,0,1,0,964,12],[0,0,1,0,969,50],[0,0,1,0,975,10],[0,0,1,0,980,10],[0,0,1,0,985,10],[0,0,1,0,990,10],[0,0,1,0,994,10],[0,0,1,0,998,18],[0,0,1,0,1003,10],[0,0,1,0,1007,18],[0,0,1,0,1012,10],[0,0,1,0,1016,18],[0,0,1,0,1021,10],[0,0,1,0,1025,18],[0,0,1,0,1030,10],[0,0,1,0,1034,18],[0,0,1,0,1039,10],[0,0,1,0,1043,18],[0,0,1,0,1048,10],[0,0,1,0,1052,18],[0,0,1,0,1057,10],[0,0,1,0,1061,18],[0,0,1,0,1066,10],[0,0,1,0,1070,18],[0,0,1,0,1075,10],[0,0,1,0,1079,41],[0,0,1,0,1084,10],[0,0,1,0,1088,18],[0,0,1,0,1093,10],[0,0,1,0,1097,18],[0,0,1,0,1102,10],[0,0,1,0,1106,18],[0,0,1,0,1112,18],[0,0,1,0,1118,10],[0,0,1,0,1126,10],[0,0,1,0,1134,10],[0,0,1,0,1140,10],[0,0,1,0,1146,10],[0,0,1,0,1150,18],[0,0,1,0,1156,10],[0,0,1,0,1161,10],[0,0,1,0,1166,10],[0,0,1,0,1172,10],[0,0,1,0,1180,10],[0,0,1,0,1188,10],[0,0,1,0,1196,10],[0,0,1,0,1204,10],[0,0,1,0,1212,10],[0,0,1,0,1220,10],[0,0,1,0,1228,10],[0,0,1,0,1236,10],[0,0,1,0,1244,10],[0,0,1,0,1252,10],[0,0,1,0,1260,10],[0,0,1,0,1268,10],[0,0,1,0,1276,10],[0,0,1,0,1284,10],[0,0,1,0,1292,10],[0,0,1,0,1300,10],[0,0,1,0,1308,10],[0,0,1,0,1316,10],[0,0,1,0,1324,10],[0,0,1,0,1332,10],[0,0,1,0,1340,10],[0,0,1,0,1348,10],[0,0,1,0,1356,10],[0,0,1,0,1364,10],[0,0,1,0,1372,10],[0,0,1,0,1380,10],[0,0,1,0,1400,10],[0,0,1,0,1420,10],[0,0,1,0,1440,44],[0,1,0,13,360,2],[0,1,0,8,360,3],[0,1,0,3,360,4],[0,1,0,13,367,2],[0,1,0,13,373,2],[0,1,0,13,379,2],[0,1,0,13,386,5],[0,1,0,13,392,5],[0,1,0,13,397,2],[0,1,0,13,401,2],[0,1,0,13,406,2],[0,1,0,13,411,2],[0,1,0,13,415,2],[0,1,0,13,421,2],[0,1,0,13,426,2],[0,1,0,13,431,2],[0,1,0,13,436,2],[0,1,0,13,441,2],[0,1,0,13,445,2],[0,1,0,13,451,2],[0,1,0,13,456,2],[0,1,0,13,461,2],[0,1,0,13,466,2],[0,1,0,13,471,2],[0,1,0,13,476,2],[0,1,0,13,482,2],[0,1,0,13,488,2],[0,1,0,13,494,2],[0,1,0,13,499,2],[0,1,0,13,505,5],[0,1,0,13,511,2],[0,1,0,13,519,2],[0,1,0,13,527,2],[0,1,0,13,535,2],[0,1,0,13,543,2],[0,1,0,13,551,2],[0,1,0,13,559,2],[0,1,0,13,567,2],[0,1,0,13,575,2],[0,1,0,13,583,2],[0,1,0,13,591,2],[0,1,0,13,599,2],[0,1,0,13,607,2],[0,1,0,13,615,2],[0,1,0,13,623,2],[0,1,0,13,631,2],[0,1,0,13,639,2],[0,1,0,13,647,2],[0,1,0,13,655,2],[0,1,0,13,663,2],[0,1,0,13,671,2],[0,1,0,13,679,2],[0,1,0,13,687,2],[0,1,0,13,695,2],[0,1,0,13,703,2],[0,1,0,13,711,2],[0,1,0,13,719,2],[0,1,0,13,727,2],[0,1,0,13,735,2],[0,1,0,13,743,2],[0,1,0,13,751,2],[0,1,0,13,759,2],[0,1,0,13,767,2],[0,1,0,13,775,2],[0,1,0,13,783,2],[0,1,0,13,791,2],[0,1,0,13,799,2],[0,1,0,13,807,2],[0,1,0,13,815,2],[0,1,0,13,823,2],[0,1,0,13,831,2],[0,1,0,13,839,2],[0,1,0,13,847,2],[0,1,0,13,855,2],[0,1,0,13,863,2],[0,1,0,13,871,2],[0,1,0,13,879,2],[0,1,0,13,887,2],[0,1,0,13,895,2],[0,1,0,13,903,2],[0,1,0,13,911,2],[0,1,0,13,919,2],[0,1,0,13,927,2],[0,1,0,13,935,2],[0,1,0,13,943,2],[0,1,0,13,951,2],[0,1,0,13,959,2],[0,1,0,13,966,2],[0,1,0,13,972,2],[0,1,0,13,979,5],[0,1,0,13,984,2],[0,1,0,13,990,2],[0,1,0,13,995,2],[0,1,0,13,999,2],[0,1,0,13,1005,2],[0,1,0,13,1010,2],[0,1,0,13,1014,2],[0,1,0,13,1020,2],[0,1,0,13,1025,2],[0,1,0,13,1030,2],[0,1,0,13,1035,2],[0,1,0,13,1040,2],[0,1,0,13,1044,2],[0,1,0,13,1050,2],[0,1,0,13,1055,2],[0,1,0,13,1060,2],[0,1,0,13,1065,2],[0,1,0,13,1070,2],[0,1,0,13,1075,2],[0,1,0,13,1080,2],[0,1,0,13,1087,2],[0,1,0,13,1093,2],[0,1,0,13,1099,2],[0,1,0,13,1105,2],[0,1,0,13,1111,2],[0,1,0,13,1119,2],[0,1,0,13,1127,2],[0,1,0,13,1135,2],[0,1,0,13,1143,2],[0,1,0,13,1151,2],[0,1,0,13,1159,2],[0,1,0,13,1167,2],[0,1,0,13,1175,2],[0,1,0,13,1183,2],[0,1,0,13,1191,2],[0,1,0,13,1199,2],[0,1,0,13,1207,2],[0,1,0,13,1215,2],[0,1,0,13,1223,2],[0,1,0,13,1231,2],[0,1,0,13,1239,2],[0,1,0,13,1247,2],[0,1,0,13,1255,2],[0,1,0,13,1263,2],[0,1,0,13,1271,2],[0,1,0,13,1279,2],[0,1,0,13,1287,2],[0,1,0,13,1295,2],[0,1,0,13,1303,2],[0,1,0,13,1311,2],[0,1,0,13,1319,2],[0,1,0,13,1327,2],[0,1,0,13,1335,2],[0,1,0,13,1343,2],[0,1,0,13,1351,2],[0,1,0,13,1359,2],[0,1,0,13,1367,2],[0,1,0,13,1375,2],[0,1,0,13,1383,2],[0,1,0,13,1400,2],[0,1,0,13,1420,2],[0,1,0,13,1440,2],[0,1,1,0,360,0],[0,1,1,6,360,1],[0,1,1,0,368,0],[0,1,1,0,374,0],[0,1,1,0,380,0],[0,1,1,0,388,0],[0,1,1,0,394,0],[0,1,1,0,400,0],[0,1,1,0,406,0],[0,1,1,0,412,0],[0,1,1,0,418,0],[0,1,1,0,424,0],[0,1,1,0,430,0],[0,1,1,0,435,0],[0,1,1,0,440,0],[0,1,1,0,445,0],[0,1,1,0,450,0],[0,1,1,0,455,0],[0,1,1,0,460,0],[0,1,1,0,464,0],[0,1,1,0,470,0],[0,1,1,0,475,0],[0,1,1,0,480,0],[0,1,1,0,484,0],[0,1,1,0,490,0],[0,1,1,0,495,0],[0,1,1,0,500,0],[0,1,1,0,504,0],[0,1,1,0,509,0],[0,1,1,0,515,0],[0,1,1,0,522,0],[0,1,1,0,526,0],[0,1,1,0,531,0],[0,1,1,0,539,0],[0,1,1,0,547,0],[0,1,1,0,555,0],[0,1,1,0,563,0],[0,1,1,0,571,0],[0,1,1,0,579,0],[0,1,1,0,587,0],[0,1,1,0,595,0],[0,1,1,0,603,0],[0,1,1,0,611,0],[0,1,1,0,619,0],[0,1,1,0,627,0],[0,1,1,0,635,0],[0,1,1,0,643,0],[0,1,1,0,651,0],[0,1,1,0,659,0],[0,1,1,0,667,0],[0,1,1,0,675,0],[0,1,1,0,683,0],[0,1,1,0,691,0],[0,1,1,0,699,0],[0,1,1,0,707,0],[0,1,1,0,715,0],[0,1,1,0,723,0],[0,1,1,0,731,0],[0,1,1,0,739,0],[0,1,1,0,747,0],[0,1,1,0,755,0],[0,1,1,0,763,0],[0,1,1,0,771,0],[0,1,1,0,779,0],[0,1,1,0,787,0],[0,1,1,0,795,0],[0,1,1,0,803,0],[0,1,1,0,811,0],[0,1,1,0,819,0],[0,1,1,0,827,0],[0,1,1,0,835,0],[0,1,1,0,843,0],[0,1,1,0,851,0],[0,1,1,0,859,0],[0,1,1,0,867,0],[0,1,1,0,875,0],[0,1,1,0,883,0],[0,1,1,0,891,0],[0,1,1,0,899,0],[0,1,1,0,907,0],[0,1,1,0,915,0],[0,1,1,0,923,0],[0,1,1,0,931,0],[0,1,1,0,939,0],[0,1,1,0,947,0],[0,1,1,0,955,0],[0,1,1,0,963,0],[0,1,1,0,971,0],[0,1,1,0,979,0],[0,1,1,0,987,0],[0,1,1,0,993,0],[0,1,1,0,999,0],[0,1,1,0,1005,0],[0,1,1,0,1011,0],[0,1,1,0,1017,0],[0,1,1,0,1023,0],[0,1,1,0,1029,0],[0,1,1,0,1034,0],[0,1,1,0,1039,0],[0,1,1,0,1044,0],[0,1,1,0,1049,0],[0,1,1,0,1054,0],[0,1,1,0,1059,0],[0,1,1,0,1064,0],[0,1,1,0,1069,0],[0,1,1,0,1074,0],[0,1,1,0,1079,0],[0,1,1,0,1084,0],[0,1,1,0,1090,0],[0,1,1,0,1094,0],[0,1,1,0,1099,0],[0,1,1,0,1104,0],[0,1,1,0,1108,0],[0,1,1,0,1114,0],[0,1,1,0,1122,0],[0,1,1,0,1126,0],[0,1,1,0,1132,0],[0,1,1,0,1139,0],[0,1,1,0,1147,0],[0,1,1,0,1155,0],[0,1,1,0,1163,0],[0,1,1,0,1171,0],[0,1,1,0,1179,0],[0,1,1,0,1187,0],[0,1,1,0,1195,0],[0,1,1,0,1203,0],[0,1,1,0,1211,0],[0,1,1,0,1219,0],[0,1,1,0,1227,0],[0,1,1,0,1235,0],[0,1,1,0,1243,0],[0,1,1,0,1251,0],[0,1,1,0,1259,0],[0,1,1,0,1267,0],[0,1,1,0,1275,0],[0,1,1,0,1283,0],[0,1,1,0,1291,0],[0,1,1,0,1299,0],[0,1,1,0,1307,0],[0,1,1,0,1315,0],[0,1,1,0,1323,0],[0,1,1,0,1331,0],[0,1,1,0,1339,0],[0,1,1,0,1347,0],[0,1,1,0,1355,0],[0,1,1,0,1363,0],[0,1,1,0,1371,0],[0,1,1,0,1379,0],[0,1,1,0,1387,0],[0,1,1,0,1400,0],[0,1,1,0,1420,0],[0,1,1,0,1440,0],[1,0,0,24,355,27],[1,0,0,17,355,28],[1,0,0,24,363,29],[1,0,0,24,371,29],[1,0,0,24,379,29],[1,0,0,24,387,29],[1,0,0,24,392,30],[1,0,0,24,397,29],[1,0,0,24,402,30],[1,0,0,24,406,29],[1,0,0,24,409,31],[1,0,0,24,413,32],[1,0,0,24,416,33],[1,0,0,24,421,34],[1,0,0,24,425,35],[1,0,0,24,429,36],[1,0,0,24,434,37],[1,0,0,24,438,35],[1,0,0,24,443,29],[1,0,0,24,447,35],[1,0,0,24,452,27],[1,0,0,24,457,27],[1,0,0,24,461,35],[1,0,0,24,466,30],[1,0,0,24,470,29],[1,0,0,24,474,29],[1,0,0,24,478,29],[1,0,0,24,483,27],[1,0,0,24,487,35],[1,0,0,24,492,35],[1,0,0,24,497,35],[1,0,0,24,503,30],[1,0,0,24,508,29],[1,0,0,24,515,29],[1,0,0,24,520,35],[1,0,0,24,526,29],[1,0,0,24,532,29],[1,0,0,24,540,29],[1,0,0,24,548,29],[1,0,0,24,556,29],[1,0,0,24,564,29],[1,0,0,24,572,29],[1,0,0,24,580,29],[1,0,0,24,588,29],[1,0,0,24,596,29],[1,0,0,24,604,29],[1,0,0,24,612,29],[1,0,0,24,620,29],[1,0,0,24,628,29],[1,0,0,24,636,29],[1,0,0,24,644,29],[1,0,0,24,652,29],[1,0,0,24,660,29],[1,0,0,24,668,29],[1,0,0,24,676,29],[1,0,0,24,684,29],[1,0,0,24,692,29],[1,0,0,24,700,29],[1,0,0,24,708,29],[1,0,0,24,716,29],[1,0,0,24,724,29],[1,0,0,24,732,29],[1,0,0,24,740,29],[1,0,0,24,748,29],[1,0,0,24,756,29],[1,0,0,24,764,29],[1,0,0,24,772,29],[1,0,0,24,780,29],[1,0,0,24,788,29],[1,0,0,24,796,29],[1,0,0,24,804,29],[1,0,0,24,812,29],[1,0,0,24,820,29],[1,0,0,24,828,29],[1,0,0,24,836,29],[1,0,0,24,844,29],[1,0,0,24,852,29],[1,0,0,24,860,29],[1,0,0,24,868,29],[1,0,0,24,876,29],[1,0,0,24,884,29],[1,0,0,24,892,29],[1,0,0,24,900,29],[1,0,0,24,908,29],[1,0,0,24,912,38],[1,0,0,24,916,29],[1,0,0,24,924,27],[1,0,0,24,930,29],[1,0,0,24,935,27],[1,0,0,24,940,29],[1,0,0,24,948,29],[1,0,0,24,956,29],[1,0,0,24,964,29],[1,0,0,24,972,29],[1,0,0,24,978,29],[1,0,0,24,983,32],[1,0,0,24,987,34],[1,0,0,24,992,29],[1,0,0,24,995,36],[1,0,0,24,999,39],[1,0,0,24,1004,29],[1,0,0,24,1008,32],[1,0,0,24,1012,34],[1,0,0,24,1016,35],[1,0,0,24,1020,36],[1,0,0,24,1024,39],[1,0,0,24,1029,29],[1,0,0,24,1033,32],[1,0,0,24,1037,34],[1,0,0,24,1041,35],[1,0,0,24,1045,39],[1,0,0,24,1049,39],[1,0,0,24,1054,29],[1,0,0,24,1058,32],[1,0,0,24,1062,34],[1,0,0,24,1066,35],[1,0,0,24,1070,36],[1,0,0,24,1074,39],[1,0,0,24,1079,29],[1,0,0,24,1083,32],[1,0,0,24,1087,34],[1,0,0,24,1091,35],[1,0,0,24,1095,36],[1,0,0,24,1099,40],[1,0,0,24,1104,32],[1,0,0,24,1108,32],[1,0,0,24,1112,34],[1,0,0,24,1116,32],[1,0,0,24,1120,29],[1,0,0,24,1126,29],[1,0,0,24,1132,29],[1,0,0,24,1137,29],[1,0,0,24,1143,29],[1,0,0,24,1148,35],[1,0,0,24,1152,35],[1,0,0,24,1157,27],[1,0,0,24,1162,29],[1,0,0,24,1167,29],[1,0,0,24,1173,29],[1,0,0,24,1179,29],[1,0,0,24,1185,29],[1,0,0,24,1191,29],[1,0,0,24,1197,35],[1,0,0,24,1202,39],[1,0,0,24,1209,29],[1,0,0,24,1215,29],[1,0,0,24,1221,29],[1,0,0,24,1227,29],[1,0,0,24,1233,29],[1,0,0,24,1239,29],[1,0,0,24,1245,29],[1,0,0,24,1251,29],[1,0,0,24,1257,27],[1,0,0,24,1263,27],[1,0,0,24,1269,29],[1,0,0,24,1275,29],[1,0,0,24,1281,27],[1,0,0,24,1287,27],[1,0,0,24,1293,29],[1,0,0,24,1300,29],[1,0,0,24,1308,29],[1,0,0,24,1316,29],[1,0,0,24,1324,29],[1,0,0,24,1332,29],[1,0,0,24,1340,29],[1,0,0,24,1348,29],[1,0,0,24,1356,29],[1,0,0,24,1364,29],[1,0,0,24,1372,27],[1,0,0,24,1380,29],[1,0,0,24,1388,29],[1,0,0,24,1395,29],[1,0,0,24,1410,29],[1,0,0,24,1425,29],[1,0,0,24,1440,29],[1,0,1,0,355,10],[1,0,1,6,355,11],[1,0,1,0,363,10],[1,0,1,0,371,12],[1,0,1,0,379,10],[1,0,1,0,387,10],[1,0,1,0,392,10],[1,0,1,0,397,12],[1,0,1,0,402,10],[1,0,1,0,406,10],[1,0,1,0,410,13],[1,0,1,0,414,14],[1,0,1,0,418,15],[1,0,1,0,422,16],[1,0,1,0,426,17],[1,0,1,0,430,18],[1,0,1,0,436,10],[1,0,1,0,441,10],[1,0,1,0,446,10],[1,0,1,0,451,10],[1,0,1,0,456,10],[1,0,1,0,461,10],[1,0,1,0,465,10],[1,0,1,0,469,10],[1,0,1,0,473,10],[1,0,1,0,477,18],[1,0,1,0,481,18],[1,0,1,0,485,18],[1,0,1,0,491,10],[1,0,1,0,496,10],[1,0,1,0,502,10],[1,0,1,0,508,10],[1,0,1,0,515,10],[1,0,1,0,521,12],[1,0,1,0,527,18],[1,0,1,0,534,10],[1,0,1,0,541,10],[1,0,1,0,548,10],[1,0,1,0,552,10],[1,0,1,0,557,10],[1,0,1,0,564,10],[1,0,1,0,572,10],[1,0,1,0,580,10],[1,0,1,0,588,10],[1,0,1,0,596,10],[1,0,1,0,604,10],[1,0,1,0,612,10],[1,0,1,0,620,10],[1,0,1,0,628,10],[1,0,1,0,636,10],[1,0,1,0,644,10],[1,0,1,0,652,10],[1,0,1,0,660,10],[1,0,1,0,668,10],[1,0,1,0,676,10],[1,0,1,0,684,10],[1,0,1,0,692,10],[1,0,1,0,700,10],[1,0,1,0,708,10],[1,0,1,0,716,10],[1,0,1,0,724,10],[1,0,1,0,732,10],[1,0,1,0,740,10],[1,0,1,0,748,10],[1,0,1,0,756,10],[1,0,1,0,764,10],[1,0,1,0,772,10],[1,0,1,0,780,10],[1,0,1,0,788,10],[1,0,1,0,796,10],[1,0,1,0,804,10],[1,0,1,0,812,10],[1,0,1,0,820,10],[1,0,1,0,828,10],[1,0,1,0,836,10],[1,0,1,0,844,10],[1,0,1,0,852,10],[1,0,1,0,860,10],[1,0,1,0,868,10],[1,0,1,0,876,10],[1,0,1,0,884,10],[1,0,1,0,892,10],[1,0,1,0,900,10],[1,0,1,0,908,10],[1,0,1,0,916,10],[1,0,1,0,924,10],[1,0,1,0,930,10],[1,0,1,0,935,10],[1,0,1,0,940,10],[1,0,1,0,948,10],[1,0,1,0,956,19],[1,0,1,0,964,10],[1,0,1,0,968,14],[1,0,1,0,972,10],[1,0,1,0,977,10],[1,0,1,0,981,14],[1,0,1,0,985,20],[1,0,1,0,989,21],[1,0,1,0,993,21],[1,0,1,0,997,20],[1,0,1,0,1002,10],[1,0,1,0,1006,14],[1,0,1,0,1010,16],[1,0,1,0,1014,18],[1,0,1,0,1018,21],[1,0,1,0,1022,20],[1,0,1,0,1027,10],[1,0,1,0,1031,14],[1,0,1,0,1035,16],[1,0,1,0,1039,18],[1,0,1,0,1043,21],[1,0,1,0,1048,10],[1,0,1,0,1052,10],[1,0,1,0,1056,14],[1,0,1,0,1060,16],[1,0,1,0,1064,18],[1,0,1,0,1068,21],[1,0,1,0,1072,20],[1,0,1,0,1077,10],[1,0,1,0,1081,22],[1,0,1,0,1085,16],[1,0,1,0,1089,18],[1,0,1,0,1093,21],[1,0,1,0,1097,23],[1,0,1,0,1102,14],[1,0,1,0,1106,22],[1,0,1,0,1110,16],[1,0,1,0,1114,18],[1,0,1,0,1120,24],[1,0,1,0,1126,24],[1,0,1,0,1131,10],[1,0,1,0,1137,10],[1,0,1,0,1142,10],[1,0,1,0,1146,16],[1,0,1,0,1150,18],[1,0,1,0,1155,10],[1,0,1,0,1161,10],[1,0,1,0,1167,10],[1,0,1,0,1173,10],[1,0,1,0,1179,10],[1,0,1,0,1185,10],[1,0,1,0,1191,10],[1,0,1,0,1197,10],[1,0,1,0,1203,10],[1,0,1,0,1209,10],[1,0,1,0,1215,10],[1,0,1,0,1221,10],[1,0,1,0,1227,10],[1,0,1,0,1233,10],[1,0,1,0,1239,10],[1,0,1,0,1245,10],[1,0,1,0,1251,25],[1,0,1,0,1256,20],[1,0,1,0,1263,12],[1,0,1,0,1269,10],[1,0,1,0,1275,25],[1,0,1,0,1281,10],[1,0,1,0,1287,12],[1,0,1,0,1293,10],[1,0,1,0,1300,10],[1,0,1,0,1308,10],[1,0,1,0,1316,10],[1,0,1,0,1324,10],[1,0,1,0,1332,10],[1,0,1,0,1340,10],[1,0,1,0,1348,10],[1,0,1,0,1356,10],[1,0,1,0,1364,10],[1,0,1,0,1372,10],[1,0,1,0,1380,10],[1,0,1,0,1388,10],[1,0,1,0,1395,10],[1,0,1,0,1410,10],[1,0,1,0,1425,10],[1,0,1,0,1440,26],[1,1,0,13,360,2],[1,1,0,8,360,3],[1,1,0,3,360,4],[1,1,0,13,367,2],[1,1,0,13,373,2],[1,1,0,13,379,2],[1,1,0,13,386,5],[1,1,0,13,392,5],[1,1,0,13,397,2],[1,1,0,13,401,2],[1,1,0,13,406,2],[1,1,0,13,411,2],[1,1,0,13,415,2],[1,1,0,13,421,2],[1,1,0,13,426,2],[1,1,0,13,431,2],[1,1,0,13,436,2],[1,1,0,13,441,2],[1,1,0,13,445,2],[1,1,0,13,451,2],[1,1,0,13,456,2],[1,1,0,13,461,2],[1,1,0,13,466,2],[1,1,0,13,471,2],[1,1,0,13,476,2],[1,1,0,13,482,2],[1,1,0,13,488,2],[1,1,0,13,494,2],[1,1,0,13,499,2],[1,1,0,13,505,5],[1,1,0,13,511,2],[1,1,0,13,519,2],[1,1,0,13,527,2],[1,1,0,13,535,2],[1,1,0,13,543,2],[1,1,0,13,551,2],[1,1,0,13,559,2],[1,1,0,13,567,2],[1,1,0,13,575,2],[1,1,0,13,583,2],[1,1,0,13,591,2],[1,1,0,13,599,2],[1,1,0,13,607,2],[1,1,0,13,615,2],[1,1,0,13,623,2],[1,1,0,13,631,2],[1,1,0,13,639,2],[1,1,0,13,647,2],[1,1,0,13,655,2],[1,1,0,13,663,2],[1,1,0,13,671,2],[1,1,0,13,679,2],[1,1,0,13,687,2],[1,1,0,13,695,2],[1,1,0,13,703,2],[1,1,0,13,711,2],[1,1,0,13,719,2],[1,1,0,13,727,2],[1,1,0,13,735,2],[1,1,0,13,743,2],[1,1,0,13,751,2],[1,1,0,13,759,2],[1,1,0,13,767,2],[1,1,0,13,775,2],[1,1,0,13,783,2],[1,1,0,13,791,2],[1,1,0,13,799,2],[1,1,0,13,807,2],[1,1,0,13,815,2],[1,1,0,13,823,2],[1,1,0,13,831,2],[1,1,0,13,839,2],[1,1,0,13,847,2],[1,1,0,13,855,2],[1,1,0,13,863,2],[1,1,0,13,871,2],[1,1,0,13,879,2],[1,1,0,13,887,2],[1,1,0,13,895,2],[1,1,0,13,903,2],[1,1,0,13,911,2],[1,1,0,13,919,2],[1,1,0,13,927,2],[1,1,0,13,935,2],[1,1,0,13,943,2],[1,1,0,13,951,2],[1,1,0,13,959,2],[1,1,0,13,966,2],[1,1,0,13,972,2],[1,1,0,13,979,5],[1,1,0,13,984,2],[1,1,0,13,990,2],[1,1,0,13,995,2],[1,1,0,13,999,2],[1,1,0,13,1005,2],[1,1,0,13,1010,2],[1,1,0,13,1014,2],[1,1,0,13,1020,2],[1,1,0,13,1025,2],[1,1,0,13,1030,2],[1,1,0,13,1035,2],[1,1,0,13,1040,2],[1,1,0,13,1044,2],[1,1,0,13,1050,2],[1,1,0,13,1055,2],[1,1,0,13,1060,2],[1,1,0,13,1065,2],[1,1,0,13,1070,2],[1,1,0,13,1075,2],[1,1,0,13,1080,2],[1,1,0,13,1087,2],[1,1,0,13,1093,2],[1,1,0,13,1099,2],[1,1,0,13,1105,2],[1,1,0,13,1111,2],[1,1,0,13,1119,2],[1,1,0,13,1127,2],[1,1,0,13,1135,2],[1,1,0,13,1143,2],[1,1,0,13,1151,2],[1,1,0,13,1159,2],[1,1,0,13,1167,2],[1,1,0,13,1175,2],[1,1,0,13,1183,2],[1,1,0,13,1191,2],[1,1,0,13,1199,2],[1,1,0,13,1207,2],[1,1,0,13,1215,2],[1,1,0,13,1223,2],[1,1,0,13,1231,2],[1,1,0,13,1239,2],[1,1,0,13,1247,2],[1,1,0,13,1255,2],[1,1,0,13,1263,2],[1,1,0,13,1271,2],[1,1,0,13,1279,2],[1,1,0,13,1287,2],[1,1,0,13,1295,2],[1,1,0,13,1303,2],[1,1,0,13,1311,2],[1,1,0,13,1319,2],[1,1,0,13,1327,2],[1,1,0,13,1335,2],[1,1,0,13,1343,2],[1,1,0,13,1351,2],[1,1,0,13,1359,2],[1,1,0,13,1367,2],[1,1,0,13,1375,2],[1,1,0,13,1383,2],[1,1,0,13,1395,2],[1,1,0,13,1410,2],[1,1,0,13,1425,2],[1,1,0,13,1440,2],[1,1,1,0,360,0],[1,1,1,6,360,1],[1,1,1,0,368,0],[1,1,1,0,374,0],[1,1,1,0,380,0],[1,1,1,0,388,0],[1,1,1,0,394,0],[1,1,1,0,400,0],[1,1,1,0,406,0],[1,1,1,0,412,0],[1,1,1,0,418,0],[1,1,1,0,424,0],[1,1,1,0,430,0],[1,1,1,0,435,0],[1,1,1,0,440,0],[1,1,1,0,445,0],[1,1,1,0,450,0],[1,1,1,0,455,0],[1,1,1,0,460,0],[1,1,1,0,464,0],[1,1,1,0,470,0],[1,1,1,0,475,0],[1,1,1,0,480,0],[1,1,1,0,484,0],[1,1,1,0,490,0],[1,1,1,0,495,0],[1,1,1,0,500,0],[1,1,1,0,504,0],[1,1,1,0,509,0],[1,1,1,0,515,0],[1,1,1,0,522,0],[1,1,1,0,526,0],[1,1,1,0,531,0],[1,1,1,0,539,0],[1,1,1,0,547,0],[1,1,1,0,555,0],[1,1,1,0,563,0],[1,1,1,0,571,0],[1,1,1,0,579,0],[1,1,1,0,587,0],[1,1,1,0,595,0],[1,1,1,0,603,0],[1,1,1,0,611,0],[1,1,1,0,619,0],[1,1,1,0,627,0],[1,1,1,0,635,0],[1,1,1,0,643,0],[1,1,1,0,651,0],[1,1,1,0,659,0],[1,1,1,0,667,0],[1,1,1,0,675,0],[1,1,1,0,683,0],[1,1,1,0,691,0],[1,1,1,0,699,0],[1,1,1,0,707,0],[1,1,1,0,715,0],[1,1,1,0,723,0],[1,1,1,0,731,0],[1,1,1,0,739,0],[1,1,1,0,747,0],[1,1,1,0,755,0],[1,1,1,0,763,0],[1,1,1,0,771,0],[1,1,1,0,779,0],[1,1,1,0,787,0],[1,1,1,0,795,0],[1,1,1,0,803,0],[1,1,1,0,811,0],[1,1,1,0,819,0],[1,1,1,0,827,0],[1,1,1,0,835,0],[1,1,1,0,843,0],[1,1,1,0,851,0],[1,1,1,0,859,0],[1,1,1,0,867,0],[1,1,1,0,875,0],[1,1,1,0,883,0],[1,1,1,0,891,0],[1,1,1,0,899,0],[1,1,1,0,907,0],[1,1,1,0,915,0],[1,1,1,0,923,0],[1,1,1,0,931,0],[1,1,1,0,939,0],[1,1,1,0,947,0],[1,1,1,0,955,0],[1,1,1,0,963,0],[1,1,1,0,971,0],[1,1,1,0,979,0],[1,1,1,0,987,0],[1,1,1,0,993,0],[1,1,1,0,999,0],[1,1,1,0,1005,0],[1,1,1,0,1011,0],[1,1,1,0,1017,0],[1,1,1,0,1023,0],[1,1,1,0,1029,0],[1,1,1,0,1034,0],[1,1,1,0,1039,0],[1,1,1,0,1044,0],[1,1,1,0,1049,0],[1,1,1,0,1054,0],[1,1,1,0,1059,0],[1,1,1,0,1064,0],[1,1,1,0,1069,0],[1,1,1,0,1074,0],[1,1,1,0,1079,0],[1,1,1,0,1084,0],[1,1,1,0,1090,0],[1,1,1,0,1094,0],[1,1,1,0,1099,0],[1,1,1,0,1104,0],[1,1,1,0,1108,0],[1,1,1,0,1114,0],[1,1,1,0,1122,0],[1,1,1,0,1126,0],[1,1,1,0,1132,0],[1,1,1,0,1139,0],[1,1,1,0,1147,0],[1,1,1,0,1155,0],[1,1,1,0,1163,0],[1,1,1,0,1171,0],[1,1,1,0,1179,0],[1,1,1,0,1187,0],[1,1,1,0,1195,0],[1,1,1,0,1203,0],[1,1,1,0,1211,0],[1,1,1,0,1219,0],[1,1,1,0,1227,0],[1,1,1,0,1235,0],[1,1,1,0,1243,0],[1,1,1,0,1251,0],[1,1,1,0,1259,0],[1,1,1,0,1267,0],[1,1,1,0,1275,0],[1,1,1,0,1283,0],[1,1,1,0,1291,0],[1,1,1,0,1299,0],[1,1,1,0,1307,0],[1,1,1,0,1315,0],[1,1,1,0,1323,0],[1,1,1,0,1331,0],[1,1,1,0,1339,0],[1,1,1,0,1347,0],[1,1,1,0,1355,0],[1,1,1,0,1363,0],[1,1,1,0,1371,0],[1,1,1,0,1379,0],[1,1,1,0,1387,0],[1,1,1,0,1395,0],[1,1,1,0,1410,0],[1,1,1,0,1425,0],[1,1,1,0,1440,0],[2,0,0,24,355,29],[2,0,0,17,355,45],[2,0,0,24,362,29],[2,0,0,24,369,29],[2,0,0,24,377,29],[2,0,0,24,385,29],[2,0,0,24,393,29],[2,0,0,24,401,29],[2,0,0,24,409,29],[2,0,0,24,417,29],[2,0,0,24,425,29],[2,0,0,24,433,29],[2,0,0,24,441,29],[2,0,0,24,449,29],[2,0,0,24,457,29],[2,0,0,24,465,29],[2,0,0,24,473,29],[2,0,0,24,481,29],[2,0,0,24,489,29],[2,0,0,24,497,29],[2,0,0,24,505,29],[2,0,0,24,513,29],[2,0,0,24,521,29],[2,0,0,24,529,29],[2,0,0,24,537,29],[2,0,0,24,545,29],[2,0,0,24,553,29],[2,0,0,24,561,29],[2,0,0,24,569,29],[2,0,0,24,577,29],[2,0,0,24,585,29],[2,0,0,24,593,29],[2,0,0,24,601,29],[2,0,0,24,608,29],[2,0,0,24,615,29],[2,0,0,24,622,29],[2,0,0,24,629,29],[2,0,0,24,636,46],[2,0,0,24,643,29],[2,0,0,24,650,29],[2,0,0,24,657,29],[2,0,0,24,663,29],[2,0,0,24,668,29],[2,0,0,24,673,29],[2,0,0,24,678,29],[2,0,0,24,685,29],[2,0,0,24,692,29],[2,0,0,24,699,29],[2,0,0,24,706,29],[2,0,0,24,713,29],[2,0,0,24,720,27],[2,0,0,24,727,30],[2,0,0,24,734,29],[2,0,0,24,739,35],[2,0,0,24,744,47],[2,0,0,24,749,48],[2,0,0,24,755,29],[2,0,0,24,762,29],[2,0,0,24,769,30],[2,0,0,24,776,29],[2,0,0,24,782,29],[2,0,0,24,788,29],[2,0,0,24,794,29],[2,0,0,24,799,35],[2,0,0,24,806,29],[2,0,0,24,812,29],[2,0,0,24,818,29],[2,0,0,24,824,29],[2,0,0,24,830,29],[2,0,0,24,836,29],[2,0,0,24,842,29],[2,0,0,24,848,29],[2,0,0,24,853,35],[2,0,0,24,860,29],[2,0,0,24,866,29],[2,0,0,24,872,29],[2,0,0,24,878,29],[2,0,0,24,884,29],[2,0,0,24,890,29],[2,0,0,24,896,29],[2,0,0,24,902,29],[2,0,0,24,908,29],[2,0,0,24,914,29],[2,0,0,24,920,29],[2,0,0,24,926,29],[2,0,0,24,932,29],[2,0,0,24,938,29],[2,0,0,24,944,29],[2,0,0,24,950,29],[2,0,0,24,956,29],[2,0,0,24,963,29],[2,0,0,24,967,35],[2,0,0,24,972,29],[2,0,0,24,976,35],[2,0,0,24,981,29],[2,0,0,24,985,35],[2,0,0,24,990,29],[2,0,0,24,994,35],[2,0,0,24,999,29],[2,0,0,24,1003,35],[2,0,0,24,1008,29],[2,0,0,24,1012,35],[2,0,0,24,1017,29],[2,0,0,24,1021,35],[2,0,0,24,1026,29],[2,0,0,24,1030,35],[2,0,0,24,1035,29],[2,0,0,24,1039,35],[2,0,0,24,1044,29],[2,0,0,24,1048,35],[2,0,0,24,1053,29],[2,0,0,24,1057,35],[2,0,0,24,1062,29],[2,0,0,24,1066,48],[2,0,0,24,1071,29],[2,0,0,24,1075,49],[2,0,0,24,1080,29],[2,0,0,24,1084,35],[2,0,0,24,1089,29],[2,0,0,24,1093,49],[2,0,0,24,1098,29],[2,0,0,24,1102,49],[2,0,0,24,1107,29],[2,0,0,24,1111,49],[2,0,0,24,1116,29],[2,0,0,24,1121,30],[2,0,0,24,1126,29],[2,0,0,24,1132,30],[2,0,0,24,1138,29],[2,0,0,24,1142,29],[2,0,0,24,1146,49],[2,0,0,24,1151,29],[2,0,0,24,1157,29],[2,0,0,24,1163,29],[2,0,0,24,1169,29],[2,0,0,24,1175,29],[2,0,0,24,1181,29],[2,0,0,24,1187,29],[2,0,0,24,1193,29],[2,0,0,24,1199,29],[2,0,0,24,1205,29],[2,0,0,24,1211,29],[2,0,0,24,1217,29],[2,0,0,24,1223,27],[2,0,0,24,1229,30],[2,0,0,24,1235,29],[2,0,0,24,1241,29],[2,0,0,24,1247,27],[2,0,0,24,1253,35],[2,0,0,24,1262,29],[2,0,0,24,1270,29],[2,0,0,24,1278,29],[2,0,0,24,1285,35],[2,0,0,24,1292,29],[2,0,0,24,1297,35],[2,0,0,24,1303,29],[2,0,0,24,1310,29],[2,0,0,24,1318,29],[2,0,0,24,1326,29],[2,0,0,24,1334,29],[2,0,0,24,1342,29],[2,0,0,24,1350,29],[2,0,0,24,1358,29],[2,0,0,24,1366,29],[2,0,0,24,1374,29],[2,0,0,24,1382,29],[2,0,0,24,1395,29],[2,0,0,24,1410,29],[2,0,0,24,1425,29],[2,0,0,24,1440,29],[2,0,1,0,355,10],[2,0,1,6,355,11],[2,0,1,0,362,10],[2,0,1,0,369,10],[2,0,1,0,377,10],[2,0,1,0,385,10],[2,0,1,0,393,10],[2,0,1,0,401,10],[2,0,1,0,409,10],[2,0,1,0,417,10],[2,0,1,0,425,10],[2,0,1,0,433,10],[2,0,1,0,441,10],[2,0,1,0,449,10],[2,0,1,0,457,10],[2,0,1,0,465,10],[2,0,1,0,473,10],[2,0,1,0,481,10],[2,0,1,0,489,10],[2,0,1,0,497,10],[2,0,1,0,505,10],[2,0,1,0,513,10],[2,0,1,0,521,10],[2,0,1,0,529,10],[2,0,1,0,537,10],[2,0,1,0,545,10],[2,0,1,0,553,10],[2,0,1,0,561,10],[2,0,1,0,569,12],[2,0,1,0,577,10],[2,0,1,0,585,10],[2,0,1,0,593,10],[2,0,1,0,601,10],[2,0,1,0,609,18],[2,0,1,0,617,41],[2,0,1,0,624,18],[2,0,1,0,631,18],[2,0,1,0,638,18],[2,0,1,0,645,18],[2,0,1,0,652,18],[2,0,1,0,659,18],[2,0,1,0,666,18],[2,0,1,0,673,18],[2,0,1,0,680,18],[2,0,1,0,685,18],[2,0,1,0,691,10],[2,0,1,0,695,42],[2,0,1,0,701,18],[2,0,1,0,708,18],[2,0,1,0,715,10],[2,0,1,0,720,18],[2,0,1,0,725,41],[2,0,1,0,730,18],[2,0,1,0,736,18],[2,0,1,0,743,18],[2,0,1,0,750,42],[2,0,1,0,757,18],[2,0,1,0,764,18],[2,0,1,0,770,18],[2,0,1,0,776,10],[2,0,1,0,782,10],[2,0,1,0,788,10],[2,0,1,0,794,10],[2,0,1,0,799,18],[2,0,1,0,806,10],[2,0,1,0,812,10],[2,0,1,0,818,10],[2,0,1,0,824,10],[2,0,1,0,830,10],[2,0,1,0,836,10],[2,0,1,0,842,10],[2,0,1,0,848,10],[2,0,1,0,854,10],[2,0,1,0,860,10],[2,0,1,0,866,10],[2,0,1,0,872,10],[2,0,1,0,878,10],[2,0,1,0,884,10],[2,0,1,0,890,10],[2,0,1,0,896,10],[2,0,1,0,902,10],[2,0,1,0,908,10],[2,0,1,0,914,10],[2,0,1,0,920,10],[2,0,1,0,926,10],[2,0,1,0,932,10],[2,0,1,0,938,10],[2,0,1,0,944,10],[2,0,1,0,950,10],[2,0,1,0,956,10],[2,0,1,0,961,10],[2,0,1,0,965,18],[2,0,1,0,970,10],[2,0,1,0,974,18],[2,0,1,0,979,10],[2,0,1,0,983,18],[2,0,1,0,988,10],[2,0,1,0,992,18],[2,0,1,0,997,10],[2,0,1,0,1001,18],[2,0,1,0,1006,10],[2,0,1,0,1010,18],[2,0,1,0,1015,10],[2,0,1,0,1019,18],[2,0,1,0,1024,10],[2,0,1,0,1028,18],[2,0,1,0,1033,10],[2,0,1,0,1037,18],[2,0,1,0,1042,10],[2,0,1,0,1046,18],[2,0,1,0,1051,10],[2,0,1,0,1055,18],[2,0,1,0,1060,10],[2,0,1,0,1064,18],[2,0,1,0,1069,10],[2,0,1,0,1073,18],[2,0,1,0,1078,10],[2,0,1,0,1082,18],[2,0,1,0,1087,10],[2,0,1,0,1091,18],[2,0,1,0,1096,10],[2,0,1,0,1100,18],[2,0,1,0,1105,10],[2,0,1,0,1109,18],[2,0,1,0,1115,10],[2,0,1,0,1121,10],[2,0,1,0,1127,10],[2,0,1,0,1133,10],[2,0,1,0,1139,10],[2,0,1,0,1144,10],[2,0,1,0,1148,10],[2,0,1,0,1152,18],[2,0,1,0,1157,10],[2,0,1,0,1162,10],[2,0,1,0,1166,10],[2,0,1,0,1170,10],[2,0,1,0,1175,18],[2,0,1,0,1181,10],[2,0,1,0,1187,10],[2,0,1,0,1193,10],[2,0,1,0,1199,10],[2,0,1,0,1205,10],[2,0,1,0,1211,10],[2,0,1,0,1217,10],[2,0,1,0,1223,10],[2,0,1,0,1229,43],[2,0,1,0,1235,10],[2,0,1,0,1241,10],[2,0,1,0,1247,43],[2,0,1,0,1254,43],[2,0,1,0,1262,10],[2,0,1,0,1270,10],[2,0,1,0,1278,10],[2,0,1,0,1286,10],[2,0,1,0,1294,10],[2,0,1,0,1302,10],[2,0,1,0,1310,10],[2,0,1,0,1318,10],[2,0,1,0,1326,10],[2,0,1,0,1334,10],[2,0,1,0,1342,10],[2,0,1,0,1350,10],[2,0,1,0,1358,10],[2,0,1,0,1366,10],[2,0,1,0,1374,10],[2,0,1,0,1382,10],[2,0,1,0,1395,10],[2,0,1,0,1410,10],[2,0,1,0,1425,10],[2,0,1,0,1440,44],[2,1,0,13,360,6],[2,1,0,8,360,7],[2,1,0,3,360,4],[2,1,0,13,365,2],[2,1,0,13,372,2],[2,1,0,13,380,2],[2,1,0,13,388,2],[2,1,0,13,396,2],[2,1,0,13,404,2],[2,1,0,13,412,2],[2,1,0,13,420,2],[2,1,0,13,428,2],[2,1,0,13,436,2],[2,1,0,13,444,2],[2,1,0,13,452,2],[2,1,0,13,460,2],[2,1,0,13,468,2],[2,1,0,13,476,2],[2,1,0,13,484,2],[2,1,0,13,492,2],[2,1,0,13,500,2],[2,1,0,13,508,2],[2,1,0,13,516,2],[2,1,0,13,524,2],[2,1,0,13,532,2],[2,1,0,13,540,2],[2,1,0,13,548,2],[2,1,0,13,556,2],[2,1,0,13,564,2],[2,1,0,13,572,2],[2,1,0,13,580,2],[2,1,0,13,588,2],[2,1,0,13,596,2],[2,1,0,13,604,2],[2,1,0,13,612,2],[2,1,0,13,620,2],[2,1,0,13,628,2],[2,1,0,13,636,2],[2,1,0,13,644,2],[2,1,0,13,652,2],[2,1,0,13,660,2],[2,1,0,13,668,2],[2,1,0,13,676,2],[2,1,0,13,684,2],[2,1,0,13,692,2],[2,1,0,13,700,2],[2,1,0,13,708,2],[2,1,0,13,716,2],[2,1,0,13,724,2],[2,1,0,13,732,2],[2,1,0,13,740,2],[2,1,0,13,748,2],[2,1,0,13,756,2],[2,1,0,13,764,2],[2,1,0,13,772,2],[2,1,0,13,780,2],[2,1,0,13,788,2],[2,1,0,13,796,2],[2,1,0,13,804,2],[2,1,0,13,812,2],[2,1,0,13,820,2],[2,1,0,13,828,2],[2,1,0,13,836,2],[2,1,0,13,844,2],[2,1,0,13,852,2],[2,1,0,13,860,2],[2,1,0,13,868,2],[2,1,0,13,876,2],[2,1,0,13,884,2],[2,1,0,13,892,2],[2,1,0,13,900,2],[2,1,0,13,908,2],[2,1,0,13,916,2],[2,1,0,13,924,2],[2,1,0,13,932,2],[2,1,0,13,940,2],[2,1,0,13,948,2],[2,1,0,13,956,2],[2,1,0,13,964,2],[2,1,0,13,968,2],[2,1,0,13,972,2],[2,1,0,13,978,2],[2,1,0,13,983,2],[2,1,0,13,988,2],[2,1,0,13,994,2],[2,1,0,13,1000,8],[2,1,0,13,1004,2],[2,1,0,13,1008,2],[2,1,0,13,1013,2],[2,1,0,13,1018,2],[2,1,0,13,1023,2],[2,1,0,13,1028,2],[2,1,0,13,1033,2],[2,1,0,13,1038,2],[2,1,0,13,1043,2],[2,1,0,13,1048,2],[2,1,0,13,1053,2],[2,1,0,13,1058,2],[2,1,0,13,1063,2],[2,1,0,13,1068,2],[2,1,0,13,1073,2],[2,1,0,13,1078,2],[2,1,0,13,1083,2],[2,1,0,13,1088,2],[2,1,0,13,1093,2],[2,1,0,13,1098,2],[2,1,0,13,1103,2],[2,1,0,13,1109,2],[2,1,0,13,1116,2],[2,1,0,13,1122,2],[2,1,0,13,1130,2],[2,1,0,13,1137,2],[2,1,0,13,1145,2],[2,1,0,13,1153,2],[2,1,0,13,1161,2],[2,1,0,13,1169,2],[2,1,0,13,1177,2],[2,1,0,13,1185,2],[2,1,0,13,1193,2],[2,1,0,13,1201,2],[2,1,0,13,1209,2],[2,1,0,13,1217,2],[2,1,0,13,1225,2],[2,1,0,13,1233,2],[2,1,0,13,1241,2],[2,1,0,13,1249,2],[2,1,0,13,1257,2],[2,1,0,13,1265,2],[2,1,0,13,1273,2],[2,1,0,13,1281,2],[2,1,0,13,1289,2],[2,1,0,13,1297,2],[2,1,0,13,1305,2],[2,1,0,13,1313,2],[2,1,0,13,1321,2],[2,1,0,13,1329,2],[2,1,0,13,1337,2],[2,1,0,13,1345,2],[2,1,0,13,1353,2],[2,1,0,13,1361,2],[2,1,0,13,1369,9],[2,1,0,13,1377,2],[2,1,0,13,1385,2],[2,1,0,13,1395,2],[2,1,0,13,1410,2],[2,1,0,13,1425,2],[2,1,0,13,1440,2],[2,1,1,0,360,0],[2,1,1,6,360,1],[2,1,1,0,368,0],[2,1,1,0,376,0],[2,1,1,0,384,0],[2,1,1,0,392,0],[2,1,1,0,400,0],[2,1,1,0,408,0],[2,1,1,0,416,0],[2,1,1,0,424,0],[2,1,1,0,432,0],[2,1,1,0,440,0],[2,1,1,0,448,0],[2,1,1,0,456,0],[2,1,1,0,464,0],[2,1,1,0,472,0],[2,1,1,0,480,0],[2,1,1,0,488,0],[2,1,1,0,496,0],[2,1,1,0,504,0],[2,1,1,0,512,0],[2,1,1,0,520,0],[2,1,1,0,528,0],[2,1,1,0,536,0],[2,1,1,0,544,0],[2,1,1,0,552,0],[2,1,1,0,560,0],[2,1,1,0,568,0],[2,1,1,0,576,0],[2,1,1,0,584,0],[2,1,1,0,592,0],[2,1,1,0,600,0],[2,1,1,0,608,0],[2,1,1,0,616,0],[2,1,1,0,624,0],[2,1,1,0,632,0],[2,1,1,0,640,0],[2,1,1,0,648,0],[2,1,1,0,656,0],[2,1,1,0,664,0],[2,1,1,0,672,0],[2,1,1,0,680,0],[2,1,1,0,688,0],[2,1,1,0,696,0],[2,1,1,0,704,0],[2,1,1,0,712,0],[2,1,1,0,720,0],[2,1,1,0,728,0],[2,1,1,0,736,0],[2,1,1,0,744,0],[2,1,1,0,752,0],[2,1,1,0,760,0],[2,1,1,0,768,0],[2,1,1,0,776,0],[2,1,1,0,784,0],[2,1,1,0,792,0],[2,1,1,0,800,0],[2,1,1,0,808,0],[2,1,1,0,816,0],[2,1,1,0,824,0],[2,1,1,0,832,0],[2,1,1,0,840,0],[2,1,1,0,848,0],[2,1,1,0,856,0],[2,1,1,0,864,0],[2,1,1,0,872,0],[2,1,1,0,880,0],[2,1,1,0,888,0],[2,1,1,0,896,0],[2,1,1,0,904,0],[2,1,1,0,912,0],[2,1,1,0,920,0],[2,1,1,0,928,0],[2,1,1,0,936,0],[2,1,1,0,944,0],[2,1,1,0,952,0],[2,1,1,0,960,0],[2,1,1,0,968,0],[2,1,1,0,976,0],[2,1,1,0,984,0],[2,1,1,0,992,0],[2,1,1,0,997,0],[2,1,1,0,1002,0],[2,1,1,0,1007,0],[2,1,1,0,1012,0],[2,1,1,0,1017,0],[2,1,1,0,1022,0],[2,1,1,0,1027,0],[2,1,1,0,1032,0],[2,1,1,0,1037,0],[2,1,1,0,1042,0],[2,1,1,0,1047,0],[2,1,1,0,1052,0],[2,1,1,0,1057,0],[2,1,1,0,1062,0],[2,1,1,0,1067,0],[2,1,1,0,1072,0],[2,1,1,0,1077,0],[2,1,1,0,1082,0],[2,1,1,0,1087,0],[2,1,1,0,1092,0],[2,1,1,0,1097,0],[2,1,1,0,1102,0],[2,1,1,0,1106,0],[2,1,1,0,1112,0],[2,1,1,0,1117,0],[2,1,1,0,1122,0],[2,1,1,0,1126,0],[2,1,1,0,1133,0],[2,1,1,0,1138,0],[2,1,1,0,1143,0],[2,1,1,0,1149,0],[2,1,1,0,1157,0],[2,1,1,0,1165,0],[2,1,1,0,1173,0],[2,1,1,0,1181,0],[2,1,1,0,1189,0],[2,1,1,0,1197,0],[2,1,1,0,1205,0],[2,1,1,0,1213,0],[2,1,1,0,1221,0],[2,1,1,0,1229,0],[2,1,1,0,1237,0],[2,1,1,0,1245,0],[2,1,1,0,1253,0],[2,1,1,0,1261,0],[2,1,1,0,1269,0],[2,1,1,0,1277,0],[2,1,1,0,1285,0],[2,1,1,0,1293,0],[2,1,1,0,1301,0],[2,1,1,0,1309,0],[2,1,1,0,1317,0],[2,1,1,0,1325,0],[2,1,1,0,1333,0],[2,1,1,0,1341,0],[2,1,1,0,1349,0],[2,1,1,0,1357,0],[2,1,1,0,1365,0],[2,1,1,0,1373,0],[2,1,1,0,1381,0],[2,1,1,0,1395,0],[2,1,1,0,1410,0],[2,1,1,0,1425,0],[2,1,1,0,1440,0],[3,0,0,24,355,29],[3,0,0,17,355,28],[3,0,0,24,362,29],[3,0,0,24,369,29],[3,0,0,24,377,29],[3,0,0,24,385,29],[3,0,0,24,393,29],[3,0,0,24,401,29],[3,0,0,24,409,29],[3,0,0,24,417,29],[3,0,0,24,425,29],[3,0,0,24,433,29],[3,0,0,24,441,29],[3,0,0,24,449,29],[3,0,0,24,457,29],[3,0,0,24,465,29],[3,0,0,24,473,29],[3,0,0,24,481,29],[3,0,0,24,489,29],[3,0,0,24,497,29],[3,0,0,24,505,29],[3,0,0,24,513,29],[3,0,0,24,521,29],[3,0,0,24,529,29],[3,0,0,24,537,29],[3,0,0,24,545,29],[3,0,0,24,553,29],[3,0,0,24,561,29],[3,0,0,24,569,29],[3,0,0,24,577,29],[3,0,0,24,585,29],[3,0,0,24,593,29],[3,0,0,24,601,29],[3,0,0,24,609,29],[3,0,0,24,617,29],[3,0,0,24,624,29],[3,0,0,24,631,29],[3,0,0,24,638,29],[3,0,0,24,645,29],[3,0,0,24,652,29],[3,0,0,24,659,29],[3,0,0,24,666,29],[3,0,0,24,673,29],[3,0,0,24,680,29],[3,0,0,24,687,29],[3,0,0,24,694,29],[3,0,0,24,701,29],[3,0,0,24,708,29],[3,0,0,24,715,29],[3,0,0,24,722,29],[3,0,0,24,729,29],[3,0,0,24,736,29],[3,0,0,24,743,29],[3,0,0,24,750,29],[3,0,0,24,757,29],[3,0,0,24,764,29],[3,0,0,24,771,29],[3,0,0,24,778,29],[3,0,0,24,785,29],[3,0,0,24,792,29],[3,0,0,24,799,29],[3,0,0,24,806,29],[3,0,0,24,813,29],[3,0,0,24,820,29],[3,0,0,24,827,29],[3,0,0,24,834,29],[3,0,0,24,841,29],[3,0,0,24,848,29],[3,0,0,24,855,29],[3,0,0,24,862,29],[3,0,0,24,869,29],[3,0,0,24,876,29],[3,0,0,24,883,29],[3,0,0,24,890,29],[3,0,0,24,897,29],[3,0,0,24,904,29],[3,0,0,24,911,29],[3,0,0,24,918,27],[3,0,0,24,924,29],[3,0,0,24,930,27],[3,0,0,24,936,29],[3,0,0,24,942,29],[3,0,0,24,948,29],[3,0,0,24,954,27],[3,0,0,24,960,29],[3,0,0,24,966,30],[3,0,0,24,972,29],[3,0,0,24,978,29],[3,0,0,24,984,27],[3,0,0,24,989,29],[3,0,0,24,994,27],[3,0,0,24,999,29],[3,0,0,24,1004,27],[3,0,0,24,1009,29],[3,0,0,24,1014,27],[3,0,0,24,1019,29],[3,0,0,24,1024,27],[3,0,0,24,1029,29],[3,0,0,24,1034,27],[3,0,0,24,1039,29],[3,0,0,24,1044,27],[3,0,0,24,1049,29],[3,0,0,24,1054,29],[3,0,0,24,1059,29],[3,0,0,24,1064,29],[3,0,0,24,1069,29],[3,0,0,24,1074,27],[3,0,0,24,1080,29],[3,0,0,24,1086,29],[3,0,0,24,1092,29],[3,0,0,24,1098,29],[3,0,0,24,1104,29],[3,0,0,24,1110,29],[3,0,0,24,1116,30],[3,0,0,24,1122,29],[3,0,0,24,1128,27],[3,0,0,24,1135,29],[3,0,0,24,1142,27],[3,0,0,24,1149,29],[3,0,0,24,1156,29],[3,0,0,24,1163,29],[3,0,0,24,1170,29],[3,0,0,24,1177,29],[3,0,0,24,1184,30],[3,0,0,24,1191,29],[3,0,0,24,1198,27],[3,0,0,24,1205,30],[3,0,0,24,1212,29],[3,0,0,24,1219,27],[3,0,0,24,1226,29],[3,0,0,24,1233,29],[3,0,0,24,1240,29],[3,0,0,24,1247,29],[3,0,0,24,1254,29],[3,0,0,24,1262,29],[3,0,0,24,1270,29],[3,0,0,24,1278,29],[3,0,0,24,1286,29],[3,0,0,24,1294,29],[3,0,0,24,1302,29],[3,0,0,24,1310,29],[3,0,0,24,1318,29],[3,0,0,24,1326,29],[3,0,0,24,1334,29],[3,0,0,24,1342,27],[3,0,0,24,1350,29],[3,0,0,24,1357,27],[3,0,0,24,1365,29],[3,0,0,24,1372,27],[3,0,0,24,1380,29],[3,0,0,24,1395,29],[3,0,0,24,1410,29],[3,0,0,24,1425,29],[3,0,0,24,1440,29],[3,0,1,0,355,10],[3,0,1,6,355,11],[3,0,1,0,362,10],[3,0,1,0,369,10],[3,0,1,0,377,10],[3,0,1,0,385,10],[3,0,1,0,393,10],[3,0,1,0,401,10],[3,0,1,0,409,10],[3,0,1,0,417,10],[3,0,1,0,425,10],[3,0,1,0,433,10],[3,0,1,0,441,10],[3,0,1,0,449,10],[3,0,1,0,457,10],[3,0,1,0,465,10],[3,0,1,0,473,10],[3,0,1,0,481,10],[3,0,1,0,489,10],[3,0,1,0,497,10],[3,0,1,0,505,10],[3,0,1,0,513,10],[3,0,1,0,521,10],[3,0,1,0,529,10],[3,0,1,0,537,10],[3,0,1,0,545,10],[3,0,1,0,553,10],[3,0,1,0,561,10],[3,0,1,0,569,10],[3,0,1,0,577,10],[3,0,1,0,585,12],[3,0,1,0,593,10],[3,0,1,0,601,12],[3,0,1,0,609,10],[3,0,1,0,617,43],[3,0,1,0,625,10],[3,0,1,0,633,18],[3,0,1,0,640,18],[3,0,1,0,647,18],[3,0,1,0,654,18],[3,0,1,0,661,18],[3,0,1,0,668,18],[3,0,1,0,675,18],[3,0,1,0,682,18],[3,0,1,0,689,18],[3,0,1,0,696,18],[3,0,1,0,703,18],[3,0,1,0,710,18],[3,0,1,0,717,18],[3,0,1,0,724,18],[3,0,1,0,731,18],[3,0,1,0,738,18],[3,0,1,0,745,18],[3,0,1,0,752,18],[3,0,1,0,759,18],[3,0,1,0,766,18],[3,0,1,0,773,18],[3,0,1,0,780,18],[3,0,1,0,787,18],[3,0,1,0,794,18],[3,0,1,0,801,18],[3,0,1,0,808,18],[3,0,1,0,815,18],[3,0,1,0,822,18],[3,0,1,0,829,18],[3,0,1,0,836,18],[3,0,1,0,843,18],[3,0,1,0,850,18],[3,0,1,0,857,18],[3,0,1,0,864,18],[3,0,1,0,871,41],[3,0,1,0,878,18],[3,0,1,0,885,41],[3,0,1,0,892,18],[3,0,1,0,899,18],[3,0,1,0,906,18],[3,0,1,0,913,18],[3,0,1,0,920,18],[3,0,1,0,927,12],[3,0,1,0,932,18],[3,0,1,0,938,41],[3,0,1,0,944,18],[3,0,1,0,950,18],[3,0,1,0,956,18],[3,0,1,0,962,18],[3,0,1,0,968,41],[3,0,1,0,974,18],[3,0,1,0,980,18],[3,0,1,0,985,10],[3,0,1,0,990,43],[3,0,1,0,995,10],[3,0,1,0,1000,43],[3,0,1,0,1005,10],[3,0,1,0,1010,43],[3,0,1,0,1015,10],[3,0,1,0,1020,43],[3,0,1,0,1025,43],[3,0,1,0,1030,10],[3,0,1,0,1035,12],[3,0,1,0,1040,10],[3,0,1,0,1045,12],[3,0,1,0,1050,10],[3,0,1,0,1055,10],[3,0,1,0,1060,12],[3,0,1,0,1065,10],[3,0,1,0,1070,10],[3,0,1,0,1075,10],[3,0,1,0,1080,10],[3,0,1,0,1085,10],[3,0,1,0,1089,41],[3,0,1,0,1095,10],[3,0,1,0,1100,42],[3,0,1,0,1106,18],[3,0,1,0,1112,41],[3,0,1,0,1118,18],[3,0,1,0,1124,41],[3,0,1,0,1131,10],[3,0,1,0,1137,18],[3,0,1,0,1144,18],[3,0,1,0,1151,18],[3,0,1,0,1158,18],[3,0,1,0,1165,10],[3,0,1,0,1172,10],[3,0,1,0,1179,10],[3,0,1,0,1186,18],[3,0,1,0,1193,18],[3,0,1,0,1200,18],[3,0,1,0,1207,18],[3,0,1,0,1214,18],[3,0,1,0,1222,10],[3,0,1,0,1230,10],[3,0,1,0,1238,10],[3,0,1,0,1246,10],[3,0,1,0,1254,10],[3,0,1,0,1262,10],[3,0,1,0,1270,10],[3,0,1,0,1278,10],[3,0,1,0,1286,10],[3,0,1,0,1294,10],[3,0,1,0,1302,10],[3,0,1,0,1310,10],[3,0,1,0,1318,10],[3,0,1,0,1326,10],[3,0,1,0,1334,10],[3,0,1,0,1342,10],[3,0,1,0,1350,10],[3,0,1,0,1358,10],[3,0,1,0,1366,10],[3,0,1,0,1374,10],[3,0,1,0,1382,10],[3,0,1,0,1395,10],[3,0,1,0,1410,10],[3,0,1,0,1425,10],[3,0,1,0,1440,44],[3,1,0,13,360,6],[3,1,0,8,360,7],[3,1,0,3,360,4],[3,1,0,13,365,2],[3,1,0,13,372,2],[3,1,0,13,380,2],[3,1,0,13,388,2],[3,1,0,13,396,2],[3,1,0,13,404,2],[3,1,0,13,412,2],[3,1,0,13,420,2],[3,1,0,13,428,2],[3,1,0,13,436,2],[3,1,0,13,444,2],[3,1,0,13,452,2],[3,1,0,13,460,2],[3,1,0,13,468,2],[3,1,0,13,476,2],[3,1,0,13,484,2],[3,1,0,13,492,2],[3,1,0,13,500,2],[3,1,0,13,508,2],[3,1,0,13,516,2],[3,1,0,13,524,2],[3,1,0,13,532,2],[3,1,0,13,540,2],[3,1,0,13,548,2],[3,1,0,13,556,2],[3,1,0,13,564,2],[3,1,0,13,572,2],[3,1,0,13,580,2],[3,1,0,13,588,2],[3,1,0,13,596,2],[3,1,0,13,604,2],[3,1,0,13,612,2],[3,1,0,13,620,2],[3,1,0,13,628,2],[3,1,0,13,636,2],[3,1,0,13,644,2],[3,1,0,13,652,2],[3,1,0,13,660,2],[3,1,0,13,668,2],[3,1,0,13,676,2],[3,1,0,13,684,2],[3,1,0,13,692,2],[3,1,0,13,700,2],[3,1,0,13,708,2],[3,1,0,13,716,2],[3,1,0,13,724,2],[3,1,0,13,732,2],[3,1,0,13,740,2],[3,1,0,13,748,2],[3,1,0,13,756,2],[3,1,0,13,764,2],[3,1,0,13,772,2],[3,1,0,13,780,2],[3,1,0,13,788,2],[3,1,0,13,796,2],[3,1,0,13,804,2],[3,1,0,13,812,2],[3,1,0,13,820,2],[3,1,0,13,828,2],[3,1,0,13,836,2],[3,1,0,13,844,2],[3,1,0,13,852,2],[3,1,0,13,860,2],[3,1,0,13,868,2],[3,1,0,13,876,2],[3,1,0,13,884,2],[3,1,0,13,892,2],[3,1,0,13,900,2],[3,1,0,13,908,2],[3,1,0,13,916,2],[3,1,0,13,924,2],[3,1,0,13,932,2],[3,1,0,13,940,2],[3,1,0,13,948,2],[3,1,0,13,956,2],[3,1,0,13,964,2],[3,1,0,13,968,2],[3,1,0,13,972,2],[3,1,0,13,978,2],[3,1,0,13,983,2],[3,1,0,13,988,2],[3,1,0,13,994,2],[3,1,0,13,1000,8],[3,1,0,13,1004,2],[3,1,0,13,1008,2],[3,1,0,13,1013,2],[3,1,0,13,1018,2],[3,1,0,13,1023,2],[3,1,0,13,1028,2],[3,1,0,13,1033,2],[3,1,0,13,1038,2],[3,1,0,13,1043,2],[3,1,0,13,1048,2],[3,1,0,13,1053,2],[3,1,0,13,1058,2],[3,1,0,13,1063,2],[3,1,0,13,1068,2],[3,1,0,13,1073,2],[3,1,0,13,1078,2],[3,1,0,13,1083,2],[3,1,0,13,1088,2],[3,1,0,13,1093,2],[3,1,0,13,1098,2],[3,1,0,13,1103,2],[3,1,0,13,1109,2],[3,1,0,13,1116,2],[3,1,0,13,1122,2],[3,1,0,13,1130,2],[3,1,0,13,1137,2],[3,1,0,13,1145,2],[3,1,0,13,1153,2],[3,1,0,13,1161,2],[3,1,0,13,1169,2],[3,1,0,13,1177,2],[3,1,0,13,1185,2],[3,1,0,13,1193,2],[3,1,0,13,1201,2],[3,1,0,13,1209,2],[3,1,0,13,1217,2],[3,1,0,13,1225,2],[3,1,0,13,1233,2],[3,1,0,13,1241,2],[3,1,0,13,1249,2],[3,1,0,13,1257,2],[3,1,0,13,1265,2],[3,1,0,13,1273,2],[3,1,0,13,1281,2],[3,1,0,13,1289,2],[3,1,0,13,1297,2],[3,1,0,13,1305,2],[3,1,0,13,1313,2],[3,1,0,13,1321,2],[3,1,0,13,1329,2],[3,1,0,13,1337,2],[3,1,0,13,1345,2],[3,1,0,13,1353,2],[3,1,0,13,1361,2],[3,1,0,13,1369,9],[3,1,0,13,1377,2],[3,1,0,13,1385,2],[3,1,0,13,1395,2],[3,1,0,13,1410,2],[3,1,0,13,1425,2],[3,1,0,13,1440,2],[3,1,1,0,360,0],[3,1,1,6,360,1],[3,1,1,0,368,0],[3,1,1,0,376,0],[3,1,1,0,384,0],[3,1,1,0,392,0],[3,1,1,0,400,0],[3,1,1,0,408,0],[3,1,1,0,416,0],[3,1,1,0,424,0],[3,1,1,0,432,0],[3,1,1,0,440,0],[3,1,1,0,448,0],[3,1,1,0,456,0],[3,1,1,0,464,0],[3,1,1,0,472,0],[3,1,1,0,480,0],[3,1,1,0,488,0],[3,1,1,0,496,0],[3,1,1,0,504,0],[3,1,1,0,512,0],[3,1,1,0,520,0],[3,1,1,0,528,0],[3,1,1,0,536,0],[3,1,1,0,544,0],[3,1,1,0,552,0],[3,1,1,0,560,0],[3,1,1,0,568,0],[3,1,1,0,576,0],[3,1,1,0,584,0],[3,1,1,0,592,0],[3,1,1,0,600,0],[3,1,1,0,608,0],[3,1,1,0,616,0],[3,1,1,0,624,0],[3,1,1,0,632,0],[3,1,1,0,640,0],[3,1,1,0,648,0],[3,1,1,0,656,0],[3,1,1,0,664,0],[3,1,1,0,672,0],[3,1,1,0,680,0],[3,1,1,0,688,0],[3,1,1,0,696,0],[3,1,1,0,704,0],[3,1,1,0,712,0],[3,1,1,0,720,0],[3,1,1,0,728,0],[3,1,1,0,736,0],[3,1,1,0,744,0],[3,1,1,0,752,0],[3,1,1,0,760,0],[3,1,1,0,768,0],[3,1,1,0,776,0],[3,1,1,0,784,0],[3,1,1,0,792,0],[3,1,1,0,800,0],[3,1,1,0,808,0],[3,1,1,0,816,0],[3,1,1,0,824,0],[3,1,1,0,832,0],[3,1,1,0,840,0],[3,1,1,0,848,0],[3,1,1,0,856,0],[3,1,1,0,864,0],[3,1,1,0,872,0],[3,1,1,0,880,0],[3,1,1,0,888,0],[3,1,1,0,896,0],[3,1,1,0,904,0],[3,1,1,0,912,0],[3,1,1,0,920,0],[3,1,1,0,928,0],[3,1,1,0,936,0],[3,1,1,0,944,0],[3,1,1,0,952,0],[3,1,1,0,960,0],[3,1,1,0,968,0],[3,1,1,0,976,0],[3,1,1,0,984,0],[3,1,1,0,992,0],[3,1,1,0,997,0],[3,1,1,0,1002,0],[3,1,1,0,1007,0],[3,1,1,0,1012,0],[3,1,1,0,1017,0],[3,1,1,0,1022,0],[3,1,1,0,1027,0],[3,1,1,0,1032,0],[3,1,1,0,1037,0],[3,1,1,0,1042,0],[3,1,1,0,1047,0],[3,1,1,0,1052,0],[3,1,1,0,1057,0],[3,1,1,0,1062,0],[3,1,1,0,1067,0],[3,1,1,0,1072,0],[3,1,1,0,1077,0],[3,1,1,0,1082,0],[3,1,1,0,1087,0],[3,1,1,0,1092,0],[3,1,1,0,1097,0],[3,1,1,0,1102,0],[3,1,1,0,1106,0],[3,1,1,0,1112,0],[3,1,1,0,1117,0],[3,1,1,0,1122,0],[3,1,1,0,1126,0],[3,1,1,0,1133,0],[3,1,1,0,1138,0],[3,1,1,0,1143,0],[3,1,1,0,1149,0],[3,1,1,0,1157,0],[3,1,1,0,1165,0],[3,1,1,0,1173,0],[3,1,1,0,1181,0],[3,1,1,0,1189,0],[3,1,1,0,1197,0],[3,1,1,0,1205,0],[3,1,1,0,1213,0],[3,1,1,0,1221,0],[3,1,1,0,1229,0],[3,1,1,0,1237,0],[3,1,1,0,1245,0],[3,1,1,0,1253,0],[3,1,1,0,1261,0],[3,1,1,0,1269,0],[3,1,1,0,1277,0],[3,1,1,0,1285,0],[3,1,1,0,1293,0],[3,1,1,0,1301,0],[3,1,1,0,1309,0],[3,1,1,0,1317,0],[3,1,1,0,1325,0],[3,1,1,0,1333,0],[3,1,1,0,1341,0],[3,1,1,0,1349,0],[3,1,1,0,1357,0],[3,1,1,0,1365,0],[3,1,1,0,1373,0],[3,1,1,0,1381,0],[3,1,1,0,1395,0],[3,1,1,0,1410,0],[3,1,1,0,1425,0],[3,1,1,0,1440,0]],"src":"TDX 運輸資料流通服務・時刻表版本 2026-09-21・抓取 2026-11-13"};
+const COORDS = {"O1":[22.62149,120.27451],"O2":[22.6235,120.28378],"O4":[22.62893,120.29477],"O5":[22.63128,120.30325],"O6":[22.63068,120.31139],"O7":[22.63022,120.31763],"O8":[22.62941,120.32773],"O9":[22.6272,120.33465],"O10":[22.62505,120.34104],"O11":[22.62527,120.34812],"O12":[22.62595,120.35517],"O13":[22.62518,120.3635],"O14":[22.62466,120.37133],"OT1":[22.62212,120.39053],"R3":[22.56478,120.35381],"R4":[22.57017,120.34177],"R4A":[22.58035,120.32857],"R5":[22.58848,120.32169],"R6":[22.59676,120.31512],"R7":[22.60605,120.30808],"R8":[22.61398,120.30459],"R9":[22.62484,120.30121],"R10":[22.63139,120.30199],"R11":[22.63969,120.3027],"R12":[22.6485,120.30341],"R13":[22.65727,120.30324],"R14":[22.66616,120.30336],"R15":[22.67669,120.30662],"R16":[22.68838,120.30889],"R17":[22.70184,120.30253],"R18":[22.70887,120.30232],"R19":[22.71865,120.30724],"R20":[22.72232,120.31637],"R21":[22.72953,120.32101],"R22":[22.74434,120.3178],"R22A":[22.75316,120.3147],"R23":[22.76025,120.31098],"R24":[22.78064,120.30188],"RK1":[22.79245,120.29923]};
 
 const LINES = ["R","O"];
 const LINE_NAME = {R:"紅線", O:"橘線"};
 const XFER_ID = {R:"R10", O:"O5"};
+const DAY_SHORT = ["平日","假日前一天","假日","週日"];
+const DAY_SUB = ["週一至週四","週五","週六、國定假日","週日"];
 const pad = n => String(n).padStart(2,"0");
 const fmt = m => { m = ((m % 1440) + 1440) % 1440; return pad(Math.floor(m/60)) + ":" + pad(m % 60); };
-const toSvc = m => (m < 240 ? m + 1440 : m);           // 凌晨 0–4 點算前一個營運日
-const parseT = s => { if(!s) return null; const [h,mm] = s.split(":").map(Number); return h*60+mm; };
+const toSvc = m => (m < 240 ? m + 1440 : m);
+const parseT = s => { if (!s) return null; const [h, mm] = s.split(":").map(Number); return h * 60 + mm; };
+const $ = id => document.getElementById(id);
+const esc = t => String(t).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
 
-// ---------- 車站 ----------
-const nameOf = {}, lineOf = {};
-const stations = [];          // {name, ids:[...], lines:[...]}
-const byName = {};
+// ---------- 車站與班次 ----------
+const nameOf = {}, lineOf = {}, stations = [], byName = {};
 for (const L of LINES) for (const [id, name] of DATA.lines[L]) {
   nameOf[id] = name; lineOf[id] = L;
-  if (!byName[name]) { byName[name] = {name, ids:[], lines:[]}; stations.push(byName[name]); }
+  if (!byName[name]) { byName[name] = {name, ids: [], lines: []}; stations.push(byName[name]); }
   byName[name].ids.push(id); byName[name].lines.push(L);
 }
-
-// ---------- 班次 ----------
-const A = "0123456789abcdefghijklmnopqrstuvwxyz";
-const tripsBy = {};           // day -> line -> [trip]
+const A36 = "0123456789abcdefghijklmnopqrstuvwxyz";
+const tripsBy = {};
 for (const [day, li, dir, p0, t0, pi] of DATA.trips) {
   const L = LINES[li], seq = DATA.lines[L], pat = DATA.pats[pi];
   const stops = [], times = [t0], idx = {};
   for (let i = 0; i <= pat.length; i++) {
     const id = seq[p0 + (dir ? i : -i)][0];
     stops.push(id); idx[id] = i;
-    if (i < pat.length) times.push(times[i] + A.indexOf(pat[i]));
+    if (i < pat.length) times.push(times[i] + A36.indexOf(pat[i]));
   }
-  const trip = {day, L, stops, times, idx, head: nameOf[stops[stops.length-1]]};
-  ((tripsBy[day] ||= {})[L] ||= []).push(trip);
+  ((tripsBy[day] ||= {})[L] ||= []).push({L, stops, times, idx, head: nameOf[stops[stops.length - 1]]});
 }
-
 function legs(day, fromId, toId) {
-  const L = lineOf[fromId], out = [];
-  for (const t of (tripsBy[day]?.[L] || [])) {
+  const out = [];
+  for (const t of (tripsBy[day]?.[lineOf[fromId]] || [])) {
     const i = t.idx[fromId], j = t.idx[toId];
     if (i !== undefined && j !== undefined && j > i)
-      out.push({trip:t, i, j, dep:t.times[i], arr:t.times[j], est: j === t.stops.length-1});
+      out.push({trip: t, i, j, dep: t.times[i], arr: t.times[j], est: j === t.stops.length - 1});
   }
-  return out.sort((a,b) => a.dep - b.dep);
+  return out.sort((a, b) => a.dep - b.dep);
 }
-
+const isTransfer = (o, d) => !byName[o].lines.some(L => byName[d].lines.includes(L));
 function search(o, d, day, xfer) {
   const O = byName[o], D = byName[d], res = [];
-  let direct = false;
-  for (const oid of O.ids) for (const did of D.ids) {
-    if (lineOf[oid] === lineOf[did]) {
-      direct = true;
-      for (const l of legs(day, oid, did)) res.push({legs:[l], dep:l.dep, arr:l.arr, est:l.est});
-    }
-  }
-  if (!direct) {
+  if (!isTransfer(o, d)) {
+    for (const oid of O.ids) for (const did of D.ids)
+      if (lineOf[oid] === lineOf[did]) for (const l of legs(day, oid, did)) res.push({legs: [l], dep: l.dep, arr: l.arr, est: l.est});
+  } else {
     const oid = O.ids[0], did = D.ids[0];
-    const l1s = legs(day, oid, XFER_ID[lineOf[oid]]);
-    const l2s = legs(day, XFER_ID[lineOf[did]], did);
-    const best = new Map();   // 同一班第二段車只保留最晚出發（等最少）的第一段
+    const l1s = legs(day, oid, XFER_ID[lineOf[oid]]), l2s = legs(day, XFER_ID[lineOf[did]], did), best = new Map();
     for (const l1 of l1s) {
       const l2 = l2s.find(x => x.dep >= l1.arr + xfer);
       if (!l2) continue;
       const cur = best.get(l2);
-      if (!cur || cur.dep < l1.dep) best.set(l2, {legs:[l1,l2], dep:l1.dep, arr:l2.arr, est:l2.est, wait:l2.dep - l1.arr});
+      if (!cur || cur.dep < l1.dep) best.set(l2, {legs: [l1, l2], dep: l1.dep, arr: l2.arr, est: l2.est, wait: l2.dep - l1.arr});
     }
     res.push(...best.values());
   }
-  return {res: res.sort((a,b) => a.dep - b.dep), direct};
+  return res.sort((a, b) => a.dep - b.dep);
 }
-
-// ---------- 日別 ----------
-const DAY_SHORT = ["平日","假日前一天","假日","週日"];
 function autoDay(date) {
-  const svc = new Date(date);
-  if (svc.getHours() < 4) svc.setDate(svc.getDate() - 1);
-  const w = svc.getDay();           // 0=日
-  return w === 0 ? 3 : w === 6 ? 2 : w === 5 ? 1 : 0;
+  const d = new Date(date); if (d.getHours() < 4) d.setDate(d.getDate() - 1);
+  const w = d.getDay(); return w === 0 ? 3 : w === 6 ? 2 : w === 5 ? 1 : 0;
 }
-function nowSvc() { const n = new Date(); return toSvc(n.getHours()*60 + n.getMinutes()); }
+const nowSvc = () => { const n = new Date(); return toSvc(n.getHours() * 60 + n.getMinutes()); };
 
-// ---------- 介面 ----------
-const $ = id => document.getElementById(id);
-const els = {from:$("from"), to:$("to"), day:$("day"), tFrom:$("tFrom"), tTo:$("tTo"), xfer:$("xfer")};
-
-function fillStations(sel) {
-  for (const L of LINES) {
-    const g = document.createElement("optgroup"); g.label = LINE_NAME[L];
-    for (const [id, name] of DATA.lines[L]) {
-      const o = document.createElement("option");
-      o.value = name; o.textContent = `${id}　${name}${byName[name].ids.length > 1 ? "（紅橘轉乘）" : ""}`;
-      g.appendChild(o);
-    }
-    sel.appendChild(g);
-  }
-}
-fillStations(els.from); fillStations(els.to);
-DATA.days.forEach((d,i) => { const o = document.createElement("option"); o.value = i; o.textContent = d; els.day.appendChild(o); });
-
-function setRange(mins) {
-  const n = nowSvc();
-  if (mins === "all") { els.tFrom.value = "05:30"; els.tTo.value = "01:00"; }
-  else { els.tFrom.value = fmt(n); els.tTo.value = fmt(n + mins); }
-}
-
+// ---------- 狀態 ----------
+const saved = store.get("krtc-q", {});
 const todayDay = autoDay(new Date());
-function dayHint() {
-  const sel = +els.day.value;
-  $("dayHint").textContent = sel === todayDay
-    ? "依今天的日期自動選擇。國定假日請改選「假日」，國定假日前一天請改選「假日前一天」。"
-    : `今天適用「${DAY_SHORT[todayDay]}」時刻表，你目前查的是「${DAY_SHORT[sel]}」。`;
-}
+const state = {
+  from: byName[saved.from] ? saved.from : "左營",
+  to: byName[saved.to] ? saved.to : "鳳山",
+  mode: saved.mode === "arr" ? "arr" : "dep",
+  xfer: Math.min(15, Math.max(1, +saved.xfer || 4)),
+  day: todayDay,
+  view: "list"
+};
+let favs = store.get("krtc-fav", []).filter(f => byName[f[0]] && byName[f[1]]);
+let notes = store.get("krtc-note", {});
+const persist = () => store.set("krtc-q", {from: state.from, to: state.to, mode: state.mode, xfer: state.xfer});
+const routeKey = () => state.from + "|" + state.to;
 
-// 預設值 / 上次的選擇
-let saved = {};
-try { saved = JSON.parse(localStorage.getItem("krtc-q") || "{}"); } catch (e) {}
-els.from.value = byName[saved.from] ? saved.from : "左營";
-els.to.value = byName[saved.to] ? saved.to : "鳳山";
-els.day.value = todayDay;
-if (saved.mode === "arr") $("modeArr").checked = true;
-if (saved.xfer) els.xfer.value = saved.xfer;
+// ---------- 介面元件 ----------
+const els = {from: $("from"), to: $("to"), tFrom: $("tFrom"), tTo: $("tTo")};
+for (const sel of [els.from, els.to]) for (const L of LINES) {
+  const g = document.createElement("optgroup"); g.label = LINE_NAME[L];
+  for (const [id, name] of DATA.lines[L]) {
+    const o = document.createElement("option"); o.value = name;
+    o.textContent = `${id} ${name}${byName[name].ids.length > 1 ? "（紅橘轉乘）" : ""}`;
+    g.appendChild(o);
+  }
+  sel.appendChild(g);
+}
+const badgeHTML = name => {
+  const st = byName[name];
+  return st.ids.map(id => `<span class="badge ${lineOf[id]}">${id}</span>`).join("");
+};
+function paintStations() {
+  els.from.value = state.from; els.to.value = state.to;
+  for (const [k, nm] of [["from", state.from], ["to", state.to]]) {
+    $(k + "Name").textContent = nm;
+    const b = $(k + "Badge"); b.innerHTML = badgeHTML(nm); b.classList.toggle("two", byName[nm].ids.length > 1);
+  }
+}
+$("days").innerHTML = DATA.days.map((d, i) =>
+  `<div class="dayopt"><input type="radio" name="day" id="day${i}" value="${i}"><label for="day${i}"><span>${DAY_SHORT[i]}　<small>${DAY_SUB[i]}</small></span>${i === todayDay ? "<em>今天</em>" : ""}</label></div>`).join("");
+function setRange(r) {
+  const n = nowSvc();
+  if (r === "all") { els.tFrom.value = "05:30"; els.tTo.value = "01:00"; }
+  else { els.tFrom.value = fmt(n); els.tTo.value = fmt(n + r); }
+}
 setRange(60);
+$("srcText").textContent = "資料來源：" + DATA.src + "。";
+$("footer").textContent = "資料：" + DATA.src;
 
-// 常用路線（存在這支手機 / 這個瀏覽器）
-function loadFavs(){ try { return JSON.parse(localStorage.getItem("krtc-fav") || "[]").filter(f => byName[f[0]] && byName[f[1]]); } catch (e) { return []; } }
-function saveFavs(f){ try { localStorage.setItem("krtc-fav", JSON.stringify(f)); } catch (e) {} }
-let favs = loadFavs();
-function renderFavs() {
-  const o = els.from.value, d = els.to.value;
-  const box = $("favs"); box.innerHTML = "";
-  favs.forEach((f, k) => {
-    const wrap = document.createElement("span");
-    wrap.className = "fav" + (f[0] === o && f[1] === d ? " on" : "");
-    const go = document.createElement("button"); go.type = "button"; go.textContent = `${f[0]} → ${f[1]}`;
-    go.addEventListener("click", () => { els.from.value = f[0]; els.to.value = f[1]; render(); });
-    const x = document.createElement("button"); x.type = "button"; x.className = "x"; x.textContent = "✕";
-    x.setAttribute("aria-label", `移除常用路線 ${f[0]} 到 ${f[1]}`);
-    x.addEventListener("click", () => { favs.splice(k, 1); saveFavs(favs); render(); });
-    wrap.append(go, x); box.appendChild(wrap);
-  });
-  const has = favs.some(f => f[0] === o && f[1] === d);
-  const btn = $("favbtn");
-  btn.textContent = has ? "★ 已在常用路線" : "☆ 加入常用路線";
-  btn.disabled = has || o === d;
-  btn.style.opacity = btn.disabled ? .55 : 1;
+// ---------- 主要畫面 ----------
+function lchips(r, onBoard) {
+  return r.legs.map((l, k) =>
+    (k ? `<span class="lchip x">美麗島轉乘・等 ${r.wait} 分</span>` : "") +
+    `<span class="lchip"><i class="${l.trip.L}">${l.trip.L}</i>往${l.trip.head}</span>`).join("");
 }
-$("favbtn").addEventListener("click", () => {
-  const o = els.from.value, d = els.to.value;
-  if (o === d || favs.some(f => f[0] === o && f[1] === d)) return;
-  favs.push([o, d]); saveFavs(favs); render();
-});
-if (window.matchMedia("(min-width: 761px)").matches) $("more").open = true;
-
-// ---------- 車廂備註（存在這支手機 / 這個瀏覽器） ----------
-const CARS = {front:["車頭","第 1 節"], mid:["中間","第 2 節"], rear:["車尾","第 3 節"]};
-function loadNotes(){ try { return JSON.parse(localStorage.getItem("krtc-note") || "{}"); } catch (e) { return {}; } }
-let notes = loadNotes();
-function saveNotes(){ try { localStorage.setItem("krtc-note", JSON.stringify(notes)); } catch (e) {} }
-const routeKey = (o, d) => o + "|" + d;
-const isTransfer = (o, d) => !byName[o].lines.some(L => byName[d].lines.includes(L));
-const carIcon = c => `<span class="cars" aria-hidden="true">${["front","mid","rear"].map(k => `<i class="${k===c?"on":""}"></i>`).join("")}</span>`;
-const esc = t => t.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let noteShown = null, noteEditing = false;
-
-function carSelect(id, val) {
-  return `<select id="${id}"><option value="">不確定</option>${Object.entries(CARS).map(([k,[a,b]]) =>
-    `<option value="${k}"${k===val?" selected":""}>${a}（${b}）</option>`).join("")}</select>`;
-}
-function renderNote(force) {
-  const o = els.from.value, d = els.to.value, key = routeKey(o, d);
-  if (!force && key === noteShown) return;
-  noteShown = key;
-  const box = $("noteCard");
-  if (o === d) { box.hidden = true; return; }
-  box.hidden = false;
-  const n = notes[key], xf = isTransfer(o, d);
-  if (noteEditing) {
-    box.innerHTML = `<h3>車廂備註：${o} → ${d}</h3>
-      <div class="nedit">
-        <div class="field"><label for="nCar1">在${o}上車，哪節比較少人</label>${carSelect("nCar1", n?.car1)}</div>
-        ${xf ? `<div class="field"><label for="nCar2">在美麗島轉乘後，哪節比較少人</label>${carSelect("nCar2", n?.car2)}</div>` : ""}
-        <div class="field"><label for="nText">其他備註（例如：早上第 3 節比較空、靠近電扶梯的門很擠）</label><textarea id="nText" maxlength="300">${esc(n?.text || "")}</textarea></div>
-        <p class="hint">「車頭」是指列車行進方向的最前面一節。高捷每列車有 3 節車廂。</p>
-        <div class="nactions">
-          <button type="button" class="nbtn primary" id="nSave">儲存備註</button>
-          <button type="button" class="nbtn" id="nCancel">取消</button>
-          ${n ? `<button type="button" class="nbtn link danger" id="nDel">刪除這則備註</button>` : ""}
-        </div>
-      </div>`;
-    $("nSave").onclick = () => {
-      const car1 = $("nCar1").value, car2 = xf ? $("nCar2").value : "", text = $("nText").value.trim();
-      if (car1 || car2 || text) notes[key] = {car1, car2, text, t: Date.now()}; else delete notes[key];
-      saveNotes(); noteEditing = false; renderNote(true); render();
-    };
-    $("nCancel").onclick = () => { noteEditing = false; renderNote(true); };
-    if ($("nDel")) $("nDel").onclick = () => { delete notes[key]; saveNotes(); noteEditing = false; renderNote(true); render(); };
-    $("nText").focus({preventScroll:true});
-    return;
-  }
-  const officialHint = `<p class="hint">即時的車廂擁擠度目前只有高雄捷運官方 App「高雄捷運—通勤助理」提供，這裡的備註是你自己記下的經驗。</p>`;
-  if (!n) {
-    box.innerHTML = `<button type="button" class="addnote" id="nAdd">＋ 寫備註：記下${o} → ${d}哪節車廂比較少人</button>${officialHint}`;
-  } else {
-    const line = (label, c) => c ? `<div class="ncar">${carIcon(c)}<span>${label}：<b>${CARS[c][0]}（${CARS[c][1]}）</b>比較少人</span></div>` : "";
-    const when = new Date(n.t);
-    box.innerHTML = `<h3><span>我的車廂備註</span><button type="button" class="nbtn link" id="nAdd">編輯</button></h3>
-      ${line(`在${o}上車`, n.car1)}${xf ? line("美麗島轉乘後", n.car2) : ""}
-      ${n.text ? `<p class="ntext">${esc(n.text)}</p>` : ""}
-      <p class="hint">記於 ${when.getMonth()+1}/${when.getDate()}。即時擁擠度請看高雄捷運官方 App。</p>`;
-  }
-  $("nAdd").onclick = () => { noteEditing = true; renderNote(true); };
-}
-
-function stripe(r) { return `<span class="stripe" aria-hidden="true">${r.legs.map(l => `<i class="${l.trip.L}"></i>`).join("")}</span>`; }
-
-function legDetail(l, isLast) {
+function legDetail(l) {
   const t = l.trip, items = [];
   for (let k = l.i; k <= l.j; k++) {
     const est = k === t.stops.length - 1;
-    items.push(`<li class="${k===l.i||k===l.j?"end":""}"><b>${est?"約":""}${fmt(t.times[k])}</b><span>${t.stops[k]}　${nameOf[t.stops[k]]}</span></li>`);
+    items.push(`<li class="${k === l.i || k === l.j ? "end" : ""}"><b>${est ? '<span class="est">約</span>' : ""}${fmt(t.times[k])}</b><span class="pt"></span><span>${nameOf[t.stops[k]]}<span style="opacity:.6"> ${t.stops[k]}</span></span></li>`);
   }
-  return `<div class="leg ${t.L}"><h4><span class="pill ${t.L}">${LINE_NAME[t.L]}</span>往${t.head}・${l.j - l.i} 站</h4><ol class="stops">${items.join("")}</ol></div>`;
+  return `<div class="leg ${t.L}"><h4><span class="badge ${t.L}" style="height:20px;min-width:0;font-size:12px;padding:0 6px">${LINE_NAME[t.L]}</span>往${t.head}・${l.j - l.i} 站・${l.arr - l.dep} 分</h4><ol class="stops">${items.join("")}</ol></div>`;
 }
-
+let lastBoardKey = "", lastListSig = "";
 function render() {
-  const openKeys = new Set([...document.querySelectorAll("details.trip[open]")].map(d => d.dataset.key));
-  renderInner();
-  document.querySelectorAll("details.trip").forEach(d => { if (openKeys.has(d.dataset.key)) d.open = true; });
-}
+  persist();
+  paintStations();
+  const o = state.from, d = state.to, day = state.day, live = day === todayDay;
+  document.querySelector("#day" + day).checked = true;
+  $("dayChipText").textContent = DAY_SHORT[day] + "時刻表";
+  $("dayChip").classList.toggle("manual", !live);
+  $("xVal").textContent = state.xfer;
+  $("modeDep").checked = state.mode === "dep"; $("modeArr").checked = state.mode === "arr";
+  renderFavs(); renderNote(); drawRoute();
 
-function renderInner() {
-  const o = els.from.value, d = els.to.value, day = +els.day.value;
-  const mode = $("modeArr").checked ? "arr" : "dep";
-  const xfer = Math.max(1, Math.min(15, +els.xfer.value || 4));
-  try { localStorage.setItem("krtc-q", JSON.stringify({from:o, to:d, mode, xfer})); } catch (e) {}
-  dayHint();
-  renderFavs();
-  if (noteShown !== routeKey(o, d)) noteEditing = false;
-  renderNote();
-  $("moreSum").textContent = `${DAY_SHORT[day]}・轉乘 ${xfer} 分`;
-
+  const board = $("board"), list = $("list");
+  if (o === d) {
+    board.innerHTML = `<div class="b-head"><span>高雄捷運</span></div><div class="b-empty">起站和終站相同<small>請換一個終站。</small></div>`;
+    list.innerHTML = `<div class="empty"><b>請選擇不同的起站與終站</b></div>`; $("listTitle").textContent = "班次";
+    return;
+  }
   let a = parseT(els.tFrom.value), b = parseT(els.tTo.value);
   if (a === null) a = 330; if (b === null) b = 1500;
   a = toSvc(a); b = toSvc(b); if (b < a) b += 1440;
-
-  const sum = $("summary"), list = $("list");
-  const routeHtml = `<div class="route"><span>${o}</span><span class="arrow">→</span><span>${d}</span></div>`;
-  if (o === d) {
-    sum.innerHTML = routeHtml + `<p class="note">起站和終站相同，請換一個終站。</p>`;
-    list.innerHTML = `<div class="empty"><strong>請選擇不同的起站與終站</strong></div>`;
-    return;
-  }
-
-  const {res, direct} = search(o, d, day, xfer);
-  const inRange = res.filter(r => { const v = mode === "dep" ? r.dep : r.arr; return v >= a && v <= b; });
-  const now = nowSvc(), live = day === todayDay;
-  const upcoming = live ? inRange.filter(r => r.dep >= now) : inRange;
-  const next = live ? upcoming[0] : null;
+  const res = search(o, d, day, state.xfer);
+  const inRange = res.filter(r => { const v = state.mode === "dep" ? r.dep : r.arr; return v >= a && v <= b; });
+  const now = nowSvc();
+  const next = live ? inRange.find(r => r.dep >= now) : inRange[0];
   const fastest = inRange.length ? Math.min(...inRange.map(r => r.arr - r.dep)) : null;
-  const viaText = direct ? `直達，${LINE_NAME[lineOf[byName[o].ids.find(id => byName[d].ids.some(x => lineOf[x] === lineOf[id]))]]}` : `需在美麗島站轉乘（預留 ${xfer} 分鐘）`;
+  const xf = isTransfer(o, d);
 
-  sum.innerHTML = routeHtml +
-    `<div class="stats">
-       <div class="stat"><div class="k">${mode==="dep"?"上車":"抵達"} ${fmt(a)}–${fmt(b)} 的班次</div><div class="v">${inRange.length}<small>班</small></div></div>
-       <div class="stat"><div class="k">${live ? "下一班上車" : "第一班上車"}</div><div class="v">${(next||inRange[0]) ? fmt((next||inRange[0]).dep) : "—"}${next ? `<small>${next.dep - now === 0 ? "現在" : (next.dep - now) + " 分鐘後"}</small>` : ""}</div></div>
-       <div class="stat"><div class="k">最短車程</div><div class="v">${fastest ?? "—"}<small>分鐘</small></div></div>
-     </div>
-     <p class="note">${viaText}。${DAY_SHORT[day]}時刻表。點任一班可看沿途每站時間。</p>`;
-
-  if (!inRange.length) {
-    const later = res.find(r => (mode === "dep" ? r.dep : r.arr) > b);
-    list.innerHTML = `<div class="empty"><strong>這個時間範圍內沒有班次</strong>${later ? `範圍後的下一班是 ${fmt(later.dep)} 上車、${later.est?"約 ":""}${fmt(later.arr)} 抵達。` : "這天已經沒有車了。"}請把時間範圍放寬一點。</div>`;
-    return;
+  // 看板
+  if (!next) {
+    const later = res.find(r => (state.mode === "dep" ? r.dep : r.arr) > b);
+    board.innerHTML = `<div class="b-head"><span>${esc(o)} → ${esc(d)}</span><b>${DAY_SHORT[day]}</b></div>
+      <div class="b-empty">${inRange.length ? "這個範圍的車都開走了" : "這個時間範圍沒有班次"}
+      <small>${later ? `之後的下一班：${fmt(later.dep)} 上車，${later.est ? "約 " : ""}${fmt(later.arr)} 抵達。` : "今天已經沒有車了。"}可以把時間範圍放寬。</small></div>`;
+  } else {
+    const w = next.dep - now;
+    const countHTML = live
+      ? (w === 0 ? `<span class="big">現在</span>` : w < 100 ? `<span class="big">${w}</span><span class="unit">分鐘後</span>` : `<span class="big">${fmt(next.dep)}</span>`)
+      : `<span class="big">${fmt(next.dep)}</span>`;
+    const key = routeKey() + next.dep + w;
+    board.innerHTML = `<div class="b-head"><span>${live ? "下一班" : "第一班"}・${esc(o)} → ${esc(d)}</span><b>${DAY_SHORT[day]}</b></div>
+      <div class="b-main">
+        <div class="b-count ${live && w > 0 && w < 100 ? "" : "small"} ${key !== lastBoardKey ? "tick" : ""}">${countHTML}</div>
+        <div class="b-times"><div><small>上車</small><b>${fmt(next.dep)}</b></div><span class="arr">→</span><div><small>抵達</small><b>${next.est ? '<span style="font-size:.5em;color:#9fb0c8">約</span>' : ""}${fmt(next.arr)}</b></div></div>
+      </div>
+      <div class="b-route">${lchips(next)}</div>
+      <div class="b-stats"><span><b>${inRange.length}</b>班可搭</span><span><b>${fastest}</b>分 最短車程</span><span>${xf ? `美麗島轉乘・預留 ${state.xfer} 分` : "直達免轉乘"}</span></div>`;
+    lastBoardKey = key;
   }
 
+  // 清單
+  $("listTitle").textContent = `${state.mode === "dep" ? "上車" : "抵達"} ${fmt(a)}–${fmt(b)}・${inRange.length} 班`;
+  if (!inRange.length) { list.innerHTML = `<div class="empty"><b>沒有符合的班次</b>試試「整天」或放寬時間範圍。</div>`; return; }
+  const maxDur = Math.max(...inRange.map(r => r.arr - r.dep));
+  const nt = notes[routeKey()];
+  const sig = [routeKey(), a, b, day, state.mode, state.xfer].join();
+  list.classList.toggle("calm", sig === lastListSig); lastListSig = sig;
+  const openKeys = new Set([...list.querySelectorAll("details[open]")].map(x => x.dataset.key));
   list.innerHTML = inRange.map(r => {
-    const w = r.dep - now, isNext = r === next, past = live && w < 0;
-    const waitTxt = live ? (past ? "已開走" : w === 0 ? "現在" : w <= 120 ? `${w} 分鐘後` : "") : "";
-    const nt = notes[routeKey(o, d)];
-    const less = c => c ? `<span class="pill less">少人：${CARS[c][0]}</span>` : "";
-    const pills = r.legs.map((l, k) =>
-      (k ? `<span class="pill xfer">美麗島轉乘・等 ${r.wait} 分</span>` : "") +
-      `<span class="pill ${l.trip.L}">${LINE_NAME[l.trip.L]} 往${l.trip.head}</span>` +
-      less(k ? nt?.car2 : nt?.car1)).join("");
-    const detail = r.legs.map((l, k) =>
-      (k ? `<div class="xferline">在美麗島換車：${fmt(r.legs[0].arr)} 下車，${fmt(l.dep)} 上車（等 ${r.wait} 分鐘）</div>` : "") + legDetail(l)).join("");
+    const w = r.dep - now, past = live && w < 0, isNext = r === next && live;
     const key = r.legs.map(l => l.trip.L + l.trip.times[0] + l.trip.stops[0]).join("_");
-    return `<details class="trip${isNext?" next":""}${past?" past":""}" data-key="${key}">
+    const segs = r.legs.length === 1
+      ? `<i class="${r.legs[0].trip.L}" style="flex:${r.arr - r.dep}"></i>`
+      : `<i class="${r.legs[0].trip.L}" style="flex:${r.legs[0].arr - r.legs[0].dep}"></i><i class="w" style="flex:${r.wait}"></i><i class="${r.legs[1].trip.L}" style="flex:${r.legs[1].arr - r.legs[1].dep}"></i>`;
+    const meta = r.legs.map((l, k) => `${k ? "→ " : ""}${LINE_NAME[l.trip.L]}往${l.trip.head}`).join(" ")
+      + (nt?.car1 ? `<span class="less">・少人：${CARS[nt.car1][0]}${xf && nt.car2 ? "／" + CARS[nt.car2][0] : ""}</span>` : (xf && nt?.car2 ? `<span class="less">・轉乘後少人：${CARS[nt.car2][0]}</span>` : ""));
+    const wtxt = !live ? "" : past ? "已開走" : w === 0 ? "現在" : w <= 90 ? `${w} 分後` : "";
+    const detail = r.legs.map((l, k) => (k ? `<div class="xline">美麗島換車：${fmt(r.legs[0].arr)} 下車，走到另一線月台，${fmt(l.dep)} 上車（等 ${r.wait} 分）</div>` : "") + legDetail(l)).join("");
+    return `<details class="row${past ? " past" : ""}${isNext ? " next" : ""}" data-key="${key}"${openKeys.has(key) ? " open" : ""}>
       <summary>
-        ${stripe(r)}
-        <div class="times">
-          <span class="t">${fmt(r.dep)}</span><span class="sep">→</span><span class="t arr">${r.est?"約":""}${fmt(r.arr)}</span>
-          <div class="meta">${pills}</div>
-        </div>
-        <div class="right"><span class="dur">${r.arr - r.dep}<small>分</small></span>${waitTxt ? `<span class="wait">${isNext ? "下一班・" : ""}${waitTxt}</span>` : ""}</div>
+        <div class="r-time"><b>${fmt(r.dep)}</b><small>${wtxt}</small></div>
+        <div class="r-mid"><div class="jbar" style="width:${Math.max(30, (r.arr - r.dep) / maxDur * 100)}%">${segs}</div><div class="r-meta">${meta}</div></div>
+        <div class="r-end"><b>${r.est ? '<span class="est">約</span>' : ""}${fmt(r.arr)}</b><small>${r.arr - r.dep} 分</small></div>
       </summary>
-      <div class="legs">${detail}</div>
+      <div class="detail">${detail}</div>
     </details>`;
   }).join("");
 }
 
-$("form").addEventListener("input", render);
-$("form").addEventListener("submit", e => { e.preventDefault(); render(); });
-$("swap").addEventListener("click", () => { const t = els.from.value; els.from.value = els.to.value; els.to.value = t; render(); });
-document.querySelectorAll("[data-range]").forEach(btn => btn.addEventListener("click", () => {
-  const v = btn.dataset.range; setRange(v === "all" ? "all" : +v); render();
-}));
-setInterval(render, 30000);   // 每 30 秒更新倒數
-$("foot").textContent = `資料來源：${DATA.src}。標「約」的時間為終點站到站時間，由站間行駛時間推算。實際以高雄捷運現場公告為準。`;
+// ---------- 常用路線 ----------
+function renderFavs() {
+  const box = $("favs"); box.innerHTML = "";
+  favs.forEach((f, k) => {
+    const w = document.createElement("span");
+    w.className = "fav" + (f[0] === state.from && f[1] === state.to ? " on" : "");
+    w.innerHTML = `<button type="button">${esc(f[0])} → ${esc(f[1])}</button><button type="button" class="x" aria-label="移除常用路線 ${esc(f[0])} 到 ${esc(f[1])}">✕</button>`;
+    w.children[0].onclick = () => { state.from = f[0]; state.to = f[1]; render(); };
+    w.children[1].onclick = () => { favs.splice(k, 1); store.set("krtc-fav", favs); render(); };
+    box.appendChild(w);
+  });
+  const has = favs.some(f => f[0] === state.from && f[1] === state.to);
+  let star = document.querySelector(".star");
+  if (!star) {
+    star = document.createElement("button"); star.type = "button"; star.className = "star";
+    star.onclick = () => {
+      const i = favs.findIndex(f => f[0] === state.from && f[1] === state.to);
+      if (i >= 0) favs.splice(i, 1); else if (state.from !== state.to) favs.push([state.from, state.to]);
+      store.set("krtc-fav", favs); render();
+    };
+    document.querySelector(".journey").appendChild(star);
+  }
+  star.textContent = has ? "★" : "☆";
+  star.classList.toggle("on", has);
+  star.setAttribute("aria-label", has ? "從常用路線移除" : "加入常用路線");
+  star.title = star.getAttribute("aria-label");
+}
+
+// ---------- 車廂備註 ----------
+const CARS = {front: ["車頭", "第 1 節"], mid: ["中間", "第 2 節"], rear: ["車尾", "第 3 節"]};
+const carIcon = c => `<span class="cars" aria-hidden="true">${["front", "mid", "rear"].map(k => `<i class="${k === c ? "on" : ""}"></i>`).join("")}</span>`;
+let noteShown = null, noteEditing = false;
+const carSelect = (id, v) => `<select id="${id}"><option value="">不確定</option>${Object.entries(CARS).map(([k, [a, b]]) => `<option value="${k}"${k === v ? " selected" : ""}>${a}（${b}）</option>`).join("")}</select>`;
+function renderNote(force) {
+  const key = routeKey(), box = $("note");
+  if (!force && key === noteShown) return;
+  if (key !== noteShown) noteEditing = false;
+  noteShown = key;
+  const o = state.from, d = state.to;
+  if (o === d) { box.hidden = true; return; }
+  box.hidden = false;
+  const n = notes[key], xf = isTransfer(o, d);
+  if (noteEditing) {
+    box.innerHTML = `<h3>車廂備註・${esc(o)} → ${esc(d)}</h3><div class="nedit">
+      <div class="field"><label for="nCar1">在${esc(o)}上車，哪節比較少人</label>${carSelect("nCar1", n?.car1)}</div>
+      ${xf ? `<div class="field"><label for="nCar2">美麗島轉乘後，哪節比較少人</label>${carSelect("nCar2", n?.car2)}</div>` : ""}
+      <div class="field"><label for="nText">補充（例如：早上車尾比較空、靠電扶梯的門很擠）</label><textarea id="nText" maxlength="300">${esc(n?.text || "")}</textarea></div>
+      <p class="hint">車頭是列車行進方向的最前面一節。高捷每列車有 3 節車廂。</p>
+      <div class="row-actions"><button type="button" class="btn primary" id="nSave">儲存</button><button type="button" class="btn" id="nCancel">取消</button>${n ? `<button type="button" class="btn danger" id="nDel">刪除</button>` : ""}</div></div>`;
+    $("nSave").onclick = () => {
+      const car1 = $("nCar1").value, car2 = xf ? $("nCar2").value : "", text = $("nText").value.trim();
+      if (car1 || car2 || text) notes[key] = {car1, car2, text, t: Date.now()}; else delete notes[key];
+      store.set("krtc-note", notes); noteEditing = false; renderNote(true); render();
+    };
+    $("nCancel").onclick = () => { noteEditing = false; renderNote(true); };
+    if ($("nDel")) $("nDel").onclick = () => { delete notes[key]; store.set("krtc-note", notes); noteEditing = false; renderNote(true); render(); };
+    return;
+  }
+  if (!n) {
+    box.innerHTML = `<button type="button" class="addnote" id="nAdd">${carIcon("")}<span><b>寫車廂備註</b>・記下這條路線哪節比較少人</span></button>`;
+  } else {
+    const line = (label, c) => c ? `<div class="ncar">${carIcon(c)}<span>${label}：<b>${CARS[c][0]}</b>（${CARS[c][1]}）比較少人</span></div>` : "";
+    const t = new Date(n.t);
+    box.innerHTML = `<h3><span>車廂備註</span><button type="button" class="linkbtn" id="nAdd">編輯</button></h3>
+      ${line(`在${esc(o)}上車`, n.car1)}${xf ? line("美麗島轉乘後", n.car2) : ""}${n.text ? `<p class="ntext">${esc(n.text)}</p>` : ""}
+      <p class="hint">記於 ${t.getMonth() + 1}/${t.getDate()}</p>`;
+  }
+  $("nAdd").onclick = () => { noteEditing = true; renderNote(true); };
+}
+
 // ---------- 地圖 ----------
-const COORDS = {"O1":[22.62149,120.27451],"O2":[22.6235,120.28378],"O4":[22.62893,120.29477],"O5":[22.63128,120.30325],"O6":[22.63068,120.31139],"O7":[22.63022,120.31763],"O8":[22.62941,120.32773],"O9":[22.6272,120.33465],"O10":[22.62505,120.34104],"O11":[22.62527,120.34812],"O12":[22.62595,120.35517],"O13":[22.62518,120.3635],"O14":[22.62466,120.37133],"OT1":[22.62212,120.39053],"R3":[22.56478,120.35381],"R4":[22.57017,120.34177],"R4A":[22.58035,120.32857],"R5":[22.58848,120.32169],"R6":[22.59676,120.31512],"R7":[22.60605,120.30808],"R8":[22.61398,120.30459],"R9":[22.62484,120.30121],"R10":[22.63139,120.30199],"R11":[22.63969,120.3027],"R12":[22.6485,120.30341],"R13":[22.65727,120.30324],"R14":[22.66616,120.30336],"R15":[22.67669,120.30662],"R16":[22.68838,120.30889],"R17":[22.70184,120.30253],"R18":[22.70887,120.30232],"R19":[22.71865,120.30724],"R20":[22.72232,120.31637],"R21":[22.72953,120.32101],"R22":[22.74434,120.3178],"R22A":[22.75316,120.3147],"R23":[22.76025,120.31098],"R24":[22.78064,120.30188],"RK1":[22.79245,120.29923]};
 const gmapLink = id => `https://www.google.com/maps/dir/?api=1&destination=${COORDS[id][0]},${COORDS[id][1]}&travelmode=walking`;
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 let map = null, routeLayer = null, userLayer = null;
-
-function stationActs(name, id) {
-  return `<div class="acts">
-    <button type="button" data-act="from" data-name="${name}">設為起站</button>
-    <button type="button" data-act="to" data-name="${name}">設為終站</button>
-    <a class="gmap" href="${gmapLink(id)}" target="_blank" rel="noopener">Google 地圖導航</a></div>`;
-}
+const stationActs = (name, id) => `<div class="acts"><button type="button" data-act="from" data-name="${name}">設為起站</button><button type="button" data-act="to" data-name="${name}">設為終站</button><a class="gmap" href="${gmapLink(id)}" target="_blank" rel="noopener">Google 地圖導航</a></div>`;
 function initMap() {
-  if (map || typeof L === "undefined") return !!map;
-  map = L.map("map", {zoomControl: true}).setView([22.665, 120.315], 12);
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> 貢獻者'
-  }).addTo(map);
-  for (const Ln of LINES) {
-    const col = cssVar(Ln === "R" ? "--red" : "--orange");
-    L.polyline(DATA.lines[Ln].map(([id]) => COORDS[id]), {color: col, weight: 6, opacity: .85}).addTo(map);
-  }
+  if (map) return true;
+  if (typeof L === "undefined") return false;
+  map = L.map("map").setView([22.665, 120.315], 12);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> 貢獻者'}).addTo(map);
+  for (const Ln of LINES) L.polyline(DATA.lines[Ln].map(([id]) => COORDS[id]), {color: cssVar(Ln === "R" ? "--red" : "--orange"), weight: 6, opacity: .85}).addTo(map);
   for (const st of stations) {
-    const id = st.ids[0], xfer = st.ids.length > 1;
-    const col = cssVar(lineOf[id] === "R" ? "--red" : "--orange");
-    L.circleMarker(COORDS[id], {radius: xfer ? 9 : 6, color: xfer ? "#16191f" : col, weight: 3, fillColor: "#fff", fillOpacity: 1})
-      .addTo(map)
-      .bindTooltip(st.name, {direction: "top", offset: [0, -6]})
-      .bindPopup(`<div class="pop"><h4>${st.name}</h4><p>${st.ids.join("・")}${xfer ? "・紅橘轉乘站" : ""}</p>${stationActs(st.name, id)}</div>`);
+    const id = st.ids[0], xf = st.ids.length > 1;
+    L.circleMarker(COORDS[id], {radius: xf ? 9 : 6, color: xf ? "#121822" : cssVar(lineOf[id] === "R" ? "--red" : "--orange"), weight: 3, fillColor: "#fff", fillOpacity: 1})
+      .addTo(map).bindTooltip(st.name, {direction: "top", offset: [0, -6]})
+      .bindPopup(`<div class="pop"><h4>${st.name}</h4><p>${st.ids.join("・")}${xf ? "・紅橘轉乘站" : ""}</p>${stationActs(st.name, id)}</div>`);
   }
   map.getContainer().addEventListener("click", onStationAct);
-  $("nearList").addEventListener("click", onStationAct);
-  drawRoute();
   return true;
 }
 function onStationAct(e) {
-  const b = e.target.closest("button[data-act]");
-  if (!b) return;
-  const prevFrom = els.from.value, prevTo = els.to.value, name = b.dataset.name;
-  if (b.dataset.act === "from") { els.from.value = name; if (name === prevTo) els.to.value = prevFrom; }
-  else { els.to.value = name; if (name === prevFrom) els.from.value = prevTo; }
-  render(); map && map.closePopup(); showView("list");
+  const b = e.target.closest("button[data-act]"); if (!b) return;
+  const name = b.dataset.name, pf = state.from, pt = state.to;
+  if (b.dataset.act === "from") { state.from = name; if (name === pt) state.to = pf; }
+  else { state.to = name; if (name === pf) state.from = pt; }
+  map && map.closePopup(); render(); showView("list");
 }
+$("nearList").addEventListener("click", onStationAct);
 function pathIds(o, d) {
-  const O = byName[o], D = byName[d];
-  for (const oid of O.ids) for (const did of D.ids) if (lineOf[oid] === lineOf[did]) {
+  for (const oid of byName[o].ids) for (const did of byName[d].ids) if (lineOf[oid] === lineOf[did]) {
     const seq = DATA.lines[lineOf[oid]].map(x => x[0]), i = seq.indexOf(oid), j = seq.indexOf(did);
     return [i <= j ? seq.slice(i, j + 1) : seq.slice(j, i + 1).reverse()];
   }
@@ -627,70 +688,76 @@ function pathIds(o, d) {
 function drawRoute() {
   if (!map) return;
   if (routeLayer) routeLayer.remove();
-  const o = els.from.value, d = els.to.value;
-  if (!byName[o] || !byName[d] || o === d) return;
+  const o = state.from, d = state.to; if (o === d) return;
   routeLayer = L.layerGroup().addTo(map);
   for (const seg of pathIds(o, d)) {
-    const col = cssVar(lineOf[seg[0]] === "R" ? "--red" : "--orange");
-    L.polyline(seg.map(id => COORDS[id]), {color: "#16191f", weight: 12, opacity: .35}).addTo(routeLayer);
-    L.polyline(seg.map(id => COORDS[id]), {color: col, weight: 7}).addTo(routeLayer);
+    L.polyline(seg.map(id => COORDS[id]), {color: "#121822", weight: 13, opacity: .3}).addTo(routeLayer);
+    L.polyline(seg.map(id => COORDS[id]), {color: cssVar(lineOf[seg[0]] === "R" ? "--red" : "--orange"), weight: 7}).addTo(routeLayer);
   }
-  L.tooltip({permanent: true, direction: "right", className: "endtag", offset: [10, 0]}).setLatLng(COORDS[byName[o].ids[0]]).setContent("起 " + o).addTo(routeLayer);
-  L.tooltip({permanent: true, direction: "right", className: "endtag", offset: [10, 0]}).setLatLng(COORDS[byName[d].ids[0]]).setContent("終 " + d).addTo(routeLayer);
+  for (const [t, nm] of [["起", o], ["終", d]])
+    L.tooltip({permanent: true, direction: "right", className: "endtag", offset: [10, 0]}).setLatLng(COORDS[byName[nm].ids[0]]).setContent(t + " " + nm).addTo(routeLayer);
 }
 function haversine(a, b) {
-  const R = 6371000, r = x => x * Math.PI / 180;
-  const dLat = r(b[0] - a[0]), dLon = r(b[1] - a[1]);
-  const h = Math.sin(dLat/2)**2 + Math.cos(r(a[0])) * Math.cos(r(b[0])) * Math.sin(dLon/2)**2;
-  return 2 * R * Math.asin(Math.sqrt(h));
+  const r = x => x * Math.PI / 180, dLat = r(b[0] - a[0]), dLon = r(b[1] - a[1]);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a[0])) * Math.cos(r(b[0])) * Math.sin(dLon / 2) ** 2;
+  return 12742000 * Math.asin(Math.sqrt(h));
 }
-$("locate").addEventListener("click", () => {
+$("locate").onclick = () => {
   const msg = $("locMsg");
   if (!navigator.geolocation) { msg.textContent = "這個瀏覽器不支援定位，請直接點地圖上的車站。"; return; }
   msg.textContent = "定位中…";
   navigator.geolocation.getCurrentPosition(pos => {
     const me = [pos.coords.latitude, pos.coords.longitude];
-    const near = stations.map(st => ({st, id: st.ids[0], d: haversine(me, COORDS[st.ids[0]])})).sort((a, b) => a.d - b.d).slice(0, 3);
-    if (near[0].d > 30000) msg.textContent = "你目前離高雄捷運很遠，下面是直線距離最近的車站。";
-    else msg.textContent = "距離為直線距離，步行時間以每分鐘 70 公尺估算。";
+    const near = stations.map(st => ({st, id: st.ids[0], d: haversine(me, COORDS[st.ids[0]])})).sort((x, y) => x.d - y.d).slice(0, 3);
+    msg.textContent = near[0].d > 30000 ? "你離高雄捷運很遠，以下是直線距離最近的車站。" : "直線距離；步行時間為粗估。";
     $("nearList").innerHTML = near.map(n => {
       const dist = n.d < 1000 ? Math.round(n.d) + " 公尺" : (n.d / 1000).toFixed(1) + " 公里";
-      const walk = Math.max(1, Math.round(n.d * 1.25 / 70));
-      return `<div class="nearrow"><div class="nm"><span class="dot ${lineOf[n.id]}"></span>${n.st.name}<span class="dist">${dist}・步行約 ${walk} 分</span></div>${stationActs(n.st.name, n.id)}</div>`;
+      return `<div class="nearrow"><div class="nm"><span class="badges">${badgeHTML(n.st.name)}</span>${n.st.name}<span class="dist">${dist}・步行約 ${Math.max(1, Math.round(n.d * 1.25 / 70))} 分</span></div>${stationActs(n.st.name, n.id)}</div>`;
     }).join("");
     if (map) {
       if (userLayer) userLayer.remove();
       userLayer = L.layerGroup([
-        L.circle(me, {radius: Math.min(pos.coords.accuracy, 300), color: "#2f7bf6", weight: 1, fillOpacity: .12}),
-        L.circleMarker(me, {radius: 7, color: "#fff", weight: 3, fillColor: "#2f7bf6", fillOpacity: 1}).bindTooltip("你的位置")
+        L.circle(me, {radius: Math.min(pos.coords.accuracy, 300), color: "#2f6fd6", weight: 1, fillOpacity: .12}),
+        L.circleMarker(me, {radius: 7, color: "#fff", weight: 3, fillColor: "#2f6fd6", fillOpacity: 1}).bindTooltip("你的位置")
       ]).addTo(map);
       map.fitBounds(L.latLngBounds([me, ...near.map(n => COORDS[n.id])]).pad(0.25));
     }
   }, err => {
-    msg.textContent = err.code === 1 ? "沒有定位權限。請在手機設定裡允許這個 App 使用位置，或直接點地圖上的車站。" : "暫時抓不到位置，請稍後再試，或直接點地圖上的車站。";
+    msg.textContent = err.code === 1 ? "沒有定位權限。請在手機設定允許這個 App 使用位置，或直接點地圖上的車站。" : "暫時抓不到位置，請稍後再試。";
   }, {enableHighAccuracy: true, timeout: 12000, maximumAge: 60000});
-});
-function showView(v) {
-  const isMap = v === "map";
-  document.body.classList.toggle("view-map", isMap);
-  $("mapView").hidden = !isMap;
-  $("tabList").setAttribute("aria-selected", String(!isMap));
-  $("tabMap").setAttribute("aria-selected", String(isMap));
-  if (isMap) {
-    if (!initMap()) { $("locMsg").textContent = "地圖需要網路才能第一次載入，連上網路後再打開這一頁。"; return; }
-    setTimeout(() => map.invalidateSize(), 50);
-    drawRoute();
-  }
-}
-$("tabList").addEventListener("click", () => showView("list"));
-$("tabMap").addEventListener("click", () => showView("map"));
-$("form").addEventListener("input", drawRoute);
-$("swap").addEventListener("click", drawRoute);
+};
 
-render();
+// ---------- 分頁 ----------
+function showView(v) {
+  state.view = v;
+  document.querySelectorAll(".view").forEach(s => { s.hidden = s.dataset.view !== v; });
+  document.querySelectorAll(".tabbar button").forEach(b => { if (b.dataset.tab === v) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+  if (v === "map") {
+    if (!initMap()) { $("locMsg").textContent = "地圖需要網路才能第一次載入。"; return; }
+    setTimeout(() => { map.invalidateSize(); drawRoute(); }, 60);
+  }
+  if (matchMedia("(max-width: 979px)").matches) window.scrollTo({top: v === "list" ? 0 : document.querySelector(".col-main").offsetTop - 10, behavior: "instant"});
+}
+document.querySelectorAll(".tabbar button").forEach(b => b.onclick = () => showView(b.dataset.tab));
+$("dayChip").onclick = () => showView("settings");
+
+// ---------- 事件 ----------
+els.from.onchange = () => { state.from = els.from.value; render(); };
+els.to.onchange = () => { state.to = els.to.value; render(); };
+$("swap").onclick = () => { [state.from, state.to] = [state.to, state.from]; const s = $("swap"); s.classList.toggle("spin"); render(); };
+for (const id of ["modeDep", "modeArr"]) $(id).onchange = e => { state.mode = e.target.value; render(); };
+els.tFrom.oninput = els.tTo.oninput = render;
+document.querySelectorAll("[data-range]").forEach(b => b.onclick = () => { setRange(b.dataset.range === "all" ? "all" : +b.dataset.range); render(); });
+$("days").onchange = e => { state.day = +e.target.value; render(); };
+$("xMinus").onclick = () => { state.xfer = Math.max(1, state.xfer - 1); render(); };
+$("xPlus").onclick = () => { state.xfer = Math.min(15, state.xfer + 1); render(); };
+setInterval(render, 20000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
+
 const syncOnline = () => document.body.classList.toggle("is-offline", !navigator.onLine);
 addEventListener("online", syncOnline); addEventListener("offline", syncOnline); syncOnline();
-if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+render();
+if ("serviceWorker" in navigator && location.protocol === "https:") addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 </script>
 </body>
 </html>
