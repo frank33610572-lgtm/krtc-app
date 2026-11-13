@@ -265,6 +265,18 @@ body.is-offline .offline{display:inline-block}
 .acts a.gmap{background:var(--ink);border-color:var(--ink);color:var(--surface)!important}
 .near{display:grid;gap:8px}
 .near:empty{display:none}
+.fab[aria-pressed="true"]{background:var(--good);border-color:var(--good);color:#fff}
+.neartitle{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.06em;padding:4px 4px 0;display:flex;justify-content:space-between;gap:8px}
+.neartitle span{font-weight:400;letter-spacing:0}
+.ybrow{border-left:4px solid var(--good)}
+.ybrow.empty{border-left-color:var(--muted)}
+.ybnum{display:flex;gap:16px;font-size:12px;color:var(--muted)}
+.ybnum b{font-family:var(--font-display);font-size:24px;color:var(--ink);font-weight:700;margin-right:3px}
+.ybnum .zero b{color:var(--red)}
+.ybtag{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--good);color:#fff;flex:none}
+.ybtag svg{width:18px;height:18px}
+.ybtag.off{background:var(--muted)}
+.ybpop .ybnum{border-top:1px solid var(--line);padding-top:10px}
 .nearrow{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:10px}
 .nearrow .nm{font-weight:900;font-size:16px;display:flex;align-items:center;gap:10px}
 .nearrow .dist{font-size:12px;color:var(--muted);font-weight:500;margin-left:auto;text-align:right}
@@ -368,10 +380,12 @@ body.is-offline .offline{display:inline-block}
         <div id="map" role="application" aria-label="高雄捷運路線地圖"></div>
         <div class="maptoast" id="locMsg" role="status">點車站看下一班車，也能設成起站、終站或導航過去</div>
         <div class="mapfabs">
+          <button type="button" class="fab" id="ybToggle" aria-pressed="false" aria-label="顯示 YouBike 站" title="顯示 YouBike 站"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9 9h6l3.5 7.5M9 9 7.5 6H5M15 9l-2.5 7.5H5.5M13 6h3"/></svg></button>
           <button type="button" class="fab" id="fitRoute" aria-label="顯示整條路線" title="顯示整條路線"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
           <button type="button" class="fab primary" id="locate" aria-label="找離我最近的車站" title="找離我最近的車站"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
         </div>
       </div>
+      <div class="near" id="ybList"></div>
       <div class="near" id="nearList"></div>
     </section>
 
@@ -806,8 +820,14 @@ $("locate").onclick = () => {
     btn.classList.remove("busy");
     const me = [pos.coords.latitude, pos.coords.longitude];
     const near = stations.map(st => ({st, id: st.ids[0], d: haversine(me, COORDS[st.ids[0]])})).sort((x, y) => x.d - y.d).slice(0, 3);
-    msg.textContent = near[0].d > 30000 ? "你離高雄捷運很遠，下面是直線距離最近的車站" : `最近的車站是${near[0].st.name}，往下滑看其他車站`;
-    $("nearList").innerHTML = near.map(n => {
+    msg.textContent = near[0].d > 30000 ? "你離高雄捷運很遠，下面是直線距離最近的車站" : `最近的捷運站是${near[0].st.name}`;
+    ybNearest(me).then(top => {
+      if (!top || near[0].d > 30000) return;
+      const a = ybInfo(top.st[0]);
+      const dist = top.d < 1000 ? Math.round(top.d) + " 公尺" : (top.d / 1000).toFixed(1) + " 公里";
+      msg.textContent = `最近的捷運站：${near[0].st.name}。最近的 YouBike：${top.st[1]}（${dist}${a && a[0] === 1 ? `，可借 ${a[1]} 台` : ""}）`;
+    });
+    $("nearList").innerHTML = `<div class="neartitle">最近的捷運站</div>` + near.map(n => {
       const dist = n.d < 1000 ? Math.round(n.d) + " 公尺" : (n.d / 1000).toFixed(1) + " 公里";
       const g = nextDeps(n.st.name, 1).filter(x => x.deps.length).map(x => `往${x.head} <b class="num">${fmt(x.deps[0])}</b>`).join("　");
       return `<div class="nearrow"><div class="nm"><span class="badges${n.st.ids.length > 1 ? " two" : ""}">${badgeHTML(n.st.name)}</span>${n.st.name}<span class="dist"><b>${Math.max(1, Math.round(n.d * 1.25 / 70))} 分</b>步行・${dist}</span></div>${g ? `<div class="hint">下一班：${g}</div>` : ""}${stationActs(n.st.name, n.id)}</div>`;
@@ -825,6 +845,104 @@ $("locate").onclick = () => {
     msg.textContent = err.code === 1 ? "沒有定位權限，請在手機設定允許這個 App 使用位置" : "暫時抓不到位置，請稍後再試";
   }, {enableHighAccuracy: true, timeout: 12000, maximumAge: 60000});
 };
+
+// ---------- YouBike ----------
+const TDX = "https://tdx.transportdata.tw/api/basic/v2/Bike/";
+const BIKE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9 9h6l3.5 7.5M9 9 7.5 6H5M15 9l-2.5 7.5"/></svg>';
+const yb = {stations: null, avail: null, availAt: 0, layer: null, on: false, loading: null};
+const ybCached = store.get("krtc-yb-st", null);
+if (ybCached && Date.now() - ybCached.t < 7 * 864e5) yb.stations = ybCached.list;
+const ybAvCached = store.get("krtc-yb-av", null);
+if (ybAvCached) { yb.avail = ybAvCached.map; yb.availAt = ybAvCached.t; }
+
+async function tdxGet(path) {
+  const r = await fetch(TDX + path + (path.includes("?") ? "&" : "?") + "$format=JSON");
+  if (r.status === 429) throw new Error("limit");
+  if (!r.ok) throw new Error("http " + r.status);
+  return r.json();
+}
+async function ybLoad(needAvail) {
+  if (yb.loading) return yb.loading;
+  yb.loading = (async () => {
+    if (!yb.stations) {
+      const j = await tdxGet("Station/City/Kaohsiung?$select=StationUID,StationName,StationPosition,BikesCapacity");
+      yb.stations = j.map(x => [x.StationUID, (x.StationName?.Zh_tw || "").replace(/^YouBike2\.0_/, ""), +x.StationPosition.PositionLat.toFixed(5), +x.StationPosition.PositionLon.toFixed(5), x.BikesCapacity || 0]);
+      store.set("krtc-yb-st", {t: Date.now(), list: yb.stations});
+    }
+    if (needAvail && Date.now() - yb.availAt > 120000) {
+      const j = await tdxGet("Availability/City/Kaohsiung?$select=StationUID,ServiceStatus,AvailableRentBikes,AvailableReturnBikes,AvailableRentBikesDetail");
+      const m = {};
+      for (const x of j) m[x.StationUID] = [x.ServiceStatus, x.AvailableRentBikes, x.AvailableReturnBikes, x.AvailableRentBikesDetail?.ElectricBikes || 0];
+      yb.avail = m; yb.availAt = Date.now();
+      store.set("krtc-yb-av", {t: yb.availAt, map: m});
+    }
+  })().finally(() => { yb.loading = null; });
+  return yb.loading;
+}
+const ybErr = e => !navigator.onLine ? "沒有網路，連上網路後才能查 YouBike"
+  : e.message === "limit" ? "今天的 YouBike 查詢次數已達上限（免金鑰每天約 20 次），請晚點再試" : "YouBike 資料暫時抓不到，請稍後再試";
+const ybAge = () => { if (!yb.availAt) return ""; const m = Math.round((Date.now() - yb.availAt) / 60000); return m < 1 ? "剛剛更新" : `${m} 分鐘前更新`; };
+function ybInfo(uid) { return yb.avail?.[uid] || null; }
+function ybColor(uid) {
+  const a = ybInfo(uid);
+  if (!a) return cssVar("--muted");
+  if (a[0] !== 1) return "#9aa3b1";
+  return a[1] > 0 ? cssVar("--good") : cssVar("--red");
+}
+function ybNumsHTML(uid) {
+  const a = ybInfo(uid);
+  if (!a) return `<div class="ybnum"><span>即時車輛數尚未載入</span></div>`;
+  if (a[0] !== 1) return `<div class="ybnum"><span>${a[0] === 2 ? "暫停營運" : "停止營運"}</span></div>`;
+  return `<div class="ybnum"><span class="${a[1] ? "" : "zero"}"><b>${a[1]}</b>可借${a[3] ? `（電輔 ${a[3]}）` : ""}</span><span class="${a[2] ? "" : "zero"}"><b>${a[2]}</b>可還</span></div>`;
+}
+const walkLink = (lat, lon) => `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=walking`;
+function ybPopup(st) {
+  return `<div class="pop ybpop"><div class="pop-h"><span class="ybtag${ybInfo(st[0]) && ybInfo(st[0])[0] !== 1 ? " off" : ""}">${BIKE_SVG}</span><div><h4 style="font-size:15px">${esc(st[1])}</h4><p>YouBike 2.0・${st[4]} 柱・${ybAge() || "按 YouBike 按鈕載入即時數量"}</p></div></div>
+    ${ybNumsHTML(st[0])}<div class="acts"><a class="gmap" href="${walkLink(st[2], st[3])}" target="_blank" rel="noopener">導航過去</a></div></div>`;
+}
+function ybDraw() {
+  if (!map || !yb.stations) return;
+  if (!yb.layer) {
+    const canvas = L.canvas({padding: .3});
+    yb.layer = L.layerGroup();
+    yb.markers = yb.stations.map(st => L.circleMarker([st[2], st[3]], {renderer: canvas, radius: 4, weight: 1.5, color: "#fff", fillColor: ybColor(st[0]), fillOpacity: .95})
+      .bindPopup(() => ybPopup(st), {maxWidth: 280}).addTo(yb.layer));
+    const sz = () => { const z = map.getZoom(), r = z >= 16 ? 7 : z >= 14 ? 5 : 3; yb.markers.forEach(m => m.setRadius(r)); };
+    map.on("zoomend", sz); sz();
+  } else yb.markers.forEach((m, i) => m.setStyle({fillColor: ybColor(yb.stations[i][0])}));
+  if (yb.on) yb.layer.addTo(map); else yb.layer.remove();
+}
+$("ybToggle").onclick = async () => {
+  yb.on = !yb.on;
+  const btn = $("ybToggle"); btn.setAttribute("aria-pressed", String(yb.on));
+  if (!yb.on) { ybDraw(); $("locMsg").textContent = "已隱藏 YouBike 站"; return; }
+  btn.classList.add("busy"); $("locMsg").textContent = "載入 YouBike 站…";
+  try {
+    await ybLoad(true);
+    ybDraw();
+    if (map.getZoom() < 13.5) map.setZoom(14);
+    $("locMsg").textContent = `綠點有車可借、紅點沒車，${ybAge()}。按定位可找離你最近的 YouBike`;
+  } catch (e) {
+    ybDraw(); $("locMsg").textContent = ybErr(e);
+  } finally { btn.classList.remove("busy"); }
+};
+async function ybNearest(me) {
+  const box = $("ybList");
+  box.innerHTML = `<div class="neartitle">最近的 YouBike<span>載入中…</span></div>`;
+  let note = "";
+  try { await ybLoad(true); } catch (e) { note = ybErr(e); if (!yb.stations) { box.innerHTML = `<div class="neartitle">最近的 YouBike</div><p class="hint" style="padding:0 4px">${note}</p>`; return null; } }
+  const ranked = yb.stations.map(st => ({st, d: haversine(me, [st[2], st[3]])})).sort((a, b) => a.d - b.d);
+  const withBike = ranked.filter(x => { const a = ybInfo(x.st[0]); return !a || (a[0] === 1 && a[1] > 0); });
+  const picks = [ranked[0], ...withBike.filter(x => x !== ranked[0]).slice(0, 2)].slice(0, 3);
+  box.innerHTML = `<div class="neartitle">最近的 YouBike<span>${note || ybAge()}</span></div>` + picks.map(x => {
+    const a = ybInfo(x.st[0]), emptyCls = a && (a[0] !== 1 || a[1] === 0) ? " empty" : "";
+    const dist = x.d < 1000 ? Math.round(x.d) + " 公尺" : (x.d / 1000).toFixed(1) + " 公里";
+    return `<div class="nearrow ybrow${emptyCls}"><div class="nm"><span class="ybtag${emptyCls ? " off" : ""}">${BIKE_SVG}</span><span style="font-size:15px">${esc(x.st[1])}</span><span class="dist"><b>${Math.max(1, Math.round(x.d * 1.25 / 70))} 分</b>步行・${dist}</span></div>${ybNumsHTML(x.st[0])}<div class="acts"><a class="gmap" href="${walkLink(x.st[2], x.st[3])}" target="_blank" rel="noopener">導航過去</a></div></div>`;
+  }).join("");
+  if (map && !yb.on) { yb.on = true; $("ybToggle").setAttribute("aria-pressed", "true"); }
+  ybDraw();
+  return ranked[0];
+}
 
 // ---------- 分頁 ----------
 function showView(v) {

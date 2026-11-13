@@ -1,5 +1,5 @@
 // 高捷班次查詢：離線快取。改版時更新 CACHE 版本號，手機下次打開就會換新版。
-const CACHE = "krtc-2026-11-13-v5";
+const CACHE = "krtc-2026-11-13-v6";
 const TILE_CACHE = "krtc-tiles";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png",
   "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css",
