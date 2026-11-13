@@ -1,5 +1,5 @@
 // 高捷班次查詢：離線快取。改版時更新 CACHE 版本號，手機下次打開就會換新版。
-const CACHE = "krtc-2026-11-13-v3";
+const CACHE = "krtc-2026-11-13-v4";
 const TILE_CACHE = "krtc-tiles";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png",
   "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css",
@@ -31,7 +31,7 @@ self.addEventListener("fetch", e => {
     return;
   }
   // 地圖圖磚：看過的區域離線也能顯示（最多保留 600 張）
-  if (url.hostname === "tile.openstreetmap.org") {
+  if (url.hostname.endsWith("basemaps.cartocdn.com") || url.hostname === "tile.openstreetmap.org") {
     e.respondWith(caches.open(TILE_CACHE).then(async c => {
       const hit = await c.match(req);
       if (hit) return hit;

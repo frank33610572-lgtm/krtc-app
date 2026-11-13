@@ -215,25 +215,58 @@ body.is-offline .offline{display:inline-block}
 
 /* ---------- 地圖 ---------- */
 .mapview{display:grid;gap:12px}
-.maptools{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-#map{height:calc(100dvh - 300px);min-height:380px;border-radius:var(--radius);border:1px solid var(--line);z-index:0;background:var(--soft)}
-@media (min-width:980px){#map{height:calc(100vh - 170px)}}
+.mapwrap{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--line);background:var(--soft)}
+#map{height:calc(100dvh - 170px - env(safe-area-inset-bottom));min-height:420px;z-index:0;background:var(--soft)}
+@media (min-width:980px){#map{height:calc(100vh - 90px)}}
+.maptoast{position:absolute;left:12px;right:72px;top:12px;z-index:500;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:13px;color:var(--ink);box-shadow:0 4px 18px rgba(0,0,0,.12);pointer-events:none}
+.mapfabs{position:absolute;right:12px;bottom:calc(16px + 0px);z-index:500;display:grid;gap:10px}
+.fab{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.18)}
+.fab svg{width:22px;height:22px}
+.fab.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.fab.busy svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.leaflet-control-zoom{border:0!important;box-shadow:0 4px 16px rgba(0,0,0,.18)!important;border-radius:12px!important;overflow:hidden;margin-top:64px!important}
+.leaflet-control-zoom a{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--line)!important;width:40px!important;height:40px!important;line-height:40px!important}
+.leaflet-control-attribution{background:color-mix(in srgb,var(--surface) 80%,transparent)!important;color:var(--muted)!important;font-size:10px!important}
+.leaflet-control-attribution a{color:var(--muted)!important}
+.leaflet-container{font-family:var(--font-body);background:var(--soft)}
+.stlabel{background:none;border:0;box-shadow:none;padding:0 2px;font:700 12px var(--font-body);color:var(--ink);text-shadow:0 0 3px var(--surface),0 0 3px var(--surface),0 0 3px var(--surface);display:none}
+.stlabel::before{display:none}
+.show-labels .stlabel{display:block}
+.stlabel.xf{font-size:13px}
+.endpin{display:flex;align-items:center;gap:5px;transform:translate(-14px,-38px);white-space:nowrap}
+.endpin b{display:grid;place-items:center;width:28px;height:28px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);background:var(--ink);box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.endpin b span{transform:rotate(45deg);color:var(--surface);font-size:13px;font-weight:900}
+.endpin.to b{background:var(--good)}
+.endpin em{font-style:normal;font-size:12px;font-weight:700;background:var(--surface);color:var(--ink);border-radius:999px;padding:2px 8px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.me{position:relative;width:18px;height:18px}
+.me i{position:absolute;inset:0;border-radius:50%;background:#2f6fd6;border:3px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.35)}
+.me::before{content:"";position:absolute;inset:-14px;border-radius:50%;background:#2f6fd6;opacity:.25;animation:pulse 2s ease-out infinite}
+@keyframes pulse{from{transform:scale(.3);opacity:.45}to{transform:scale(1.3);opacity:0}}
+.leaflet-popup-content-wrapper{border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.leaflet-popup-tip{background:var(--surface)}
+.leaflet-popup-content{margin:14px 16px;min-width:230px}
+.leaflet-container a.leaflet-popup-close-button{color:var(--muted);top:6px;right:6px}
+.pop{display:grid;gap:10px}
+.pop-h{display:flex;align-items:center;gap:10px}
+.pop-h h4{margin:0;font-size:18px;font-weight:900}
+.pop-h p{margin:0;font-size:12px;color:var(--muted)}
+.deps{display:grid;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.dep{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:13px}
+.dep i{width:8px;height:8px;border-radius:50%}
+.dep i.R{background:var(--red)} .dep i.O{background:var(--orange)}
+.dep b{font-family:var(--font-display);font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.dep b small{font-family:var(--font-body);font-size:11px;color:var(--good);font-weight:700;margin-left:4px}
+.dep .none{color:var(--muted);font-size:12px}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.acts a,.acts button{font-size:13px;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:9px;padding:7px 11px;cursor:pointer;text-decoration:none;min-height:38px;display:inline-flex;align-items:center;font-weight:500}
+.acts a.gmap{background:var(--ink);border-color:var(--ink);color:var(--surface)!important}
 .near{display:grid;gap:8px}
 .near:empty{display:none}
-.nearrow{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.nearrow .nm{font-weight:700;display:flex;align-items:center;gap:8px}
-.nearrow .dist{font-size:12px;color:var(--muted);font-weight:400}
-.acts{display:flex;gap:6px;flex-wrap:wrap}
-.acts a,.acts button{font-size:13px;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer;text-decoration:none;min-height:36px;display:inline-flex;align-items:center}
-.acts a.gmap{border-color:var(--focus);color:var(--focus)}
-.leaflet-popup-content{margin:12px 14px;font-family:var(--font-body)}
-.leaflet-container{font-family:var(--font-body)}
-.pop h4{margin:0 0 2px;font-size:15px}
-.pop p{margin:0 0 8px;font-size:12px;color:#5c6575}
-.pop .acts a,.pop .acts button{background:#f4f5f8;color:#121822;border-color:#dde1e8}
-.pop .acts a.gmap{color:#2f6fd6;border-color:#2f6fd6}
-.leaflet-tooltip.endtag{background:#121822;color:#fff;font:700 12px var(--font-body);border-radius:999px;padding:2px 8px;border:0;box-shadow:none}
-.leaflet-tooltip.endtag::before{display:none}
+.nearrow{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:10px}
+.nearrow .nm{font-weight:900;font-size:16px;display:flex;align-items:center;gap:10px}
+.nearrow .dist{font-size:12px;color:var(--muted);font-weight:500;margin-left:auto;text-align:right}
+.nearrow .dist b{display:block;font-family:var(--font-display);font-size:20px;color:var(--ink)}
 
 /* ---------- 設定 ---------- */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:grid;gap:12px}
@@ -329,11 +362,14 @@ body.is-offline .offline{display:inline-block}
     </section>
 
     <section class="view mapview" data-view="map" hidden>
-      <div class="maptools">
-        <button type="button" class="btn primary" id="locate">找離我最近的車站</button>
-        <span class="hint" id="locMsg">點車站可設成起站、終站，或用 Google 地圖導航過去。</span>
+      <div class="mapwrap">
+        <div id="map" role="application" aria-label="高雄捷運路線地圖"></div>
+        <div class="maptoast" id="locMsg" role="status">點車站看下一班車，也能設成起站、終站或導航過去</div>
+        <div class="mapfabs">
+          <button type="button" class="fab" id="fitRoute" aria-label="顯示整條路線" title="顯示整條路線"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+          <button type="button" class="fab primary" id="locate" aria-label="找離我最近的車站" title="找離我最近的車站"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+        </div>
       </div>
-      <div id="map" role="application" aria-label="高雄捷運路線地圖"></div>
       <div class="near" id="nearList"></div>
     </section>
 
@@ -653,21 +689,69 @@ function renderNote(force) {
 // ---------- 地圖 ----------
 const gmapLink = id => `https://www.google.com/maps/dir/?api=1&destination=${COORDS[id][0]},${COORDS[id][1]}&travelmode=walking`;
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-let map = null, routeLayer = null, userLayer = null;
-const stationActs = (name, id) => `<div class="acts"><button type="button" data-act="from" data-name="${name}">設為起站</button><button type="button" data-act="to" data-name="${name}">設為終站</button><a class="gmap" href="${gmapLink(id)}" target="_blank" rel="noopener">Google 地圖導航</a></div>`;
+const lineColor = L_ => cssVar(L_ === "R" ? "--red" : "--orange");
+const darkMQ = matchMedia("(prefers-color-scheme: dark)");
+let map = null, tiles = null, baseLayer = null, routeLayer = null, userLayer = null;
+
+function tileURL() {
+  const theme = document.documentElement.dataset.theme;
+  const dark = theme ? theme === "dark" : darkMQ.matches;
+  return `https://{s}.basemaps.cartocdn.com/${dark ? "dark_all" : "light_all"}/{z}/{x}/{y}{r}.png`;
+}
+function nextDeps(name, count = 2) {
+  const st = byName[name], now = nowSvc(), live = state.day === todayDay, groups = {};
+  for (const id of st.ids) for (const t of (tripsBy[state.day]?.[lineOf[id]] || [])) {
+    const i = t.idx[id];
+    if (i === undefined || i === t.stops.length - 1) continue;
+    const dep = t.times[i];
+    if (live && dep < now) continue;
+    (groups[t.L + "|" + t.head] ||= []).push(dep);
+  }
+  return Object.entries(groups).map(([k, v]) => { const [L_, head] = k.split("|"); return {L: L_, head, deps: v.sort((a, b) => a - b).slice(0, count)}; })
+    .sort((a, b) => (a.L + a.head).localeCompare(b.L + b.head));
+}
+function popupHTML(name) {
+  const st = byName[name], id = st.ids[0], now = nowSvc(), live = state.day === todayDay;
+  const deps = nextDeps(name);
+  const rows = deps.length ? deps.map(g => `<div class="dep"><i class="${g.L}"></i><span>往${g.head}</span><span>${g.deps.length ? g.deps.map((d, k) => `<b>${fmt(d)}${k === 0 && live ? `<small>${d - now <= 0 ? "現在" : (d - now) + "分"}</small>` : ""}</b>`).join("　") : '<span class="none">今天已無班次</span>'}</span></div>`).join("")
+    : '<div class="dep"><span class="none">今天已無班次</span></div>';
+  return `<div class="pop">
+    <div class="pop-h"><span class="badges${st.ids.length > 1 ? " two" : ""}">${badgeHTML(name)}</span><div><h4>${name}</h4><p>${st.ids.length > 1 ? "紅橘轉乘站・" : ""}${live ? "接下來的班次" : DAY_SHORT[state.day] + "時刻表的頭兩班"}</p></div></div>
+    <div class="deps">${rows}</div>
+    ${stationActs(name, id)}</div>`;
+}
+const stationActs = (name, id) => `<div class="acts"><button type="button" data-act="from" data-name="${name}">設為起站</button><button type="button" data-act="to" data-name="${name}">設為終站</button><a class="gmap" href="${gmapLink(id)}" target="_blank" rel="noopener">導航過去</a></div>`;
+
+function drawBase() {
+  if (baseLayer) baseLayer.remove();
+  baseLayer = L.layerGroup().addTo(map);
+  const hasRoute = state.from !== state.to;
+  for (const Ln of LINES) {
+    const pts = DATA.lines[Ln].map(([id]) => COORDS[id]);
+    L.polyline(pts, {color: cssVar("--surface"), weight: 9, opacity: hasRoute ? .5 : .95, interactive: false}).addTo(baseLayer);
+    L.polyline(pts, {color: lineColor(Ln), weight: 5, opacity: hasRoute ? .35 : .95, interactive: false}).addTo(baseLayer);
+  }
+  for (const st of stations) {
+    const id = st.ids[0], xf = st.ids.length > 1;
+    const m = L.circleMarker(COORDS[id], {radius: xf ? 8 : 5, color: xf ? cssVar("--ink") : lineColor(lineOf[id]), weight: xf ? 3.5 : 2.5, fillColor: cssVar("--surface"), fillOpacity: 1})
+      .addTo(baseLayer)
+      .bindTooltip(st.name, {permanent: true, direction: "right", offset: [8, 0], className: "stlabel" + (xf ? " xf" : "")})
+      .bindPopup(() => popupHTML(st.name), {maxWidth: 300, autoPanPaddingTopLeft: [12, 70]});
+    m.on("mouseover", () => m.setStyle({radius: xf ? 10 : 7})).on("mouseout", () => m.setStyle({radius: xf ? 8 : 5}));
+  }
+}
 function initMap() {
   if (map) return true;
   if (typeof L === "undefined") return false;
-  map = L.map("map").setView([22.665, 120.315], 12);
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> 貢獻者'}).addTo(map);
-  for (const Ln of LINES) L.polyline(DATA.lines[Ln].map(([id]) => COORDS[id]), {color: cssVar(Ln === "R" ? "--red" : "--orange"), weight: 6, opacity: .85}).addTo(map);
-  for (const st of stations) {
-    const id = st.ids[0], xf = st.ids.length > 1;
-    L.circleMarker(COORDS[id], {radius: xf ? 9 : 6, color: xf ? "#121822" : cssVar(lineOf[id] === "R" ? "--red" : "--orange"), weight: 3, fillColor: "#fff", fillOpacity: 1})
-      .addTo(map).bindTooltip(st.name, {direction: "top", offset: [0, -6]})
-      .bindPopup(`<div class="pop"><h4>${st.name}</h4><p>${st.ids.join("・")}${xf ? "・紅橘轉乘站" : ""}</p>${stationActs(st.name, id)}</div>`);
-  }
+  map = L.map("map", {zoomSnap: .5, zoomControl: true, attributionControl: true}).setView([22.665, 120.315], 12);
+  map.zoomControl.setPosition("topright");
+  tiles = L.tileLayer(tileURL(), {maxZoom: 19, subdomains: "abcd", detectRetina: false,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'}).addTo(map);
+  const syncLabels = () => map.getContainer().classList.toggle("show-labels", map.getZoom() >= 13);
+  map.on("zoomend", syncLabels); syncLabels();
   map.getContainer().addEventListener("click", onStationAct);
+  darkMQ.addEventListener?.("change", () => { tiles.setUrl(tileURL()); drawBase(); drawRoute(); });
+  drawBase(); drawRoute(true);
   return true;
 }
 function onStationAct(e) {
@@ -685,45 +769,60 @@ function pathIds(o, d) {
   }
   return [...pathIds(o, "美麗島"), ...pathIds("美麗島", d)];
 }
-function drawRoute() {
+let lastRouteKey = "";
+function drawRoute(fit) {
   if (!map) return;
+  const key = routeKey();
+  if (key !== lastRouteKey) { drawBase(); }
   if (routeLayer) routeLayer.remove();
-  const o = state.from, d = state.to; if (o === d) return;
+  const o = state.from, d = state.to;
+  if (o === d) { lastRouteKey = key; return; }
   routeLayer = L.layerGroup().addTo(map);
+  const pts = [];
   for (const seg of pathIds(o, d)) {
-    L.polyline(seg.map(id => COORDS[id]), {color: "#121822", weight: 13, opacity: .3}).addTo(routeLayer);
-    L.polyline(seg.map(id => COORDS[id]), {color: cssVar(lineOf[seg[0]] === "R" ? "--red" : "--orange"), weight: 7}).addTo(routeLayer);
+    const ll = seg.map(id => COORDS[id]); pts.push(...ll);
+    const c = lineColor(lineOf[seg[0]]);
+    L.polyline(ll, {color: c, weight: 18, opacity: .18, interactive: false}).addTo(routeLayer);
+    L.polyline(ll, {color: cssVar("--surface"), weight: 11, interactive: false}).addTo(routeLayer);
+    L.polyline(ll, {color: c, weight: 7, interactive: false}).addTo(routeLayer);
   }
-  for (const [t, nm] of [["起", o], ["終", d]])
-    L.tooltip({permanent: true, direction: "right", className: "endtag", offset: [10, 0]}).setLatLng(COORDS[byName[nm].ids[0]]).setContent(t + " " + nm).addTo(routeLayer);
+  const pin = (nm, t, cls) => L.marker(COORDS[byName[nm].ids[0]], {interactive: false, keyboard: false,
+    icon: L.divIcon({className: "", html: `<div class="endpin ${cls}"><b><span>${t}</span></b><em>${nm}</em></div>`, iconSize: [0, 0]})}).addTo(routeLayer);
+  pin(o, "起", "from"); pin(d, "終", "to");
+  if (fit || key !== lastRouteKey) map.fitBounds(L.latLngBounds(pts).pad(.3), {paddingTopLeft: [10, 60], maxZoom: 15});
+  lastRouteKey = key;
 }
+$("fitRoute").onclick = () => { if (!map) return; if (state.from !== state.to) drawRoute(true); else map.setView([22.665, 120.315], 12); };
 function haversine(a, b) {
   const r = x => x * Math.PI / 180, dLat = r(b[0] - a[0]), dLon = r(b[1] - a[1]);
   const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a[0])) * Math.cos(r(b[0])) * Math.sin(dLon / 2) ** 2;
   return 12742000 * Math.asin(Math.sqrt(h));
 }
 $("locate").onclick = () => {
-  const msg = $("locMsg");
-  if (!navigator.geolocation) { msg.textContent = "這個瀏覽器不支援定位，請直接點地圖上的車站。"; return; }
-  msg.textContent = "定位中…";
+  const msg = $("locMsg"), btn = $("locate");
+  if (!navigator.geolocation) { msg.textContent = "這個瀏覽器不支援定位，請直接點地圖上的車站"; return; }
+  msg.textContent = "定位中…"; btn.classList.add("busy");
   navigator.geolocation.getCurrentPosition(pos => {
+    btn.classList.remove("busy");
     const me = [pos.coords.latitude, pos.coords.longitude];
     const near = stations.map(st => ({st, id: st.ids[0], d: haversine(me, COORDS[st.ids[0]])})).sort((x, y) => x.d - y.d).slice(0, 3);
-    msg.textContent = near[0].d > 30000 ? "你離高雄捷運很遠，以下是直線距離最近的車站。" : "直線距離；步行時間為粗估。";
+    msg.textContent = near[0].d > 30000 ? "你離高雄捷運很遠，下面是直線距離最近的車站" : `最近的車站是${near[0].st.name}，往下滑看其他車站`;
     $("nearList").innerHTML = near.map(n => {
       const dist = n.d < 1000 ? Math.round(n.d) + " 公尺" : (n.d / 1000).toFixed(1) + " 公里";
-      return `<div class="nearrow"><div class="nm"><span class="badges">${badgeHTML(n.st.name)}</span>${n.st.name}<span class="dist">${dist}・步行約 ${Math.max(1, Math.round(n.d * 1.25 / 70))} 分</span></div>${stationActs(n.st.name, n.id)}</div>`;
+      const g = nextDeps(n.st.name, 1).filter(x => x.deps.length).map(x => `往${x.head} <b class="num">${fmt(x.deps[0])}</b>`).join("　");
+      return `<div class="nearrow"><div class="nm"><span class="badges${n.st.ids.length > 1 ? " two" : ""}">${badgeHTML(n.st.name)}</span>${n.st.name}<span class="dist"><b>${Math.max(1, Math.round(n.d * 1.25 / 70))} 分</b>步行・${dist}</span></div>${g ? `<div class="hint">下一班：${g}</div>` : ""}${stationActs(n.st.name, n.id)}</div>`;
     }).join("");
     if (map) {
       if (userLayer) userLayer.remove();
       userLayer = L.layerGroup([
-        L.circle(me, {radius: Math.min(pos.coords.accuracy, 300), color: "#2f6fd6", weight: 1, fillOpacity: .12}),
-        L.circleMarker(me, {radius: 7, color: "#fff", weight: 3, fillColor: "#2f6fd6", fillOpacity: 1}).bindTooltip("你的位置")
+        L.circle(me, {radius: Math.min(pos.coords.accuracy, 300), color: "#2f6fd6", weight: 1, fillOpacity: .08, interactive: false}),
+        L.marker(me, {icon: L.divIcon({className: "", html: '<div class="me"><i></i></div>', iconSize: [18, 18], iconAnchor: [9, 9]}), interactive: false})
       ]).addTo(map);
-      map.fitBounds(L.latLngBounds([me, ...near.map(n => COORDS[n.id])]).pad(0.25));
+      map.flyToBounds(L.latLngBounds([me, ...near.map(n => COORDS[n.id])]).pad(.3), {paddingTopLeft: [10, 60], maxZoom: 16, duration: .8});
     }
   }, err => {
-    msg.textContent = err.code === 1 ? "沒有定位權限。請在手機設定允許這個 App 使用位置，或直接點地圖上的車站。" : "暫時抓不到位置，請稍後再試。";
+    btn.classList.remove("busy");
+    msg.textContent = err.code === 1 ? "沒有定位權限，請在手機設定允許這個 App 使用位置" : "暫時抓不到位置，請稍後再試";
   }, {enableHighAccuracy: true, timeout: 12000, maximumAge: 60000});
 };
 
@@ -735,6 +834,7 @@ function showView(v) {
   if (v === "map") {
     if (!initMap()) { $("locMsg").textContent = "地圖需要網路才能第一次載入。"; return; }
     setTimeout(() => { map.invalidateSize(); drawRoute(); }, 60);
+    $("locMsg").hidden = false;
   }
   if (matchMedia("(max-width: 979px)").matches) window.scrollTo({top: v === "list" ? 0 : document.querySelector(".col-main").offsetTop - 10, behavior: "instant"});
 }
