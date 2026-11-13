@@ -430,7 +430,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
           <p class="hint">紅線、橘線互轉時，在美麗島站換月台需要的時間。走得快可以調低。</p>
         </div>
         <div class="card" id="ybCard" hidden>
-          <h2>一鍵開啟 YouBike App</h2>
+          <h2>直接開啟 YouBike App</h2>
           <div id="ybCardBody"></div>
         </div>
         <div class="card">
@@ -920,19 +920,15 @@ const IS_ANDROID = /android/i.test(navigator.userAgent);
 const YB_PKG = "tw.com.youbike.plus";
 const YB_PLAY = "https://play.google.com/store/apps/details?id=" + YB_PKG;
 const YB_IOS_STORE = "https://apps.apple.com/tw/app/id1483423095";
-const YB_SHORTCUT = "YouBike";
-const ybShortcutOn = () => store.get("krtc-yb-shortcut", false);
+// YouBike 官方 App 在 www.youbike.com.tw 登記了這個網址（apple-app-site-association / assetlinks.json），
+// 點它會像 Google 地圖連結一樣直接打開 YouBike App。
+const YB_APPLINK = "https://www.youbike.com.tw/easy-wallet/";
 function ybAppHref() {
-  if (IS_IOS) return ybShortcutOn() ? "shortcuts://run-shortcut?name=" + encodeURIComponent(YB_SHORTCUT) : YB_IOS_STORE;
-  if (IS_ANDROID) return `intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=${YB_PKG};S.browser_fallback_url=${encodeURIComponent(YB_PLAY)};end`;
-  return YB_PLAY;
+  if (IS_ANDROID) return `intent://www.youbike.com.tw/easy-wallet/#Intent;scheme=https;package=${YB_PKG};S.browser_fallback_url=${encodeURIComponent(YB_PLAY)};end`;
+  return YB_APPLINK;
 }
-const ybAppLink = (label = "開啟 YouBike 借車") => {
-  const href = ybAppHref(), web = href.startsWith("http");
-  return `<a class="ybapp" href="${href}"${web ? ' target="_blank" rel="noopener"' : ""}>${BIKE_SVG}${label}</a>`;
-};
-const ybActs = st => `<div class="acts"><a class="gmap" href="${walkLink(st[2], st[3])}" target="_blank" rel="noopener">導航過去</a>${ybAppLink()}</div>`
-  + (IS_IOS && !ybShortcutOn() ? `<button type="button" class="linkbtn" data-act="ybsetup">想按一下就直接開 YouBike？設定一次就好</button>` : "");
+const ybAppLink = (label = "開啟 YouBike 借車") => `<a class="ybapp" href="${ybAppHref()}">${BIKE_SVG}${label}</a>`;
+const ybActs = st => `<div class="acts"><a class="gmap" href="${walkLink(st[2], st[3])}" target="_blank" rel="noopener">導航過去</a>${ybAppLink()}</div>`;
 const yb = {stations: null, byUid: null, avail: null, availAt: 0, on: false, loading: null};
 const ybIndex = () => { yb.byUid = {}; for (const st of yb.stations) yb.byUid[st[0]] = st; };
 const ybCached = store.get("krtc-yb-st", null);
@@ -1082,26 +1078,17 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) tick
 // ---------- 一鍵開啟 YouBike ----------
 function renderYbCard() {
   const card = $("ybCard"), body = $("ybCardBody");
-  if (IS_IOS) {
-    card.hidden = false;
-    const on = ybShortcutOn();
-    body.innerHTML = `<p class="hint">iPhone 不允許網頁直接打開其他 App，但可以透過內建的「捷徑」App 轉一手。設定一次後，按「開啟 YouBike 借車」就會直接進到 YouBike App。</p>
-      <ol class="ybsteps">
-        <li>先確認已安裝 <b>YouBike微笑單車 官方版</b></li>
-        <li>點下面的按鈕打開「捷徑」，新增一個捷徑</li>
-        <li>加入動作 <b>「打開 App」</b>，App 選 <b>YouBike微笑單車</b></li>
-        <li>把捷徑名稱改成 <code>${YB_SHORTCUT}</code>，按完成</li>
-        <li>回到這裡，勾選下面的「已設定好」</li>
-      </ol>
-      <div class="row-actions"><a class="btn" href="shortcuts://create-shortcut">打開「捷徑」新增捷徑</a>${on ? `<a class="btn primary" href="${ybAppHref()}">測試開啟 YouBike</a>` : ""}</div>
-      <label class="toggle"><input type="checkbox" id="ybShortcutChk"${on ? " checked" : ""}>已設定好名為「${YB_SHORTCUT}」的捷徑</label>
-      <p class="hint">第一次開啟時，iPhone 可能會詢問是否允許在「捷徑」中打開，選「打開」即可。</p>`;
-    $("ybShortcutChk").onchange = e => { store.set("krtc-yb-shortcut", e.target.checked); renderYbCard(); };
-  } else if (IS_ANDROID) {
-    card.hidden = false;
-    body.innerHTML = `<p class="hint">Android 不用設定：按「開啟 YouBike 借車」會直接打開 YouBike微笑單車 官方版。還沒安裝的話會帶你到 Google Play。</p>
-      <div class="acts">${ybAppLink("測試開啟 YouBike")}</div>`;
-  }
+  if (!IS_IOS && !IS_ANDROID) return;
+  card.hidden = false;
+  body.innerHTML = IS_IOS
+    ? `<p class="hint">按「開啟 YouBike 借車」會直接打開 <b>YouBike微笑單車 官方版</b>，不用經過 App Store。</p>
+       <ol class="ybsteps">
+         <li>如果打開的是 YouBike 網站的「找不到頁面」，代表手機還沒安裝 App，請先到 App Store 下載。</li>
+         <li>已安裝卻還是打開網頁：回到這裡<b>長按</b>按鈕，選<b>「在 YouBike 中打開」</b>，之後就會一直直接開 App。</li>
+       </ol>
+       <div class="acts">${ybAppLink("測試開啟 YouBike")}<a href="${YB_IOS_STORE}" target="_blank" rel="noopener">到 App Store 下載</a></div>`
+    : `<p class="hint">按「開啟 YouBike 借車」會直接打開 <b>YouBike微笑單車 官方版</b>；還沒安裝的話會帶你到 Google Play。</p>
+       <div class="acts">${ybAppLink("測試開啟 YouBike")}</div>`;
 }
 renderYbCard();
 
