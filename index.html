@@ -337,6 +337,28 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .acts a.ybapp{border-color:var(--good);color:var(--good);gap:6px}
 .acts a.ybapp svg{width:16px;height:16px}
 
+/* 好用地圖 */
+.poifab{flex-direction:column;gap:0;font-size:9px;font-weight:700;line-height:1;padding-top:2px}
+.poifab svg{width:20px;height:20px}
+.poifab[aria-pressed="true"]{background:#c27c3a;border-color:#c27c3a;color:#fff}
+.poichips{position:absolute;left:12px;right:64px;top:62px;z-index:3;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.poichips[hidden]{display:none}
+.poichip-title{font-size:12px;font-weight:900;color:#fff;background:#c27c3a;border-radius:999px;padding:5px 10px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.poichip{display:inline-flex;align-items:center;gap:6px;border:1px solid color-mix(in srgb,var(--line) 70%,transparent);background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--muted);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:500;cursor:pointer;min-height:32px;box-shadow:0 4px 14px rgba(0,0,0,.14)}
+.poichip i{width:10px;height:10px;border-radius:50%;opacity:.35}
+.poichip[aria-pressed="true"]{color:var(--ink);font-weight:700;border-color:var(--ink)}
+.poichip[aria-pressed="true"] i{opacity:1}
+.poitag{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:10px;color:#fff;font-weight:900;font-size:15px;flex:none}
+.ohline,.atmline{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:baseline;font-size:13px;border-top:1px solid var(--line);padding-top:9px}
+.ohline b,.atmline b{font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap}
+.ohline.open b{color:var(--good)}
+.ohline.closed b{color:var(--red)}
+.atmline span{font-weight:700}
+.poirow{border-left:4px solid var(--c)}
+.poirow .ohs{font-size:12px;color:var(--muted)}
+.poirow .ohs.open{color:var(--good);font-weight:700}
+.poirow .ohs.closed{color:var(--red);font-weight:700}
+
 /* ---------- 設定 ---------- */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:grid;gap:12px}
 .card h2{margin:0;font-size:15px}
@@ -470,12 +492,20 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
       <div class="mapwrap">
         <div id="map" role="application" aria-label="高雄捷運路線地圖"></div>
         <div class="maptoast" id="locMsg" role="status">點車站看下一班車，也能設成起站、終站或導航過去</div>
+        <div class="poichips" id="poiChips" hidden aria-label="好用地圖分類">
+          <span class="poichip-title">好用地圖</span>
+          <button type="button" class="poichip" data-cat="tea" aria-pressed="true"><i style="background:#c27c3a"></i>手搖飲</button>
+          <button type="button" class="poichip" data-cat="conv" aria-pressed="true"><i style="background:#2f6fd6"></i>超商</button>
+          <button type="button" class="poichip" data-cat="cafe" aria-pressed="true"><i style="background:#6d4c41"></i>咖啡廳</button>
+        </div>
         <div class="mapfabs">
+          <button type="button" class="fab poifab" id="poiBtn" aria-pressed="false" aria-label="好用地圖：手搖飲、超商、咖啡廳" title="好用地圖"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"/><path d="M5.5 12v8h13v-8M10 20v-5h4v5"/></svg><span>好用</span></button>
           <button type="button" class="fab" id="ybToggle" aria-pressed="false" aria-label="顯示 YouBike 站" title="顯示 YouBike 站"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9 9h6l3.5 7.5M9 9 7.5 6H5M15 9l-2.5 7.5H5.5M13 6h3"/></svg></button>
           <button type="button" class="fab" id="fitRoute" aria-label="顯示整條路線" title="顯示整條路線"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
           <button type="button" class="fab primary" id="locate" aria-label="找離我最近的車站" title="找離我最近的車站"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
         </div>
       </div>
+      <div class="near" id="poiList"></div>
       <div class="near" id="ybList"></div>
       <div class="near" id="nearList"></div>
     </section>
@@ -989,6 +1019,15 @@ function setupLayers() {
     paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 2.5, 14, 4.5, 16.5, 8],
       "circle-color": ["match", ["get", "s"], "ok", cssVar("--good"), "empty", lineColor("R"), "off", "#9aa3b1", cssVar("--muted")],
       "circle-stroke-color": surf, "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 12, .8, 16, 2]}});
+  map.addSource("poi", {type: "geojson", data: poiFC()});
+  map.addLayer({id: "poi", type: "circle", source: "poi", minzoom: 12.5, layout: {visibility: poi.on ? "visible" : "none"},
+    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 3, 15, 7.5, 17, 11],
+      "circle-color": ["match", ["get", "c"], "tea", POI_CATS.tea.color, "conv", POI_CATS.conv.color, POI_CATS.cafe.color],
+      "circle-stroke-color": surf, "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 13, .8, 16, 2],
+      "circle-opacity": ["case", ["==", ["get", "s"], 0], .4, 1], "circle-stroke-opacity": ["case", ["==", ["get", "s"], 0], .4, 1]}});
+  map.addLayer({id: "poi-glyph", type: "symbol", source: "poi", minzoom: 15, layout: {visibility: poi.on ? "visible" : "none",
+      "text-field": ["get", "g"], "text-font": fontStack, "text-size": ["interpolate", ["linear"], ["zoom"], 15, 9, 17, 13], "text-allow-overlap": true, "text-ignore-placement": true},
+    paint: {"text-color": "#ffffff", "text-opacity": ["case", ["==", ["get", "s"], 0], .6, 1]}});
   map.addLayer({id: "stations", type: "circle", source: "krtc-stations",
     paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 10, ["case", ["==", ["get", "xf"], 1], 4.5, 2.5], 13, ["case", ["==", ["get", "xf"], 1], 8, 5], 16, ["case", ["==", ["get", "xf"], 1], 12, 8]],
       "circle-color": surf, "circle-stroke-width": ["case", ["==", ["get", "xf"], 1], 3.5, 2.5], "circle-stroke-color": ["case", ["==", ["get", "xf"], 1], ink, colorExpr]}});
@@ -999,6 +1038,7 @@ function setupLayers() {
   lastRouteKey = "";
   drawRoute();
   ybDraw();
+  poiDraw();
 }
 function applyRouteDim() {
   const has = state.from !== state.to;
@@ -1041,7 +1081,13 @@ function initMap() {
   map.addControl(new maplibregl.NavigationControl({showCompass: true}), "top-right");
   map.addControl(new maplibregl.AttributionControl({compact: true}), "bottom-left");
   map.on("style.load", setupLayers);
-  for (const id of ["stations", "yb"]) {
+  map.on("click", "poi", e => {
+    if (map.queryRenderedFeatures(e.point, {layers: ["stations"]}).length) return;
+    const it = poi.items.get(e.features[0].properties.id); if (it) openPopup([it.lon, it.lat], poiPopup(it));
+  });
+  let poiTimer = null;
+  map.on("moveend", () => { if (!poi.on) return; clearTimeout(poiTimer); poiTimer = setTimeout(poiLoadView, 350); });
+  for (const id of ["stations", "yb", "poi"]) {
     map.on("mouseenter", id, () => { map.getCanvas().style.cursor = "pointer"; });
     map.on("mouseleave", id, () => { map.getCanvas().style.cursor = ""; });
   }
@@ -1146,6 +1192,7 @@ function ybDraw() {
 }
 $("ybToggle").onclick = async () => {
   yb.on = !yb.on;
+  if (yb.on && poi.on) poiSet(false);
   const btn = $("ybToggle"); btn.setAttribute("aria-pressed", String(yb.on));
   if (!yb.on) { ybDraw(); $("locMsg").textContent = "已隱藏 YouBike 站"; return; }
   btn.classList.add("busy"); $("locMsg").textContent = "載入 YouBike 站…";
@@ -1173,6 +1220,228 @@ async function ybNearest(me) {
   return withBike[0] || ranked[0];
 }
 
+// ---------- 好用地圖（OpenStreetMap / Overpass） ----------
+const POI_CATS = {
+  tea: {label: "手搖飲", glyph: "茶", color: "#c27c3a"},
+  conv: {label: "超商", glyph: "超", color: "#2f6fd6"},
+  cafe: {label: "咖啡廳", glyph: "咖", color: "#6d4c41"}
+};
+const TEA_RE = /50嵐|五十嵐|清心|迷客夏|coco|都可|可不可|大苑子|茶湯會|五桐號|麻古|鮮茶道|得正|珍煮丹|一沐日|龜記|萬波|再睡5分鐘|先喝道|茶之魔手|茶的魔手|日出茶太|老賴|樺達|天仁|春水堂|御私藏|烏弄|十杯|吃茶三千|鶴茶樓|tea top|第一味|水巷茶弄|comebuy|翰林|貢茶|圓石|上宇林|紅太陽|清玉|綠蓋|手搖|飲料|茶飲|奶茶|茶坊|茶飲料/i;
+// 超商 ATM：7-ELEVEN 為中國信託、全家為台新或國泰世華、萊爾富以國泰世華為主、OK 為台新
+const CONV = [
+  {re: /7-?eleven|7-11|統一超商/i, name: "7-ELEVEN", atm: "中國信託"},
+  {re: /全家|familymart/i, name: "全家", atm: "台新或國泰世華（依門市）"},
+  {re: /萊爾富|hi-?life/i, name: "萊爾富", atm: "國泰世華為主"},
+  {re: /ok\s?超商|ok\s?mart/i, name: "OK 超商", atm: "台新銀行"}
+];
+const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
+const CELL = 0.02;
+const poi = {on: false, cats: Object.assign({tea: true, conv: true, cafe: true}, store.get("krtc-poi-cats", {})), cells: store.get("krtc-poi", {}), loading: new Set(), items: new Map()};
+for (const [k, v] of Object.entries(poi.cells)) { if (!v || Date.now() - v.t > 7 * 864e5) delete poi.cells[k]; else v.items.forEach(it => poi.items.set(it.id, it)); }
+const cellKey = (i, j) => i + "," + j;
+function poiClassify(t) {
+  const nm = [t.brand, t.name, t["brand:zh"], t["brand:en"]].filter(Boolean).join(" ");
+  if (t.shop === "convenience") return /蝦皮/.test(nm) ? null : "conv";
+  if (/bubble_tea/.test(t.cuisine || "") || t.shop === "beverages" || (t.amenity === "cafe" && TEA_RE.test(nm))) return "tea";
+  if (t.amenity === "cafe") return "cafe";
+  return null;
+}
+// 營業時間（OpenStreetMap opening_hours 常見格式）
+const OH_DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+function parseOH(s) {
+  if (!s) return null;
+  s = s.trim();
+  if (s === "24/7") return {always: true};
+  const week = Array(7).fill(null);
+  for (let rule of s.split(";")) {
+    rule = rule.trim(); if (!rule || /^(PH|SH)\b/.test(rule)) continue;
+    const m = rule.match(/^((?:(?:Mo|Tu|We|Th|Fr|Sa|Su)(?:-(?:Mo|Tu|We|Th|Fr|Sa|Su))?,?)+)\s+(.+)$/);
+    let days = [0, 1, 2, 3, 4, 5, 6], rest = rule;
+    if (m) {
+      days = []; rest = m[2].trim();
+      for (const part of m[1].split(",").filter(Boolean)) {
+        const [a, b] = part.split("-"), ia = OH_DAYS.indexOf(a), ib = b ? OH_DAYS.indexOf(b) : ia;
+        for (let k = ia; ; k = (k + 1) % 7) { days.push(k); if (k === ib) break; }
+      }
+    }
+    if (/^(off|closed)$/i.test(rest)) { days.forEach(d => { week[d] = []; }); continue; }
+    if (rest === "24/7") { days.forEach(d => { week[d] = [[0, 1440]]; }); continue; }
+    const spans = [];
+    for (const seg of rest.split(",")) {
+      const t = seg.trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\+?$/);
+      if (!t) return {raw: s};
+      const a = +t[1] * 60 + +t[2]; let b = +t[3] * 60 + +t[4]; if (b <= a) b += 1440;
+      spans.push([a, b]);
+    }
+    days.forEach(d => { week[d] = spans; });
+  }
+  return {week};
+}
+function ohStatus(it) {
+  const chain = it.c === "conv" && CONV.some(x => x.name === it.b);
+  const p = parseOH(it.oh);
+  if (!p) return {known: false, text: chain ? "未提供（四大超商多數門市 24 小時）" : "未提供"};
+  if (p.always) return {known: true, open: true, text: "24 小時營業"};
+  if (p.raw) return {known: false, text: it.oh};
+  const now = new Date(), d = now.getDay(), m = now.getHours() * 60 + now.getMinutes();
+  const today = p.week[d], yest = p.week[(d + 6) % 7];
+  const lateYest = !!yest && yest.some(([a, b]) => b > 1440 && m < b - 1440);
+  const span = ([a, b]) => `${fmt(a)}–${b === 1440 ? "24:00" : fmt(b)}`;
+  if (p.week.every(w => w === null)) return {known: false, text: it.oh};
+  // opening_hours 的規則：沒寫到的日子就是公休
+  const open = lateYest || (!!today && today.some(([a, b]) => m >= a && m < b));
+  return {known: true, open, text: today && today.length ? "今天 " + today.map(span).join("、") : lateYest ? "今天公休（營業到凌晨）" : "今天公休"};
+}
+function poiFC() {
+  const f = [];
+  for (const it of poi.items.values()) {
+    if (!poi.cats[it.c]) continue;
+    const st = ohStatus(it);
+    f.push({type: "Feature", properties: {id: it.id, c: it.c, g: POI_CATS[it.c].glyph, s: st.known ? (st.open ? 1 : 0) : -1}, geometry: {type: "Point", coordinates: [it.lon, it.lat]}});
+  }
+  return fc(f);
+}
+function poiDraw() {
+  if (!map || !styleReady) return;
+  map.getSource("poi").setData(poiFC());
+  for (const id of ["poi", "poi-glyph"]) map.setLayoutProperty(id, "visibility", poi.on ? "visible" : "none");
+}
+function poiPersist() {
+  const keys = Object.keys(poi.cells).sort((a, b) => poi.cells[b].t - poi.cells[a].t).slice(0, 40), o = {};
+  keys.forEach(k => { o[k] = poi.cells[k]; });
+  poi.cells = o; store.set("krtc-poi", o);
+}
+async function poiFetch(cells) {
+  const parts = cells.map(([i, j]) => {
+    const b = `${(i * CELL).toFixed(3)},${(j * CELL).toFixed(3)},${((i + 1) * CELL).toFixed(3)},${((j + 1) * CELL).toFixed(3)}`;
+    return `nwr["shop"="convenience"](${b});nwr["amenity"="cafe"](${b});nwr["shop"="beverages"](${b});nwr["cuisine"~"bubble_tea"](${b});`;
+  }).join("");
+  const q = `[out:json][timeout:50];(${parts});out center tags;`;
+  let lastErr = new Error("no endpoint");
+  for (const ep of OVERPASS) {
+    const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 55000);
+    try {
+      const r = await fetch(ep, {method: "POST", body: "data=" + encodeURIComponent(q), signal: ctl.signal});
+      if (!r.ok) { lastErr = new Error("http " + r.status); continue; }
+      return (await r.json()).elements || [];
+    } catch (e) { lastErr = e; } finally { clearTimeout(tm); }
+  }
+  throw lastErr;
+}
+async function poiEnsure(cells) {
+  const need = cells.filter(([i, j]) => !poi.cells[cellKey(i, j)] && !poi.loading.has(cellKey(i, j)));
+  if (!need.length) return;
+  need.forEach(([i, j]) => poi.loading.add(cellKey(i, j)));
+  $("poiBtn").classList.add("busy");
+  try {
+    const els = await poiFetch(need);
+    const fresh = new Map(need.map(([i, j]) => [cellKey(i, j), []]));
+    for (const e of els) {
+      const t = e.tags || {}, c = poiClassify(t); if (!c) continue;
+      const lat = e.lat ?? e.center?.lat, lon = e.lon ?? e.center?.lon; if (lat == null) continue;
+      const bucket = fresh.get(cellKey(Math.floor(lat / CELL), Math.floor(lon / CELL))); if (!bucket) continue;
+      const chain = c === "conv" ? CONV.find(x => x.re.test([t.brand, t.name, t["brand:en"], t.alt_name].filter(Boolean).join(" "))) : null;
+      bucket.push({id: e.type[0] + e.id, c, lat: +lat.toFixed(6), lon: +lon.toFixed(6),
+        n: t.name || t.brand || (chain && chain.name) || POI_CATS[c].label, b: chain ? chain.name : (t.brand || ""),
+        oh: t.opening_hours || "", atm: t.atm || "",
+        addr: [t["addr:district"], t["addr:street"], t["addr:housenumber"] && t["addr:housenumber"] + "號"].filter(Boolean).join("")});
+    }
+    for (const [k, items] of fresh) { poi.cells[k] = {t: Date.now(), items}; items.forEach(it => poi.items.set(it.id, it)); }
+    poiPersist();
+  } finally {
+    need.forEach(([i, j]) => poi.loading.delete(cellKey(i, j)));
+    if (!poi.loading.size) $("poiBtn").classList.remove("busy");
+  }
+}
+function cellsAround(lat, lon, r = 1) {
+  const ci = Math.floor(lat / CELL), cj = Math.floor(lon / CELL), out = [];
+  for (let i = ci - r; i <= ci + r; i++) for (let j = cj - r; j <= cj + r; j++) out.push([i, j]);
+  return out;
+}
+function poiCounts() {
+  const b = map.getBounds(), n = {tea: 0, conv: 0, cafe: 0};
+  for (const it of poi.items.values()) if (b.contains([it.lon, it.lat])) n[it.c]++;
+  return n;
+}
+async function poiLoadView() {
+  if (!map || !poi.on) return;
+  const msg = $("locMsg");
+  if (map.getZoom() < 13.5) { msg.textContent = "放大地圖就會顯示附近的手搖飲、超商和咖啡廳"; poiDraw(); return; }
+  const b = map.getBounds(), cells = [];
+  for (let i = Math.floor(b.getSouth() / CELL); i <= Math.floor(b.getNorth() / CELL); i++)
+    for (let j = Math.floor(b.getWest() / CELL); j <= Math.floor(b.getEast() / CELL); j++) cells.push([i, j]);
+  if (cells.filter(([i, j]) => !poi.cells[cellKey(i, j)]).length > 9) { msg.textContent = "範圍有點大，再放大一點就會顯示店家"; poiDraw(); return; }
+  const loadingNew = cells.some(([i, j]) => !poi.cells[cellKey(i, j)]);
+  if (loadingNew) msg.textContent = "載入附近店家中…第一次可能要等十幾秒";
+  try { await poiEnsure(cells); }
+  catch (e) { msg.textContent = !navigator.onLine ? "沒有網路，連上網路後才能載入店家" : "店家資料伺服器忙線中，移動地圖或稍後會再試一次"; poiDraw(); return; }
+  if (!poi.on) return;
+  poiDraw();
+  const n = poiCounts();
+  msg.textContent = `這個範圍：手搖飲 ${n.tea}・超商 ${n.conv}・咖啡廳 ${n.cafe}。顏色淡的是休息中，點店家看營業時間`;
+}
+function poiSet(on) {
+  poi.on = on;
+  $("poiBtn").setAttribute("aria-pressed", String(on));
+  $("poiChips").hidden = !on;
+  if (on) {
+    if (yb.on) { yb.on = false; $("ybToggle").setAttribute("aria-pressed", "false"); ybDraw(); }
+    $("ybList").innerHTML = "";
+    if (map && map.getZoom() < 14) map.easeTo({zoom: 15, duration: 600}); else poiLoadView();
+  } else {
+    $("poiList").innerHTML = "";
+    $("locMsg").textContent = "已關閉好用地圖";
+  }
+  poiDraw();
+}
+$("poiBtn").onclick = () => poiSet(!poi.on);
+document.querySelectorAll(".poichip").forEach(b => {
+  b.setAttribute("aria-pressed", String(!!poi.cats[b.dataset.cat]));
+  b.onclick = () => {
+    poi.cats[b.dataset.cat] = !poi.cats[b.dataset.cat];
+    b.setAttribute("aria-pressed", String(poi.cats[b.dataset.cat]));
+    store.set("krtc-poi-cats", poi.cats); poiDraw();
+  };
+});
+function poiPopup(it) {
+  const cat = POI_CATS[it.c], st = ohStatus(it), chain = CONV.find(x => x.name === it.b);
+  const atm = it.c !== "conv" ? "" : it.atm === "no" ? "這間門市沒有 ATM" : chain ? chain.atm : "不確定（非四大超商）";
+  const q = encodeURIComponent(`${it.n} ${it.addr || "高雄"}`);
+  return `<div class="pop poipop">
+    <div class="pop-h"><span class="poitag" style="background:${cat.color}">${cat.glyph}</span><div><h4 style="font-size:16px">${esc(it.n)}</h4><p>${cat.label}${it.b && it.b !== it.n ? "・" + esc(it.b) : ""}</p></div></div>
+    <div class="ohline ${st.known ? (st.open ? "open" : "closed") : ""}"><b>${st.known ? (st.open ? "營業中" : "休息中") : "營業時間"}</b><span>${esc(st.text)}</span></div>
+    ${atm ? `<div class="atmline"><b>ATM</b><span>${esc(atm)}</span></div>` : ""}
+    ${it.addr ? `<p class="hint">${esc(it.addr)}</p>` : ""}
+    <div class="acts"><a class="gmap" href="${walkLink(it.lat, it.lon)}" target="_blank" rel="noopener">導航過去</a><a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Google 地圖看營業時間</a></div>
+    <p class="hint">資料來自 OpenStreetMap，營業時間與 ATM 可能有變動，以現場為準。</p></div>`;
+}
+async function poiNearest(me, far) {
+  const box = $("poiList");
+  if (far) { box.innerHTML = `<div class="neartitle">附近好用地點</div><p class="hint" style="padding:0 4px">你目前不在高雄，附近沒有可顯示的店家。</p>`; return; }
+  box.innerHTML = `<div class="neartitle">附近好用地點<span>載入中…</span></div>`;
+  try { await poiEnsure(cellsAround(me[0], me[1])); }
+  catch (e) { box.innerHTML = `<div class="neartitle">附近好用地點</div><p class="hint" style="padding:0 4px">店家資料伺服器忙線中，請稍後再按一次定位。</p>`; return; }
+  poiDraw();
+  const rows = [];
+  for (const c of Object.keys(POI_CATS)) {
+    if (!poi.cats[c]) continue;
+    const list = [...poi.items.values()].filter(it => it.c === c).map(it => ({it, d: haversine(me, [it.lat, it.lon]), st: ohStatus(it)}))
+      .sort((a, b) => a.d - b.d).slice(0, 8)
+      .sort((a, b) => ((b.st.open ? 1 : 0) - (a.st.open ? 1 : 0)) || a.d - b.d).slice(0, 2);
+    rows.push(...list.map(x => ({...x, c})));
+  }
+  if (!rows.length) { box.innerHTML = `<div class="neartitle">附近好用地點</div><p class="hint" style="padding:0 4px">附近沒有找到店家，或分類都被關掉了。</p>`; return; }
+  box.innerHTML = `<div class="neartitle">附近好用地點<span>營業中的優先</span></div>` + rows.map(({it, d, st, c}) => {
+    const chain = CONV.find(x => x.name === it.b);
+    const atm = c === "conv" ? (it.atm === "no" ? "・無 ATM" : chain ? `・ATM：${chain.atm}` : "") : "";
+    return `<div class="nearrow poirow" style="--c:${POI_CATS[c].color}"><div class="nm"><span class="poitag" style="background:${POI_CATS[c].color}">${POI_CATS[c].glyph}</span><span style="font-size:15px">${esc(it.n)}</span><span class="dist"><b>${walkMin(d)} 分</b>步行・${distText(d)}</span></div>
+      <div class="ohs ${st.known ? (st.open ? "open" : "closed") : ""}">${st.known ? (st.open ? "營業中・" : "休息中・") : "營業時間"}${esc(st.text)}${esc(atm)}</div>
+      <div class="acts"><a class="gmap" href="${walkLink(it.lat, it.lon)}" target="_blank" rel="noopener">導航過去</a><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.n + " " + (it.addr || "高雄"))}" target="_blank" rel="noopener">Google 地圖看營業時間</a></div></div>`;
+  }).join("");
+  const top = rows.find(r => r.st.open) || rows[0];
+  $("locMsg").textContent = `最近的${POI_CATS[top.c].label}：${top.it.n}（${distText(top.d)}${top.st.known ? (top.st.open ? "，營業中" : "，休息中") : ""}）`;
+}
+
 $("locate").onclick = () => {
   const msg = $("locMsg"), btn = $("locate");
   if (!navigator.geolocation) { msg.textContent = "這個瀏覽器不支援定位，請直接點地圖上的車站"; return; }
@@ -1193,6 +1462,7 @@ $("locate").onclick = () => {
       meMarker = new maplibregl.Marker({element: el}).setLngLat([me[1], me[0]]).addTo(map);
       if (!far) fitTo([[me[1], me[0]], ...near.map(n => LL(n.id))], 16);
     }
+    if (poi.on) { $("ybList").innerHTML = ""; poiNearest(me, far); return; }
     ybNearest(me).then(top => {
       if (!top || far) return;
       const a = ybInfo(top.st[0]);
