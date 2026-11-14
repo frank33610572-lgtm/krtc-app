@@ -325,6 +325,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .nearrow .dist b{display:block;font-family:var(--font-display);font-size:20px;color:var(--ink)}
 .neartitle{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.06em;padding:4px 4px 0;display:flex;justify-content:space-between;gap:8px}
 .neartitle span{font-weight:400;letter-spacing:0}
+.gsearch[hidden]{display:none}
+.gsearch .acts a{gap:6px;flex:1 1 0;justify-content:center;min-width:70px}
+.gsearch .acts a i{width:9px;height:9px;border-radius:50%}
 .ybrow{border-left:4px solid var(--good)}
 .ybrow.empty{border-left-color:var(--muted)}
 .ybnum{display:flex;gap:16px;font-size:12px;color:var(--muted)}
@@ -504,6 +507,16 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
           <button type="button" class="fab" id="fitRoute" aria-label="顯示整條路線" title="顯示整條路線"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
           <button type="button" class="fab primary" id="locate" aria-label="找離我最近的車站" title="找離我最近的車站"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
         </div>
+      </div>
+      <div class="near gsearch" id="poiGoogle" hidden>
+        <div class="neartitle">用 Google 地圖找附近<span>以目前地圖中心搜尋</span></div>
+        <div class="acts">
+          <a href="#" data-gq="手搖飲" target="_blank" rel="noopener"><i style="background:#c27c3a"></i>手搖飲</a>
+          <a href="#" data-gq="便利商店" target="_blank" rel="noopener"><i style="background:#2f6fd6"></i>超商</a>
+          <a href="#" data-gq="咖啡廳" target="_blank" rel="noopener"><i style="background:#7c5cc4"></i>咖啡廳</a>
+          <a href="#" data-gq="ATM" target="_blank" rel="noopener"><i style="background:#2e9e6a"></i>ATM</a>
+        </div>
+        <p class="hint" style="padding:0 4px;margin:0">會打開 Google 地圖，可以看評價、照片和即時營業時間。</p>
       </div>
       <div class="near" id="poiList"></div>
       <div class="near" id="ybList"></div>
@@ -1236,7 +1249,7 @@ const CONV = [
 ];
 const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
 const CELL = 0.02;
-const poi = {on: false, cats: Object.assign({tea: true, conv: true, cafe: true}, store.get("krtc-poi-cats", {})), cells: store.get("krtc-poi", {}), loading: new Set(), items: new Map()};
+const poi = {on: false, cats: Object.assign({tea: true, conv: true, cafe: true}, store.get("krtc-poi-cats", {})), cells: store.get("krtc-poi", {}), loading: new Set(), items: new Map(), absorbed: new Set()};
 for (const [k, v] of Object.entries(poi.cells)) { if (!v || Date.now() - v.t > 7 * 864e5) delete poi.cells[k]; else v.items.forEach(it => poi.items.set(it.id, it)); }
 const cellKey = (i, j) => i + "," + j;
 // 官方門市資料（7-ELEVEN、全家位置；ATM 銀行來自財金公司開放資料）
@@ -1258,11 +1271,53 @@ function loadOfficial() {
         atmText: bank ? BANKS[bank] : "未查到這間門市的 ATM 資料", atmSrc: bank ? 1 : 0, src: "全家官網", off: 1});
     });
     poi.hlAtm = {};
-    d.hl.forEach(([n, addr, atm, bank]) => { poi.hlAtm[normStore(n)] = bank ? BANKS[bank] : atm ? "有 ATM（銀行未確認）" : "這間門市沒有 ATM"; });
+    d.hl.forEach(([n, addr, atm, bank, a, o], i) => {
+      const atmText = bank ? BANKS[bank] : atm ? "有 ATM（銀行未確認）" : "這間門市沒有 ATM";
+      poi.hlAtm[normStore(n)] = atmText;
+      if (a == null) return;
+      const [lat, lon] = ll(a, o);
+      poi.items.set("oH" + i, {id: "oH" + i, c: "conv", lat, lon, n: `萊爾富 ${n.replace(/^萊爾富/, "")}`, b: "萊爾富", br: n, oh: "", addr: addr.replace(/^高雄市/, ""),
+        atmText, atmSrc: bank ? 1 : 0, src: "萊爾富官網", off: 1});
+    });
+    // 手搖飲、咖啡廳：財政部營業稅籍登記（行業代碼）＋高雄市門牌座標
+    (d.shop || []).forEach(([n, addr, cafe, a, o], i) => {
+      const [lat, lon] = ll(a, o);
+      poi.items.set("oS" + i, {id: "oS" + i, c: cafe ? "cafe" : "tea", lat, lon, n, reg: n, b: "", oh: "", addr, src: "財政部營業登記", off: 1, gov: 1});
+    });
     poi.official = true;
-    for (const [k, it] of poi.items) if (!it.off && it.c === "conv" && (it.b === "7-ELEVEN" || it.b === "全家")) poi.items.delete(k);
+    poi.hasShops = !!(d.shop && d.shop.length);
+    for (const [k, it] of poi.items) if (!it.off) { const keep = poiAbsorb(it); if (!keep) poi.items.delete(k); }
   }).catch(e => { officialP = null; throw e; });
   return officialP;
+}
+// OpenStreetMap 的店家：和官方資料是同一間就合併（借用 OSM 的店名與營業時間），否則保留補漏
+const GRID = 400, gk = (lat, lon) => Math.floor(lat * GRID) + "," + Math.floor(lon * GRID);
+function offIndex() {
+  if (poi.grid) return poi.grid;
+  poi.grid = new Map();
+  for (const it of poi.items.values()) if (it.off) { const k = gk(it.lat, it.lon); (poi.grid.get(k) || poi.grid.set(k, []).get(k)).push(it); }
+  return poi.grid;
+}
+function offNear(it, r, ok) {
+  const g = offIndex(), ci = Math.floor(it.lat * GRID), cj = Math.floor(it.lon * GRID);
+  let best = null, bd = r;
+  for (let i = ci - 1; i <= ci + 1; i++) for (let j = cj - 1; j <= cj + 1; j++)
+    for (const o of g.get(i + "," + j) || []) { if (!ok(o)) continue; const d = haversine([it.lat, it.lon], [o.lat, o.lon]); if (d < bd) { bd = d; best = o; } }
+  return best;
+}
+function poiAbsorb(it) {
+  if (!poi.official) return true;
+  if (poi.absorbed.has(it.id)) return false;
+  if (it.c === "conv") {
+    if (it.b === "7-ELEVEN" || it.b === "全家") return false;
+    if (it.b === "萊爾富") return !offNear(it, 150, o => o.b === "萊爾富");
+    return true;
+  }
+  if (!poi.hasShops) return true;
+  const g = offNear(it, 35, o => o.gov && !o.osm && o.c === it.c) || offNear(it, 25, o => o.gov && !o.osm);
+  if (!g) return true;
+  g.osm = it.id; poi.absorbed.add(it.id); if (it.n && it.n !== POI_CATS[it.c].label) g.n = it.n; if (it.oh) g.oh = it.oh; if (it.b) g.b = it.b;
+  return false;
 }
 function atmOf(it) {
   if (it.c !== "conv") return "";
@@ -1374,13 +1429,12 @@ async function poiEnsure(cells) {
       const lat = e.lat ?? e.center?.lat, lon = e.lon ?? e.center?.lon; if (lat == null) continue;
       const bucket = fresh.get(cellKey(Math.floor(lat / CELL), Math.floor(lon / CELL))); if (!bucket) continue;
       const chain = c === "conv" ? CONV.find(x => x.re.test([t.brand, t.name, t["brand:en"], t.alt_name].filter(Boolean).join(" "))) : null;
-      if (chain && poi.official && (chain.name === "7-ELEVEN" || chain.name === "全家")) continue;
       bucket.push({id: e.type[0] + e.id, c, lat: +lat.toFixed(6), lon: +lon.toFixed(6),
         n: t.name || t.brand || (chain && chain.name) || POI_CATS[c].label, b: chain ? chain.name : (t.brand || ""),
         oh: t.opening_hours || "", atm: t.atm || "", br: t.branch || "",
         addr: [t["addr:district"], t["addr:street"], t["addr:housenumber"] && t["addr:housenumber"] + "號"].filter(Boolean).join("")});
     }
-    for (const [k, items] of fresh) { poi.cells[k] = {t: Date.now(), items}; items.forEach(it => poi.items.set(it.id, it)); }
+    for (const [k, items] of fresh) { poi.cells[k] = {t: Date.now(), items}; items.forEach(it => { if (!poi.items.has(it.id) && poiAbsorb(it)) poi.items.set(it.id, it); }); }
     poiPersist();
   } finally {
     need.forEach(([i, j]) => poi.loading.delete(cellKey(i, j)));
@@ -1418,6 +1472,7 @@ function poiSet(on) {
   poi.on = on;
   $("poiBtn").setAttribute("aria-pressed", String(on));
   $("poiChips").hidden = !on;
+  $("poiGoogle").hidden = !on;
   if (on) {
     loadOfficial().then(() => { poiDraw(); if (map && map.getZoom() >= 13.5) poiLoadView(); }).catch(() => {});
     if (yb.on) { yb.on = false; $("ybToggle").setAttribute("aria-pressed", "false"); ybDraw(); }
@@ -1430,6 +1485,14 @@ function poiSet(on) {
   poiDraw();
 }
 $("poiBtn").onclick = () => poiSet(!poi.on);
+function gHref(q) {
+  const c = map ? map.getCenter() : {lat: 22.6273, lng: 120.3014}, z = map ? Math.max(15, Math.min(17, Math.round(map.getZoom()))) : 16;
+  return `https://www.google.com/maps/search/${encodeURIComponent(q)}/@${c.lat.toFixed(6)},${c.lng.toFixed(6)},${z}z`;
+}
+document.querySelectorAll("#poiGoogle a[data-gq]").forEach(a => {
+  const upd = () => { a.href = gHref(a.dataset.gq); };
+  a.addEventListener("pointerdown", upd); a.addEventListener("focus", upd); a.addEventListener("click", upd);
+});
 document.querySelectorAll(".poichip").forEach(b => {
   b.setAttribute("aria-pressed", String(!!poi.cats[b.dataset.cat]));
   b.onclick = () => {
@@ -1438,6 +1501,7 @@ document.querySelectorAll(".poichip").forEach(b => {
     store.set("krtc-poi-cats", poi.cats); poiDraw();
   };
 });
+const gq = it => `${it.n} ${it.addr ? (/^高雄/.test(it.addr) ? "" : "高雄市") + it.addr : "高雄"}`;
 function poiName(it) {
   if (it.off) return it.n;
   const chain = CONV.find(x => x.name === it.b);
@@ -1447,13 +1511,14 @@ function poiName(it) {
 }
 function poiPopup(it) {
   const cat = POI_CATS[it.c], st = ohStatus(it), atm = atmOf(it);
-  const srcNote = it.off ? `門市位置與營業資料來自${it.src}${it.atmSrc ? "，ATM 銀行來自財金公司開放資料" : ""}。` : "資料來自 OpenStreetMap，營業時間與 ATM 可能有變動，以現場為準。";
-  const q = encodeURIComponent(`${it.n} ${it.addr || "高雄"}`);
+  const srcNote = it.gov ? `位置來自財政部營業登記＋高雄市門牌座標${it.oh ? "，營業時間來自 OpenStreetMap" : "，營業時間請點上方 Google 地圖查看"}。`
+    : it.off ? `門市位置與營業資料來自${it.src}${it.atmSrc ? "，ATM 銀行來自財金公司開放資料" : ""}。` : "資料來自 OpenStreetMap，營業時間與 ATM 可能有變動，以現場為準。";
+  const q = encodeURIComponent(gq(it));
   return `<div class="pop poipop">
     <div class="pop-h"><span class="poitag" style="background:${cat.color}">${cat.glyph}</span><div><h4 style="font-size:16px">${esc(poiName(it))}</h4><p>${cat.label}${it.b && !poiName(it).startsWith(it.b) ? "・" + esc(it.b) : ""}</p></div></div>
     <div class="ohline ${st.known ? (st.open ? "open" : "closed") : ""}"><b>${st.known ? (st.open ? "營業中" : "休息中") : "營業時間"}</b><span>${esc(st.text)}</span></div>
     ${atm ? `<div class="atmline"><b>ATM</b><span>${esc(atm)}</span></div>` : ""}
-    ${it.addr ? `<p class="hint">${esc(it.addr)}</p>` : ""}
+    ${it.addr ? `<p class="hint">${esc(it.addr)}${it.gov && it.reg !== it.n ? `・登記名稱：${esc(it.reg)}` : ""}</p>` : ""}
     <div class="acts"><a class="gmap" href="${walkLink(it.lat, it.lon)}" target="_blank" rel="noopener">導航過去</a><a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Google 地圖看營業時間</a></div>
     <p class="hint">${srcNote}</p></div>`;
 }
@@ -1478,7 +1543,7 @@ async function poiNearest(me, far) {
     const atmT = atmOf(it), atm = atmT ? (/沒有/.test(atmT) ? "・無 ATM" : `・ATM：${atmT}`) : "";
     return `<div class="nearrow poirow" style="--c:${POI_CATS[c].color}"><div class="nm"><span class="poitag" style="background:${POI_CATS[c].color}">${POI_CATS[c].glyph}</span><span style="font-size:15px">${esc(poiName(it))}</span><span class="dist"><b>${walkMin(d)} 分</b>步行・${distText(d)}</span></div>
       <div class="ohs ${st.known ? (st.open ? "open" : "closed") : ""}">${st.known ? (st.open ? "營業中・" : "休息中・") : "營業時間"}${esc(st.text)}${esc(atm)}</div>
-      <div class="acts"><a class="gmap" href="${walkLink(it.lat, it.lon)}" target="_blank" rel="noopener">導航過去</a><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.n + " " + (it.addr || "高雄"))}" target="_blank" rel="noopener">Google 地圖看營業時間</a></div></div>`;
+      <div class="acts"><a class="gmap" href="${walkLink(it.lat, it.lon)}" target="_blank" rel="noopener">導航過去</a><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq(it))}" target="_blank" rel="noopener">Google 地圖看營業時間</a></div></div>`;
   }).join("");
   const top = rows.find(r => r.st.open) || rows[0];
   $("locMsg").textContent = `最近的${POI_CATS[top.c].label}：${poiName(top.it)}（${distText(top.d)}${top.st.known ? (top.st.open ? "，營業中" : "，休息中") : ""}）`;
