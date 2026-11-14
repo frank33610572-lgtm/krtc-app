@@ -1944,7 +1944,7 @@ const syncOnline = () => document.body.classList.toggle("is-offline", !navigator
 addEventListener("online", syncOnline); addEventListener("offline", syncOnline); syncOnline();
 render();
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-14-v24";
+const APP_VER = "krtc-2026-11-14-v25";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
