@@ -1943,7 +1943,30 @@ if (!standalone) {
 const syncOnline = () => document.body.classList.toggle("is-offline", !navigator.onLine);
 addEventListener("online", syncOnline); addEventListener("offline", syncOnline); syncOnline();
 render();
-if ("serviceWorker" in navigator && location.protocol === "https:") addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+// ---------- 自動更新 ----------
+const APP_VER = "krtc-2026-11-14-v24";
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  const hadCtl = !!navigator.serviceWorker.controller;
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => { if (hadCtl && !reloading) { reloading = true; location.reload(); } });
+  addEventListener("load", () => navigator.serviceWorker.register("sw.js", {updateViaCache: "none"}).catch(() => {}));
+}
+let lastVerCheck = 0;
+async function checkUpdate() {
+  if (!navigator.onLine || Date.now() - lastVerCheck < 60000) return;
+  lastVerCheck = Date.now();
+  try {
+    const r = await fetch("version.json?t=" + Date.now(), {cache: "no-store"}); if (!r.ok) return;
+    const {v} = await r.json(); if (!v || v === APP_VER) return;
+    if (sessionStorage.getItem("krtc-upd") === v) return; // 同一個新版本只自動重新整理一次，避免卡住
+    sessionStorage.setItem("krtc-upd", v);
+    const reg = await navigator.serviceWorker?.getRegistration(); if (reg) await reg.update().catch(() => {});
+    // 新 Service Worker 接手時會自動重新整理；等不到就直接重新載入
+    setTimeout(() => location.reload(), reg && navigator.serviceWorker.controller ? 4000 : 0);
+  } catch (e) {}
+}
+addEventListener("load", () => setTimeout(checkUpdate, 1500));
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkUpdate(); });
 </script>
 </body>
 </html>

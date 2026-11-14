@@ -1,12 +1,13 @@
-// 高捷班次：離線快取。改版時更新 CACHE 版本號，手機下次打開就會換新版。
-const CACHE = "krtc-2026-11-14-v23";
+// 高捷班次：離線快取。改版時更新 CACHE 版本號（也寫進 version.json），App 會自動換新版。
+const CACHE = "krtc-2026-11-14-v24";
 const TILE_CACHE = "krtc-tiles-v2";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./stores.json",
   "https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css",
   "https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // cache: "reload" 繞過瀏覽器的 HTTP 快取（GitHub Pages 會叫手機留 10 分鐘），確保存到的是新版
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS.map(u => new Request(u, {cache: "reload"})))).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys()
@@ -24,7 +25,7 @@ self.addEventListener("fetch", e => {
 
   // 頁面：有網路時拿最新版，沒網路時用快取
   if (req.mode === "navigate") {
-    e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put("./index.html", copy)); return r; })
+    e.respondWith(fetch(req.url, {cache: "no-cache", credentials: "same-origin"}).then(r => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put("./index.html", copy)); } return r; })
       .catch(() => caches.match("./index.html")));
     return;
   }
@@ -52,5 +53,12 @@ self.addEventListener("fetch", e => {
     return;
   }
   if (url.origin !== location.origin) return;
-  e.respondWith(caches.match(req, {ignoreSearch: true}).then(hit => hit || fetch(req)));
+  if (url.pathname.endsWith("/version.json")) return; // 版本檢查一律走網路
+  // 店家資料等：先給快取，背景再更新
+  e.respondWith(caches.open(CACHE).then(async c => {
+    const hit = await c.match(req, {ignoreSearch: true});
+    const net = fetch(req.url, {cache: "no-cache"}).then(r => { if (r.ok) c.put(url.pathname.endsWith("/") ? "./" : req.url.split("?")[0], r.clone()); return r; });
+    if (hit) { e.waitUntil(net.catch(() => {})); return hit; }
+    return net;
+  }));
 });
