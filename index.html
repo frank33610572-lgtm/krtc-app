@@ -1106,17 +1106,19 @@ function setupLayers() {
   map.addLayer({id: "poi-count", type: "symbol", source: "poi", filter: isC, layout: {...poiVis,
       "text-field": ["get", "point_count_abbreviated"], "text-font": fontStack, "text-size": 12.5, "text-allow-overlap": true, "text-ignore-placement": true},
     paint: {"text-color": ink}});
-  map.addLayer({id: "poi", type: "circle", source: "poi", filter: notC, layout: {...poiVis},
+  map.addLayer({id: "poi", type: "circle", source: "poi", filter: notC, maxzoom: 14.6, layout: {...poiVis},
     paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 4, 15, 8, 17, 11.5],
       "circle-color": ["match", ["get", "c"], "tea", POI_CATS.tea.color, "conv", POI_CATS.conv.color, POI_CATS.cafe.color],
       "circle-stroke-color": surf, "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 13, 1, 16, 2],
       "circle-opacity": ["case", ["==", ["get", "s"], 0], .4, 1], "circle-stroke-opacity": ["case", ["==", ["get", "s"], 0], .4, 1]}});
+  poiSignImages(surf);
   map.addLayer({id: "poi-glyph", type: "symbol", source: "poi", filter: notC, minzoom: 14.6, layout: {...poiVis,
-      "text-field": ["get", "g"], "text-font": fontStack, "text-size": ["interpolate", ["linear"], ["zoom"], 14.6, 8.5, 17, 13], "text-allow-overlap": true, "text-ignore-placement": true},
-    paint: {"text-color": "#ffffff", "text-opacity": ["case", ["==", ["get", "s"], 0], .6, 1]}});
+      "icon-image": ["concat", "sg-", ["get", "c"], ["case", ["==", ["get", "s"], 0], "-dim", ""]],
+      "icon-size": ["interpolate", ["linear"], ["zoom"], 14.6, .62, 16, .8, 17.5, 1], "icon-allow-overlap": true, "icon-ignore-placement": true,
+      "symbol-sort-key": ["case", ["==", ["get", "s"], 0], 1, 0]}});
   map.addSource("poi-sel", {type: "geojson", data: fc(poi.sel ? [poiPt(poi.sel)] : [])});
   map.addLayer({id: "poi-sel", type: "circle", source: "poi-sel", layout: {...poiVis},
-    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 10, 17, 18], "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": ink, "circle-stroke-width": 3}});
+    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 10, 14.6, 13, 16, 17, 17.5, 21], "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": ink, "circle-stroke-width": 3}});
   map.addLayer({id: "stations", type: "circle", source: "krtc-stations",
     paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 10, ["case", ["==", ["get", "xf"], 1], 4.5, 2.5], 13, ["case", ["==", ["get", "xf"], 1], 8, 5], 16, ["case", ["==", ["get", "xf"], 1], 12, 8]],
       "circle-color": surf, "circle-stroke-width": ["case", ["==", ["get", "xf"], 1], 3.5, 2.5], "circle-stroke-color": ["case", ["==", ["get", "xf"], 1], ink, colorExpr]}});
@@ -1170,7 +1172,7 @@ function initMap() {
   map.addControl(new maplibregl.NavigationControl({showCompass: true}), "top-right");
   map.addControl(new maplibregl.AttributionControl({compact: true}), "bottom-left");
   map.on("style.load", setupLayers);
-  map.on("click", "poi", e => {
+  for (const lid of ["poi", "poi-glyph"]) map.on("click", lid, e => {
     if (map.queryRenderedFeatures(e.point, {layers: ["stations"]}).length) return;
     const it = poi.items.get(e.features[0].properties.id); if (it) poiOpen(it);
   });
@@ -1181,7 +1183,7 @@ function initMap() {
   });
   let poiTimer = null;
   map.on("moveend", () => { if (!poi.on) return; clearTimeout(poiTimer); poiTimer = setTimeout(() => { poiLoadView(); poiRenderList(); }, 350); });
-  for (const id of ["stations", "yb", "poi", "poi-cluster"]) {
+  for (const id of ["stations", "yb", "poi", "poi-glyph", "poi-cluster"]) {
     map.on("mouseenter", id, () => { map.getCanvas().style.cursor = "pointer"; });
     map.on("mouseleave", id, () => { map.getCanvas().style.cursor = ""; });
   }
@@ -1472,6 +1474,22 @@ function poiFC() {
     f.push({type: "Feature", properties: {id: it.id, c: it.c, g: POI_CATS[it.c].glyph, s: st.known ? (st.open ? 1 : 0) : -1}, geometry: {type: "Point", coordinates: [it.lon, it.lat]}});
   }
   return fc(f);
+}
+// 地圖上的店家招牌（畫成圖示，和分類鈕、清單用同一個樣子）
+function poiSignImages(edge) {
+  const dpr = 2, S = 30, P = 3, W = (S + P * 2) * dpr;
+  for (const [c, cat] of Object.entries(POI_CATS)) for (const dim of [false, true]) {
+    const id = "sg-" + c + (dim ? "-dim" : ""); if (map.hasImage(id)) map.removeImage(id);
+    const cv = document.createElement("canvas"); cv.width = cv.height = W; const g = cv.getContext("2d"); g.scale(dpr, dpr);
+    const rr = (x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
+    g.globalAlpha = dim ? .5 : 1;
+    rr(P - 1.5, P - 1.5, S + 3, S + 3, 9.5); g.fillStyle = edge; g.fill();
+    rr(P, P, S, S, 8); g.fillStyle = cat.color; g.fill();
+    g.save(); rr(P, P, S, S, 8); g.clip(); g.fillStyle = "rgba(0,0,0,.2)"; g.fillRect(P, P + S - 4, S, 4); g.restore();
+    g.fillStyle = "#fff"; g.font = `900 16px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif`; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText(cat.glyph, P + S / 2, P + S / 2 - 1);
+    map.addImage(id, g.getImageData(0, 0, W, W), {pixelRatio: dpr});
+  }
 }
 const poiPt = it => ({type: "Feature", properties: {}, geometry: {type: "Point", coordinates: [it.lon, it.lat]}});
 function poiSelect(it) { poi.sel = it; if (map && styleReady) map.getSource("poi-sel").setData(fc(it ? [poiPt(it)] : [])); }
