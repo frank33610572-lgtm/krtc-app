@@ -344,7 +344,28 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .poifab{flex-direction:column;gap:0;font-size:9px;font-weight:700;line-height:1;padding-top:2px}
 .poifab svg{width:20px;height:20px}
 .poifab[aria-pressed="true"]{background:#c27c3a;border-color:#c27c3a;color:#fff}
-.poichips{position:absolute;left:12px;right:64px;top:62px;z-index:3;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.poichips{position:absolute;left:12px;right:64px;top:12px;z-index:3;display:flex;gap:6px;flex-wrap:nowrap;align-items:center;overflow-x:auto;scrollbar-width:none;padding:2px 2px 8px;margin:-2px -2px 0;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.poichips::-webkit-scrollbar{display:none}
+.poichip{flex:none;white-space:nowrap}
+.poichip.flag[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.mapwrap.poi-on .maptoast{top:58px;font-size:12.5px;padding:7px 12px}
+.poipanel[hidden]{display:none}
+.poisearch{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0 6px 0 12px;min-height:48px;color:var(--muted)}
+.poisearch:focus-within{border-color:var(--ink)}
+.poisearch svg{width:18px;height:18px;flex:none}
+.poisearch input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:inherit;font-size:16px;outline:none;-webkit-appearance:none;appearance:none}
+.poisearch input::-webkit-search-cancel-button{display:none}
+.poisearch button{border:0;background:var(--soft);color:var(--muted);width:30px;height:30px;border-radius:50%;font-size:18px;line-height:1;cursor:pointer;flex:none}
+.poires{display:grid;gap:6px}
+.poires-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:9px 12px;color:var(--ink);font:inherit;cursor:pointer;width:100%;min-height:54px}
+.poires-row:active{transform:scale(.99)}
+.poires-row .t{min-width:0}
+.poires-row b{display:block;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.poires-row small{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.poires-row small.open{color:var(--good)}
+.poires-row small.closed{color:var(--red)}
+.poires-row .d{font-size:13px;font-weight:700;white-space:nowrap;color:var(--muted)}
+.poitag.sm{width:28px;height:28px;font-size:13px;border-radius:9px}
 .poichips[hidden]{display:none}
 .poichip-title{font-size:12px;font-weight:900;color:#fff;background:#c27c3a;border-radius:999px;padding:5px 10px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
 .poichip{display:inline-flex;align-items:center;gap:6px;border:1px solid color-mix(in srgb,var(--line) 70%,transparent);background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--muted);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:500;cursor:pointer;min-height:32px;box-shadow:0 4px 14px rgba(0,0,0,.14)}
@@ -496,10 +517,10 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
         <div id="map" role="application" aria-label="高雄捷運路線地圖"></div>
         <div class="maptoast" id="locMsg" role="status">點車站看下一班車，也能設成起站、終站或導航過去</div>
         <div class="poichips" id="poiChips" hidden aria-label="好用地圖分類">
-          <span class="poichip-title">好用地圖</span>
           <button type="button" class="poichip" data-cat="tea" aria-pressed="true"><i style="background:#c27c3a"></i>手搖飲</button>
           <button type="button" class="poichip" data-cat="conv" aria-pressed="true"><i style="background:#2f6fd6"></i>超商</button>
           <button type="button" class="poichip" data-cat="cafe" aria-pressed="true"><i style="background:#7c5cc4"></i>咖啡廳</button>
+          <button type="button" class="poichip flag" id="poiHide" aria-pressed="false">隱藏休息中</button>
         </div>
         <div class="mapfabs">
           <button type="button" class="fab poifab" id="poiBtn" aria-pressed="false" aria-label="好用地圖：手搖飲、超商、咖啡廳" title="好用地圖"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"/><path d="M5.5 12v8h13v-8M10 20v-5h4v5"/></svg><span>好用</span></button>
@@ -507,6 +528,13 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
           <button type="button" class="fab" id="fitRoute" aria-label="顯示整條路線" title="顯示整條路線"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
           <button type="button" class="fab primary" id="locate" aria-label="找離我最近的車站" title="找離我最近的車站"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
         </div>
+      </div>
+      <div class="near poipanel" id="poiPanel" hidden>
+        <label class="poisearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
+          <input id="poiQ" type="search" placeholder="搜尋店名、品牌或路名（例：50嵐、星巴克）" enterkeyhint="search" autocomplete="off" aria-label="搜尋好用地圖店家">
+          <button type="button" id="poiQx" hidden aria-label="清除搜尋">×</button></label>
+        <div class="neartitle" id="poiResTitle">地圖中心附近</div>
+        <div class="poires" id="poiRes"></div>
       </div>
       <div class="near gsearch" id="poiGoogle" hidden>
         <div class="neartitle">用 Google 地圖找附近<span>以目前地圖中心搜尋</span></div>
@@ -1032,15 +1060,29 @@ function setupLayers() {
     paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 2.5, 14, 4.5, 16.5, 8],
       "circle-color": ["match", ["get", "s"], "ok", cssVar("--good"), "empty", lineColor("R"), "off", "#9aa3b1", cssVar("--muted")],
       "circle-stroke-color": surf, "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 12, .8, 16, 2]}});
-  map.addSource("poi", {type: "geojson", data: poiFC()});
-  map.addLayer({id: "poi", type: "circle", source: "poi", minzoom: 12.5, layout: {visibility: poi.on ? "visible" : "none"},
-    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 3, 15, 7.5, 17, 11],
+  const poiVis = {visibility: poi.on ? "visible" : "none"}, isC = ["has", "point_count"], notC = ["!", ["has", "point_count"]];
+  const cnt = c => ["+", ["case", ["==", ["get", "c"], c], 1, 0]];
+  map.addSource("poi", {type: "geojson", data: poiFC(), cluster: true, clusterMaxZoom: 14, clusterRadius: 46,
+    clusterProperties: {tea: cnt("tea"), conv: cnt("conv"), cafe: cnt("cafe")}});
+  const domColor = ["case", ["all", [">=", ["get", "tea"], ["get", "conv"]], [">=", ["get", "tea"], ["get", "cafe"]]], POI_CATS.tea.color,
+    [">=", ["get", "conv"], ["get", "cafe"]], POI_CATS.conv.color, POI_CATS.cafe.color];
+  map.addLayer({id: "poi-cluster", type: "circle", source: "poi", filter: isC, layout: {...poiVis},
+    paint: {"circle-color": surf, "circle-stroke-color": domColor, "circle-stroke-width": 3, "circle-opacity": .94,
+      "circle-radius": ["step", ["get", "point_count"], 14, 25, 17, 100, 21, 400, 26]}});
+  map.addLayer({id: "poi-count", type: "symbol", source: "poi", filter: isC, layout: {...poiVis,
+      "text-field": ["get", "point_count_abbreviated"], "text-font": fontStack, "text-size": 12.5, "text-allow-overlap": true, "text-ignore-placement": true},
+    paint: {"text-color": ink}});
+  map.addLayer({id: "poi", type: "circle", source: "poi", filter: notC, layout: {...poiVis},
+    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 4, 15, 8, 17, 11.5],
       "circle-color": ["match", ["get", "c"], "tea", POI_CATS.tea.color, "conv", POI_CATS.conv.color, POI_CATS.cafe.color],
-      "circle-stroke-color": surf, "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 13, .8, 16, 2],
+      "circle-stroke-color": surf, "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 13, 1, 16, 2],
       "circle-opacity": ["case", ["==", ["get", "s"], 0], .4, 1], "circle-stroke-opacity": ["case", ["==", ["get", "s"], 0], .4, 1]}});
-  map.addLayer({id: "poi-glyph", type: "symbol", source: "poi", minzoom: 15, layout: {visibility: poi.on ? "visible" : "none",
-      "text-field": ["get", "g"], "text-font": fontStack, "text-size": ["interpolate", ["linear"], ["zoom"], 15, 9, 17, 13], "text-allow-overlap": true, "text-ignore-placement": true},
+  map.addLayer({id: "poi-glyph", type: "symbol", source: "poi", filter: notC, minzoom: 14.6, layout: {...poiVis,
+      "text-field": ["get", "g"], "text-font": fontStack, "text-size": ["interpolate", ["linear"], ["zoom"], 14.6, 8.5, 17, 13], "text-allow-overlap": true, "text-ignore-placement": true},
     paint: {"text-color": "#ffffff", "text-opacity": ["case", ["==", ["get", "s"], 0], .6, 1]}});
+  map.addSource("poi-sel", {type: "geojson", data: fc(poi.sel ? [poiPt(poi.sel)] : [])});
+  map.addLayer({id: "poi-sel", type: "circle", source: "poi-sel", layout: {...poiVis},
+    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 10, 17, 18], "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": ink, "circle-stroke-width": 3}});
   map.addLayer({id: "stations", type: "circle", source: "krtc-stations",
     paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 10, ["case", ["==", ["get", "xf"], 1], 4.5, 2.5], 13, ["case", ["==", ["get", "xf"], 1], 8, 5], 16, ["case", ["==", ["get", "xf"], 1], 12, 8]],
       "circle-color": surf, "circle-stroke-width": ["case", ["==", ["get", "xf"], 1], 3.5, 2.5], "circle-stroke-color": ["case", ["==", ["get", "xf"], 1], ink, colorExpr]}});
@@ -1096,11 +1138,16 @@ function initMap() {
   map.on("style.load", setupLayers);
   map.on("click", "poi", e => {
     if (map.queryRenderedFeatures(e.point, {layers: ["stations"]}).length) return;
-    const it = poi.items.get(e.features[0].properties.id); if (it) openPopup([it.lon, it.lat], poiPopup(it));
+    const it = poi.items.get(e.features[0].properties.id); if (it) poiOpen(it);
+  });
+  map.on("click", "poi-cluster", e => {
+    const f = e.features[0];
+    Promise.resolve(map.getSource("poi").getClusterExpansionZoom(f.properties.cluster_id))
+      .then(z => map.easeTo({center: f.geometry.coordinates, zoom: Math.min(z + .4, 17), duration: 500})).catch(() => {});
   });
   let poiTimer = null;
-  map.on("moveend", () => { if (!poi.on) return; clearTimeout(poiTimer); poiTimer = setTimeout(poiLoadView, 350); });
-  for (const id of ["stations", "yb", "poi"]) {
+  map.on("moveend", () => { if (!poi.on) return; clearTimeout(poiTimer); poiTimer = setTimeout(() => { poiLoadView(); poiRenderList(); }, 350); });
+  for (const id of ["stations", "yb", "poi", "poi-cluster"]) {
     map.on("mouseenter", id, () => { map.getCanvas().style.cursor = "pointer"; });
     map.on("mouseleave", id, () => { map.getCanvas().style.cursor = ""; });
   }
@@ -1387,14 +1434,22 @@ function poiFC() {
   for (const it of poi.items.values()) {
     if (!poi.cats[it.c]) continue;
     const st = ohStatus(it);
+    if (poi.hideClosed && st.known && !st.open) continue;
     f.push({type: "Feature", properties: {id: it.id, c: it.c, g: POI_CATS[it.c].glyph, s: st.known ? (st.open ? 1 : 0) : -1}, geometry: {type: "Point", coordinates: [it.lon, it.lat]}});
   }
   return fc(f);
 }
+const poiPt = it => ({type: "Feature", properties: {}, geometry: {type: "Point", coordinates: [it.lon, it.lat]}});
+function poiSelect(it) { poi.sel = it; if (map && styleReady) map.getSource("poi-sel").setData(fc(it ? [poiPt(it)] : [])); }
+function poiOpen(it) {
+  openPopup([it.lon, it.lat], poiPopup(it));
+  poiSelect(it);
+  const mine = popup; popup.on("close", () => { if (popup === mine || !popup || !popup.isOpen()) poiSelect(null); });
+}
 function poiDraw() {
   if (!map || !styleReady) return;
   map.getSource("poi").setData(poiFC());
-  for (const id of ["poi", "poi-glyph"]) map.setLayoutProperty(id, "visibility", poi.on ? "visible" : "none");
+  for (const id of ["poi", "poi-glyph", "poi-cluster", "poi-count", "poi-sel"]) map.setLayoutProperty(id, "visibility", poi.on ? "visible" : "none");
 }
 function poiPersist() {
   const keys = Object.keys(poi.cells).sort((a, b) => poi.cells[b].t - poi.cells[a].t).slice(0, 40), o = {};
@@ -1456,25 +1511,31 @@ function poiCounts() {
 async function poiLoadView() {
   if (!map || !poi.on) return;
   const msg = $("locMsg");
-  if (map.getZoom() < 13.5) { msg.textContent = "放大地圖就會顯示附近的手搖飲、超商和咖啡廳"; poiDraw(); return; }
+  if (map.getZoom() < 13.5) { msg.textContent = "圓圈數字是這一區的店家數，點一下或放大看單一店家"; poiDraw(); return; }
   const b = map.getBounds(), cells = [];
   for (let i = Math.floor(b.getSouth() / CELL); i <= Math.floor(b.getNorth() / CELL); i++)
     for (let j = Math.floor(b.getWest() / CELL); j <= Math.floor(b.getEast() / CELL); j++) cells.push([i, j]);
-  if (cells.filter(([i, j]) => !poi.cells[cellKey(i, j)]).length > 9) { msg.textContent = "範圍有點大，再放大一點就會顯示店家"; poiDraw(); return; }
+  const countMsg = () => { const n = poiCounts(); msg.textContent = `手搖飲 ${n.tea}・超商 ${n.conv}・咖啡廳 ${n.cafe}　點店家看詳情`; };
+  if (poi.official) { poiDraw(); countMsg(); }
+  if (cells.filter(([i, j]) => !poi.cells[cellKey(i, j)]).length > 9) { if (!poi.official) msg.textContent = "範圍有點大，再放大一點就會顯示店家"; poiDraw(); return; }
   const loadingNew = cells.some(([i, j]) => !poi.cells[cellKey(i, j)]);
-  if (loadingNew) msg.textContent = "載入附近店家中…第一次可能要等十幾秒";
+  if (loadingNew && !poi.official) msg.textContent = "載入附近店家中…第一次可能要等十幾秒";
   try { await poiEnsure(cells); }
-  catch (e) { msg.textContent = !navigator.onLine ? "沒有網路，連上網路後才能載入店家" : "店家資料伺服器忙線中，移動地圖或稍後會再試一次"; poiDraw(); return; }
+  catch (e) { if (!poi.official) msg.textContent = !navigator.onLine ? "沒有網路，連上網路後才能載入店家" : "店家資料伺服器忙線中，移動地圖或稍後會再試一次"; poiDraw(); return; }
   if (!poi.on) return;
   poiDraw();
-  const n = poiCounts();
-  msg.textContent = `這個範圍：手搖飲 ${n.tea}・超商 ${n.conv}・咖啡廳 ${n.cafe}。顏色淡的是休息中，點店家看營業時間`;
+  countMsg();
+  poiRenderList();
 }
 function poiSet(on) {
   poi.on = on;
   $("poiBtn").setAttribute("aria-pressed", String(on));
   $("poiChips").hidden = !on;
   $("poiGoogle").hidden = !on;
+  $("poiPanel").hidden = !on;
+  document.querySelector(".mapwrap").classList.toggle("poi-on", on);
+  if (on) loadOfficial().then(poiRenderList).catch(() => {});
+  else poiSelect(null);
   if (on) {
     loadOfficial().then(() => { poiDraw(); if (map && map.getZoom() >= 13.5) poiLoadView(); }).catch(() => {});
     if (yb.on) { yb.on = false; $("ybToggle").setAttribute("aria-pressed", "false"); ybDraw(); }
@@ -1495,14 +1556,60 @@ document.querySelectorAll("#poiGoogle a[data-gq]").forEach(a => {
   const upd = () => { a.href = gHref(a.dataset.gq); };
   a.addEventListener("pointerdown", upd); a.addEventListener("focus", upd); a.addEventListener("click", upd);
 });
-document.querySelectorAll(".poichip").forEach(b => {
+document.querySelectorAll(".poichip[data-cat]").forEach(b => {
   b.setAttribute("aria-pressed", String(!!poi.cats[b.dataset.cat]));
   b.onclick = () => {
     poi.cats[b.dataset.cat] = !poi.cats[b.dataset.cat];
     b.setAttribute("aria-pressed", String(poi.cats[b.dataset.cat]));
-    store.set("krtc-poi-cats", poi.cats); poiDraw();
+    store.set("krtc-poi-cats", poi.cats); poiDraw(); poiRenderList();
   };
 });
+poi.hideClosed = store.get("krtc-poi-hc", false);
+$("poiHide").setAttribute("aria-pressed", String(poi.hideClosed));
+$("poiHide").onclick = () => {
+  poi.hideClosed = !poi.hideClosed; store.set("krtc-poi-hc", poi.hideClosed);
+  $("poiHide").setAttribute("aria-pressed", String(poi.hideClosed)); poiDraw(); poiRenderList();
+};
+// 搜尋與附近清單（以地圖中心排序）
+const ALIAS = [["50嵐", "五十嵐"], ["coco", "都可"], ["星巴克", "starbucks"], ["路易莎", "louisa"], ["7-11", "7-eleven", "統一超商"], ["全家", "familymart"], ["萊爾富", "hi-life", "hilife"], ["ok", "ok超商"], ["麥當勞", "mcdonald"], ["cama", "cama café"]];
+const normQ = t => (t || "").toLowerCase().replace(/[\uff01-\uff5e]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xfee0)).replace(/\s+/g, "");
+function poiTerms(q) {
+  const n = normQ(q); if (!n) return [];
+  const al = ALIAS.find(g => g.some(x => normQ(x) === n || n.includes(normQ(x))));
+  return al ? [...new Set([n, ...al.map(normQ)])] : [n];
+}
+function poiRenderList() {
+  const box = $("poiRes"); if (!box || !poi.on || !map) return;
+  const q = $("poiQ").value.trim(), terms = poiTerms(q), c = map.getCenter(), me = [c.lat, c.lng];
+  let list = [];
+  for (const it of poi.items.values()) {
+    if (!poi.cats[it.c]) continue;
+    if (terms.length) { const hay = it._h || (it._h = normQ([it.n, it.reg, it.b, it.br, it.addr].filter(Boolean).join(" "))); if (!terms.some(t => hay.includes(t))) continue; }
+    const st = ohStatus(it); if (poi.hideClosed && st.known && !st.open) continue;
+    list.push({it, st, d: haversine(me, [it.lat, it.lon])});
+  }
+  list.sort((a, b) => a.d - b.d);
+  const total = list.length; list = list.slice(0, terms.length ? 30 : 8);
+  $("poiResTitle").innerHTML = terms.length ? `找到 ${total} 間<span>由近到遠・距地圖中心</span>` : `地圖中心附近<span>移動地圖會更新</span>`;
+  if (!list.length) { box.innerHTML = `<p class="hint" style="padding:0 4px;margin:0">${terms.length ? "找不到符合的店家，換個關鍵字試試，或用下面的 Google 地圖搜尋。" : "這附近沒有店家，或分類都被關掉了。"}</p>`; return; }
+  box.innerHTML = list.map(({it, st, d}) => {
+    const cat = POI_CATS[it.c], atmT = atmOf(it);
+    const sub = [st.known ? (st.open ? "營業中" : "休息中") : "", atmT && !/沒有|不確定|未查到/.test(atmT) ? "ATM " + atmT.replace(/（.*?）/, "") : "", it.addr || ""].filter(Boolean).join("・") || cat.label;
+    return `<button type="button" class="poires-row" data-id="${esc(it.id)}"><span class="poitag sm" style="background:${cat.color}">${cat.glyph}</span><span class="t"><b>${esc(poiName(it))}</b><small class="${st.known ? (st.open ? "open" : "closed") : ""}">${esc(sub)}</small></span><span class="d">${distText(d)}</span></button>`;
+  }).join("");
+}
+$("poiRes").addEventListener("click", e => {
+  const b = e.target.closest(".poires-row"); if (!b) return;
+  const it = poi.items.get(b.dataset.id); if (!it || !map) return;
+  $("poiQ").blur();
+  document.querySelector(".mapwrap").scrollIntoView({behavior: "smooth", block: "nearest"});
+  if (map.getZoom() < 15.5) map.jumpTo({zoom: 16});
+  poiOpen(it);
+});
+let poiQT = null;
+$("poiQ").addEventListener("input", () => { $("poiQx").hidden = !$("poiQ").value; clearTimeout(poiQT); poiQT = setTimeout(poiRenderList, 160); });
+$("poiQ").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("poiQ").blur(); poiRenderList(); } });
+$("poiQx").onclick = () => { $("poiQ").value = ""; $("poiQx").hidden = true; poiRenderList(); $("poiQ").focus(); };
 const gq = it => `${it.n} ${it.addr ? (/^高雄/.test(it.addr) ? "" : "高雄市") + it.addr : "高雄"}`;
 function poiName(it) {
   if (it.off) return it.n;
