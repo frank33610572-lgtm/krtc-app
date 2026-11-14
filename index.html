@@ -149,7 +149,14 @@ body.is-offline .offline{display:inline-block}
 .err:empty{display:none}
 
 /* ---------- 時間 ---------- */
-.when{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px;display:grid;gap:10px}
+.when{display:grid;gap:8px}
+.rangeseg{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:3px}
+.rangeseg input{position:absolute;opacity:0;pointer-events:none}
+.rangeseg label{text-align:center;padding:8px 2px;border-radius:9px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;white-space:nowrap;min-height:36px;display:grid;place-items:center}
+.rangeseg input:checked+label{background:var(--ink);color:var(--surface);font-weight:700}
+.rangeseg input:focus-visible+label{outline:2px solid var(--focus);outline-offset:1px}
+.custombox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;gap:8px}
+.custombox[hidden]{display:none}
 .seg{display:grid;grid-template-columns:1fr 1fr;background:var(--soft);border-radius:10px;padding:3px;gap:3px}
 .seg input{position:absolute;opacity:0;pointer-events:none}
 .seg label{text-align:center;padding:7px 4px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:14px;font-weight:500}
@@ -158,9 +165,7 @@ body.is-offline .offline{display:inline-block}
 .range{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
 .range input{width:100%;border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:8px 10px;min-height:44px;font-size:16px}
 .range span{color:var(--muted);font-size:13px}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer;min-height:34px}
-.chip:hover{border-color:var(--ink)}
+
 
 /* ---------- 發車看板 ---------- */
 .board{position:relative;overflow:hidden;background:var(--board);color:var(--board-ink);border-radius:20px;padding:18px 18px 16px;display:grid;gap:14px;isolation:isolate}
@@ -360,7 +365,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .about p{margin:0}
 
 /* ---------- 底部分頁 ---------- */
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:6px max(10px,env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom))}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);padding:6px max(10px,env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom))}
 .tabbar button{border:0;background:none;cursor:pointer;display:grid;justify-items:center;gap:2px;font-size:11px;font-weight:500;color:var(--muted);padding:6px 0;min-height:52px}
 .tabbar svg{width:24px;height:24px}
 .tabbar button[aria-current="page"]{color:var(--ink);font-weight:700}
@@ -404,19 +409,22 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
     </div>
 
     <section class="when" aria-label="時間範圍">
-      <div class="seg" role="radiogroup" aria-label="時間範圍是指">
-        <input type="radio" name="mode" id="modeDep" value="dep" checked><label for="modeDep">依上車時間</label>
-        <input type="radio" name="mode" id="modeArr" value="arr"><label for="modeArr">依抵達時間</label>
+      <div class="rangeseg" role="radiogroup" aria-label="要看哪段時間的班次">
+        <input type="radio" name="rg" id="rg60" value="60" checked><label for="rg60">1 小時內</label>
+        <input type="radio" name="rg" id="rg180" value="180"><label for="rg180">3 小時內</label>
+        <input type="radio" name="rg" id="rgAll" value="all"><label for="rgAll">整天</label>
+        <input type="radio" name="rg" id="rgCustom" value="custom"><label for="rgCustom">自訂</label>
       </div>
-      <div class="range">
-        <input type="time" id="tFrom" step="60" aria-label="從">
-        <span>到</span>
-        <input type="time" id="tTo" step="60" aria-label="到">
-      </div>
-      <div class="chips">
-        <button type="button" class="chip" data-range="60">現在起 1 小時</button>
-        <button type="button" class="chip" data-range="180">3 小時</button>
-        <button type="button" class="chip" data-range="all">整天</button>
+      <div class="custombox" id="customBox" hidden>
+        <div class="seg" role="radiogroup" aria-label="時間範圍是指">
+          <input type="radio" name="mode" id="modeDep" value="dep" checked><label for="modeDep">依上車時間</label>
+          <input type="radio" name="mode" id="modeArr" value="arr"><label for="modeArr">依抵達時間</label>
+        </div>
+        <div class="range">
+          <input type="time" id="tFrom" step="60" aria-label="從">
+          <span>到</span>
+          <input type="time" id="tTo" step="60" aria-label="到">
+        </div>
       </div>
     </section>
 
@@ -424,7 +432,6 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 
     <nav class="tabbar" aria-label="主選單">
       <button type="button" data-tab="list" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>班次</button>
-      <button type="button" data-tab="favs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>最愛</button>
       <button type="button" data-tab="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>地圖</button>
       <button type="button" data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>設定</button>
     </nav>
@@ -452,7 +459,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
           <p class="err" id="fvErr" role="alert"></p>
           <div class="row-actions"><button type="button" class="btn primary" id="fvSave">儲存</button><button type="button" class="btn" id="fvCancel">取消</button></div>
         </div>
-        <div class="listhead"><h2>我的最愛</h2><button type="button" class="btn primary" id="favAdd">＋ 新增路線</button></div>
+        <div class="listhead"><button type="button" class="linkbtn" id="favBack">← 回到班次</button><button type="button" class="btn primary" id="favAdd">＋ 新增路線</button></div>
+        <h2 style="margin:0 4px;font-size:18px">管理我的最愛</h2>
         <div class="favlist" id="favList"></div>
         <p class="hint" style="padding:0 4px">點路線就會切過去查班次。設為「預設」的路線，打開 App 時會直接顯示。我的最愛只存在這支手機。</p>
       </div>
@@ -597,7 +605,8 @@ const todayDay = autoDay(new Date());
 const state = {
   from: byName[saved.from] ? saved.from : "左營",
   to: byName[saved.to] ? saved.to : "鳳山",
-  mode: saved.mode === "arr" ? "arr" : "dep",
+  mode: "dep",
+  rangeSel: "60",
   xfer: Math.min(15, Math.max(1, +saved.xfer || 4)),
   day: todayDay,
   view: "list"
@@ -639,6 +648,7 @@ $("days").innerHTML = DATA.days.map((d, i) =>
   `<div class="dayopt"><input type="radio" name="day" id="day${i}" value="${i}"><label for="day${i}"><span>${DAY_SHORT[i]}　<small>${DAY_SUB[i]}</small></span>${i === todayDay ? "<em>今天</em>" : ""}</label></div>`).join("");
 function setRange(r) {
   state.autoSpan = r === "all" ? null : r;
+  state.rangeSel = String(r);
   const n = nowSvc();
   if (r === "all") { els.tFrom.value = "05:30"; els.tTo.value = "01:00"; }
   else { els.tFrom.value = fmt(n); els.tTo.value = fmt(n + r); }
@@ -671,6 +681,8 @@ function render() {
   $("dayChip").classList.toggle("manual", !live);
   $("xVal").textContent = state.xfer;
   $("modeDep").checked = state.mode === "dep"; $("modeArr").checked = state.mode === "arr";
+  $({"60": "rg60", "180": "rg180", all: "rgAll", custom: "rgCustom"}[state.rangeSel] || "rg60").checked = true;
+  $("customBox").hidden = state.rangeSel !== "custom";
   renderFavs(); renderNote(); drawRoute();
   if (state.view === "favs") renderFavView();
 
@@ -755,7 +767,7 @@ const nextHTML = (r, cls) => {
 };
 function goFav(f) {
   state.from = f.o; state.to = f.d;
-  if (state.autoSpan === null) setRange(60);
+  if (state.rangeSel === "custom") { state.mode = "dep"; setRange(60); }
   render(); showView("list");
 }
 function renderFavs() {
@@ -814,6 +826,7 @@ $("fvSave").onclick = () => {
   saveFavs(); closeFavEditor(); render(); renderFavView();
 };
 $("favAdd").onclick = () => openFavEditor(-1);
+$("favBack").onclick = () => { closeFavEditor(); showView("list"); };
 $("favManage").onclick = () => { closeFavEditor(); showView("favs"); };
 
 function renderFavView() {
@@ -1214,8 +1227,13 @@ els.from.onchange = () => { state.from = els.from.value; render(); };
 els.to.onchange = () => { state.to = els.to.value; render(); };
 $("swap").onclick = () => { [state.from, state.to] = [state.to, state.from]; const s = $("swap"); s.classList.toggle("spin"); render(); };
 for (const id of ["modeDep", "modeArr"]) $(id).onchange = e => { state.mode = e.target.value; render(); };
-els.tFrom.oninput = els.tTo.oninput = () => { state.autoSpan = null; render(); };
-document.querySelectorAll("[data-range]").forEach(b => b.onclick = () => { setRange(b.dataset.range === "all" ? "all" : +b.dataset.range); render(); });
+els.tFrom.oninput = els.tTo.oninput = () => { state.autoSpan = null; state.rangeSel = "custom"; render(); };
+document.querySelectorAll('input[name="rg"]').forEach(r => r.onchange = () => {
+  const v = r.value;
+  if (v === "custom") { state.autoSpan = null; state.rangeSel = "custom"; }
+  else { state.mode = "dep"; setRange(v === "all" ? "all" : +v); }
+  render();
+});
 $("days").onchange = e => { state.day = +e.target.value; render(); };
 $("xMinus").onclick = () => { state.xfer = Math.max(1, state.xfer - 1); render(); };
 $("xPlus").onclick = () => { state.xfer = Math.min(15, state.xfer + 1); render(); };
