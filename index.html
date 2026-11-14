@@ -535,8 +535,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
           <span class="pk-grab" aria-hidden="true"></span>
           <div class="pk-head"><h2 id="pkTitle">選擇出發站</h2><button type="button" class="pk-x" id="pkClose" aria-label="關閉">×</button></div>
           <div class="pk-lines" role="tablist" aria-label="路線">
-            <button type="button" role="tab" class="pk-tab" data-l="R"><span class="badge R">R</span><span><b>紅線</b><small>小港－岡山車站</small></span></button>
-            <button type="button" role="tab" class="pk-tab" data-l="O"><span class="badge O">O</span><span><b>橘線</b><small>哈瑪星－大寮</small></span></button>
+            <button type="button" role="tab" class="pk-tab" data-l="R"><span class="badge R">R</span><span><b>紅線</b><small>岡山車站－小港</small></span></button>
+            <button type="button" role="tab" class="pk-tab" data-l="O"><span class="badge O">O</span><span><b>橘線</b><small>大寮－哈瑪星</small></span></button>
           </div>
         </div>
         <div class="pk-list" id="pkList" role="listbox" aria-labelledby="pkTitle"></div>
@@ -1832,7 +1832,7 @@ els.to.onchange = () => { state.to = els.to.value; render(); };
 // ---------- 選站面板 ----------
 const pk = {which: "from", line: "R"};
 function pkRender(scroll) {
-  const cur = state[pk.which], other = state[pk.which === "from" ? "to" : "from"], L = pk.line, seq = DATA.lines[L];
+  const cur = state[pk.which], other = state[pk.which === "from" ? "to" : "from"], L = pk.line, seq = DATA.lines[L].slice().reverse(); // 站號由大到小往下排（紅線北邊在上）
   document.querySelectorAll(".pk-tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.l === L)));
   const list = $("pkList"); list.className = "pk-list " + L;
   list.innerHTML = seq.map(([id, name], i) => {
@@ -1944,7 +1944,7 @@ const syncOnline = () => document.body.classList.toggle("is-offline", !navigator
 addEventListener("online", syncOnline); addEventListener("offline", syncOnline); syncOnline();
 render();
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-14-v25";
+const APP_VER = "krtc-2026-11-14-v26";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;

@@ -1,5 +1,5 @@
 // 高捷班次：離線快取。改版時更新 CACHE 版本號（也寫進 version.json），App 會自動換新版。
-const CACHE = "krtc-2026-11-14-v25";
+const CACHE = "krtc-2026-11-14-v26";
 const TILE_CACHE = "krtc-tiles-v2";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./stores.json",
   "https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css",
