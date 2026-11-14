@@ -1256,6 +1256,8 @@ const cellKey = (i, j) => i + "," + j;
 const BANKS = {C: "國泰世華", T: "台新銀行", E: "玉山銀行", U: "聯邦銀行", K: "高雄銀行"};
 const normStore = n => (n || "").replace(/\(.*?\)/g, "").replace("便利商店", "").replace(/^萊爾富/, "").replace(/店+$/, "").trim();
 let officialP = null;
+// 登記名稱常是公司名：去掉「股份有限公司」「高雄市第三分公司」這類字尾，比較好認
+const cleanReg = n => (n.replace(/(股份)?有限公司|(高雄市?)?(第?[一二三四五六七八九十百零〇\d]+)?分公司|(高雄)?分店$/g, "").replace(/[()（）]/g, " ").trim() || n);
 function loadOfficial() {
   if (officialP) return officialP;
   officialP = fetch("stores.json").then(r => { if (!r.ok) throw new Error("http " + r.status); return r.json(); }).then(d => {
@@ -1282,7 +1284,7 @@ function loadOfficial() {
     // 手搖飲、咖啡廳：財政部營業稅籍登記（行業代碼）＋高雄市門牌座標
     (d.shop || []).forEach(([n, addr, cafe, a, o], i) => {
       const [lat, lon] = ll(a, o);
-      poi.items.set("oS" + i, {id: "oS" + i, c: cafe ? "cafe" : "tea", lat, lon, n, reg: n, b: "", oh: "", addr, src: "財政部營業登記", off: 1, gov: 1});
+      poi.items.set("oS" + i, {id: "oS" + i, c: cafe ? "cafe" : "tea", lat, lon, n: cleanReg(n), reg: n, b: "", oh: "", addr, src: "財政部營業登記", off: 1, gov: 1});
     });
     poi.official = true;
     poi.hasShops = !!(d.shop && d.shop.length);
@@ -1314,7 +1316,7 @@ function poiAbsorb(it) {
     return true;
   }
   if (!poi.hasShops) return true;
-  const g = offNear(it, 35, o => o.gov && !o.osm && o.c === it.c) || offNear(it, 25, o => o.gov && !o.osm);
+  const g = offNear(it, 30, o => o.gov && !o.osm && o.c === it.c) || offNear(it, 12, o => o.gov && !o.osm);
   if (!g) return true;
   g.osm = it.id; poi.absorbed.add(it.id); if (it.n && it.n !== POI_CATS[it.c].label) g.n = it.n; if (it.oh) g.oh = it.oh; if (it.b) g.b = it.b;
   return false;
