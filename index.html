@@ -88,7 +88,50 @@ body.is-offline .offline{display:inline-block}
 .journey{background:var(--surface);border-radius:var(--radius);border:1px solid var(--line);position:relative;padding:6px 64px 6px 16px}
 .stn{position:relative;display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center;padding:12px 0;min-height:66px}
 .stn+.stn{border-top:1px dashed var(--line)}
-.stn select{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer;font-size:16px}
+.stn select{display:none}
+.stnbtn{position:absolute;inset:0;width:100%;border:0;background:none;cursor:pointer;border-radius:10px;padding:0}
+.stnbtn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+/* 選站：先選路線，再從路線圖上點車站 */
+dialog.picker{position:fixed;inset:auto 0 0 0;margin:0 auto;width:100%;max-width:560px;max-height:min(88dvh,820px);border:0;padding:0;border-radius:26px 26px 0 0;background:var(--surface);color:var(--ink);box-shadow:0 -12px 50px rgba(0,0,0,.3);overflow:hidden}
+dialog.picker[open]{display:flex;animation:pkUp .28s cubic-bezier(.2,.8,.2,1)}
+dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+@keyframes pkUp{from{transform:translateY(40%);opacity:.4}}
+.pk-in{display:flex;flex-direction:column;width:100%;min-height:0}
+.pk-top{padding:8px 18px 12px;border-bottom:1px solid var(--line);touch-action:none}
+.pk-grab{display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
+.pk-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.pk-head h2{margin:0;font-size:20px;font-weight:900}
+.pk-x{border:0;background:var(--soft);width:34px;height:34px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;color:var(--muted)}
+.pk-lines{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pk-tab{--lc:var(--red);display:flex;align-items:center;gap:10px;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:9px 11px;cursor:pointer;min-height:58px;transition:border-color .15s,background-color .15s}
+.pk-tab[data-l="O"]{--lc:var(--orange)}
+.pk-tab .badge{min-width:30px;height:30px;font-size:18px}
+.pk-tab b{display:block;font-size:16px;font-weight:900;line-height:1.2}
+.pk-tab small{display:block;font-size:11.5px;color:var(--muted);line-height:1.3;white-space:nowrap}
+.pk-tab[aria-selected="true"]{border-color:var(--lc);background:color-mix(in srgb,var(--lc) 10%,var(--surface))}
+.pk-tab[aria-selected="false"] .badge{opacity:.55}
+.pk-list{overflow-y:auto;overscroll-behavior:contain;padding:8px 10px 14px;padding-bottom:calc(14px + env(safe-area-inset-bottom));flex:1;min-height:0}
+.pk-row{--lc:var(--red);display:grid;grid-template-columns:34px 50px 1fr auto;align-items:center;gap:6px;width:100%;min-height:54px;border:0;background:none;border-radius:14px;padding:0 10px 0 4px;text-align:left;cursor:pointer;color:var(--ink)}
+.pk-list.O .pk-row{--lc:var(--orange)}
+.pk-row:active{background:var(--soft)}
+.pk-rail{position:relative;align-self:stretch}
+.pk-rail::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:6px;margin-left:-3px;background:var(--lc)}
+.pk-row.first .pk-rail::before{top:50%;border-radius:3px 3px 0 0}
+.pk-row.last .pk-rail::before{bottom:50%;border-radius:0 0 3px 3px}
+.pk-rail i{position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--surface);border:3.5px solid var(--lc);box-sizing:border-box}
+.pk-row.xf .pk-rail i{width:22px;height:22px;margin:-11px 0 0 -11px;border:4px solid var(--ink)}
+.pk-row.sel{background:color-mix(in srgb,var(--lc) 12%,transparent)}
+.pk-row.sel .pk-rail i{background:var(--lc);border-color:var(--surface);box-shadow:0 0 0 3px var(--lc);width:20px;height:20px;margin:-10px 0 0 -10px}
+.pk-code{font-family:var(--font-display);font-weight:800;font-size:17px;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.pk-row.sel .pk-code{color:var(--lc)}
+.pk-name{font-size:17px;font-weight:700;line-height:1.25;min-width:0}
+.pk-row.sel .pk-name{font-weight:900}
+.pk-name small{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:var(--muted);margin-top:2px}
+.pk-name small .badge{min-width:0;height:17px;font-size:11.5px;padding:0 4px;border-radius:4px}
+.pk-tag{font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap;border:1px solid var(--line);color:var(--muted)}
+.pk-row.sel .pk-tag{background:var(--lc);border-color:var(--lc);color:#fff}
+@media (min-width:980px){dialog.picker{inset:0;margin:auto;border-radius:24px;max-height:80vh;max-width:460px}}
+@media (prefers-reduced-motion:reduce){dialog.picker[open]{animation:none}}
 .stn .k{display:block;font-size:12px;color:var(--muted);font-weight:500;line-height:1.2;letter-spacing:.08em}
 .stn .v::after{content:"";display:inline-block;width:7px;height:7px;margin-left:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-4px) rotate(45deg)}
 .stn .v{display:block;font-size:22px;font-weight:900;line-height:1.25;letter-spacing:.02em;overflow-wrap:anywhere}
@@ -475,15 +518,30 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
       <div class="stn">
         <span class="badges" id="fromBadge"></span>
         <span><span class="k">出發</span><span class="v" id="fromName"></span></span>
-        <select id="from" aria-label="起站"></select>
+        <select id="from" aria-hidden="true" tabindex="-1"></select>
+        <button type="button" class="stnbtn" data-pick="from" aria-haspopup="dialog" aria-label="選擇出發站"></button>
       </div>
       <div class="stn">
         <span class="badges" id="toBadge"></span>
         <span><span class="k">抵達</span><span class="v" id="toName"></span></span>
-        <select id="to" aria-label="終站"></select>
+        <select id="to" aria-hidden="true" tabindex="-1"></select>
+        <button type="button" class="stnbtn" data-pick="to" aria-haspopup="dialog" aria-label="選擇抵達站"></button>
       </div>
       <button type="button" class="swap" id="swap" aria-label="對調起站與終站"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4 3 8M7 4l4 4M17 20V4m0 16-4-4m4 4 4-4"/></svg></button>
     </section>
+    <dialog class="picker" id="picker" aria-labelledby="pkTitle">
+      <div class="pk-in">
+        <div class="pk-top" id="pkTop">
+          <span class="pk-grab" aria-hidden="true"></span>
+          <div class="pk-head"><h2 id="pkTitle">選擇出發站</h2><button type="button" class="pk-x" id="pkClose" aria-label="關閉">×</button></div>
+          <div class="pk-lines" role="tablist" aria-label="路線">
+            <button type="button" role="tab" class="pk-tab" data-l="R"><span class="badge R">R</span><span><b>紅線</b><small>小港－岡山車站</small></span></button>
+            <button type="button" role="tab" class="pk-tab" data-l="O"><span class="badge O">O</span><span><b>橘線</b><small>哈瑪星－大寮</small></span></button>
+          </div>
+        </div>
+        <div class="pk-list" id="pkList" role="listbox" aria-labelledby="pkTitle"></div>
+      </div>
+    </dialog>
     <div class="favwrap">
       <div class="favhead"><h2>我的最愛</h2><button type="button" class="linkbtn" id="favManage">管理</button></div>
       <div class="favstrip" id="favs" aria-label="我的最愛"></div>
@@ -1771,6 +1829,53 @@ $("dayChip").onclick = () => showView("settings");
 // ---------- 事件 ----------
 els.from.onchange = () => { state.from = els.from.value; render(); };
 els.to.onchange = () => { state.to = els.to.value; render(); };
+// ---------- 選站面板 ----------
+const pk = {which: "from", line: "R"};
+function pkRender(scroll) {
+  const cur = state[pk.which], other = state[pk.which === "from" ? "to" : "from"], L = pk.line, seq = DATA.lines[L];
+  document.querySelectorAll(".pk-tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.l === L)));
+  const list = $("pkList"); list.className = "pk-list " + L;
+  list.innerHTML = seq.map(([id, name], i) => {
+    const xf = byName[name].ids.find(x => lineOf[x] !== L);
+    const sel = name === cur, oth = name === other;
+    const tag = sel ? (pk.which === "from" ? "出發" : "抵達") : oth ? (pk.which === "from" ? "抵達站" : "出發站") : "";
+    return `<button type="button" role="option" aria-selected="${sel}" class="pk-row${i === 0 ? " first" : ""}${i === seq.length - 1 ? " last" : ""}${sel ? " sel" : ""}${xf ? " xf" : ""}" data-name="${name}">
+      <span class="pk-rail"><i></i></span><span class="pk-code">${id}</span>
+      <span class="pk-name">${name}${xf ? `<small>可轉${LINE_NAME[lineOf[xf]]}<span class="badge ${lineOf[xf]}">${xf}</span></small>` : ""}</span>
+      ${tag ? `<span class="pk-tag">${tag}</span>` : "<span></span>"}</button>`;
+  }).join("");
+  if (scroll) {
+    const s = list.querySelector(".pk-row.sel");
+    list.scrollTop = s ? s.offsetTop - list.clientHeight / 2 + s.offsetHeight / 2 : 0;
+  }
+}
+function openPicker(which) {
+  pk.which = which;
+  const ids = byName[state[which]].ids;
+  if (!ids.some(x => lineOf[x] === pk.line)) pk.line = lineOf[ids[0]];
+  $("pkTitle").textContent = which === "from" ? "選擇出發站" : "選擇抵達站";
+  const d = $("picker");
+  if (typeof d.showModal === "function") d.showModal(); else d.setAttribute("open", "");
+  pkRender(true);
+}
+function closePicker() { const d = $("picker"); if (d.close) d.close(); else d.removeAttribute("open"); }
+document.querySelectorAll(".stnbtn").forEach(b => b.onclick = () => openPicker(b.dataset.pick));
+document.querySelectorAll(".pk-tab").forEach(t => t.onclick = () => { pk.line = t.dataset.l; pkRender(true); });
+$("pkClose").onclick = closePicker;
+$("picker").addEventListener("click", e => { if (e.target === $("picker")) closePicker(); });
+$("pkList").addEventListener("click", e => {
+  const r = e.target.closest(".pk-row"); if (!r) return;
+  const name = r.dataset.name, o = pk.which === "from" ? "to" : "from";
+  if (name === state[o]) state[o] = state[pk.which];
+  state[pk.which] = name;
+  closePicker(); render();
+});
+(() => { // 往下滑關閉
+  let y0 = null; const top = $("pkTop"), d = $("picker");
+  top.addEventListener("touchstart", e => { y0 = e.touches[0].clientY; }, {passive: true});
+  top.addEventListener("touchmove", e => { if (y0 == null) return; const dy = Math.max(0, e.touches[0].clientY - y0); d.style.transform = `translateY(${dy}px)`; }, {passive: true});
+  top.addEventListener("touchend", e => { if (y0 == null) return; const dy = e.changedTouches[0].clientY - y0; d.style.transform = ""; y0 = null; if (dy > 80) closePicker(); });
+})();
 $("swap").onclick = () => { [state.from, state.to] = [state.to, state.from]; const s = $("swap"); s.classList.toggle("spin"); render(); };
 for (const id of ["modeDep", "modeArr"]) $(id).onchange = e => { state.mode = e.target.value; render(); };
 els.tFrom.oninput = els.tTo.oninput = () => { state.autoSpan = null; state.rangeSel = "custom"; render(); };
