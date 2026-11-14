@@ -1515,7 +1515,7 @@ async function poiLoadView() {
   const b = map.getBounds(), cells = [];
   for (let i = Math.floor(b.getSouth() / CELL); i <= Math.floor(b.getNorth() / CELL); i++)
     for (let j = Math.floor(b.getWest() / CELL); j <= Math.floor(b.getEast() / CELL); j++) cells.push([i, j]);
-  const countMsg = () => { const n = poiCounts(); msg.textContent = `手搖飲 ${n.tea}・超商 ${n.conv}・咖啡廳 ${n.cafe}　點店家看詳情`; };
+  const countMsg = () => { const n = poiCounts(); msg.textContent = `這一帶：手搖飲 ${n.tea}・超商 ${n.conv}・咖啡廳 ${n.cafe}`; };
   if (poi.official) { poiDraw(); countMsg(); }
   if (cells.filter(([i, j]) => !poi.cells[cellKey(i, j)]).length > 9) { if (!poi.official) msg.textContent = "範圍有點大，再放大一點就會顯示店家"; poiDraw(); return; }
   const loadingNew = cells.some(([i, j]) => !poi.cells[cellKey(i, j)]);
@@ -1592,11 +1592,12 @@ function poiRenderList() {
   const total = list.length; list = list.slice(0, terms.length ? 30 : 8);
   $("poiResTitle").innerHTML = terms.length ? `找到 ${total} 間<span>由近到遠・距地圖中心</span>` : `地圖中心附近<span>移動地圖會更新</span>`;
   if (!list.length) { box.innerHTML = `<p class="hint" style="padding:0 4px;margin:0">${terms.length ? "找不到符合的店家，換個關鍵字試試，或用下面的 Google 地圖搜尋。" : "這附近沒有店家，或分類都被關掉了。"}</p>`; return; }
+  const note = terms.length ? `<p class="hint" style="padding:0 4px;margin:0">很多分店用公司名稱登記，品牌分店可能沒搜到，可以用下面的 Google 地圖找。</p>` : "";
   box.innerHTML = list.map(({it, st, d}) => {
     const cat = POI_CATS[it.c], atmT = atmOf(it);
     const sub = [st.known ? (st.open ? "營業中" : "休息中") : "", atmT && !/沒有|不確定|未查到/.test(atmT) ? "ATM " + atmT.replace(/（.*?）/, "") : "", it.addr || ""].filter(Boolean).join("・") || cat.label;
     return `<button type="button" class="poires-row" data-id="${esc(it.id)}"><span class="poitag sm" style="background:${cat.color}">${cat.glyph}</span><span class="t"><b>${esc(poiName(it))}</b><small class="${st.known ? (st.open ? "open" : "closed") : ""}">${esc(sub)}</small></span><span class="d">${distText(d)}</span></button>`;
-  }).join("");
+  }).join("") + note;
 }
 $("poiRes").addEventListener("click", e => {
   const b = e.target.closest(".poires-row"); if (!b) return;
