@@ -1646,9 +1646,9 @@ function loadOfficial() {
     });
     // 手搖飲、咖啡廳：財政部營業稅籍登記（行業代碼）＋高雄市門牌座標
     (d.shop || []).forEach(([n, addr, cafe, a, o, oh, disp, hs], i) => {
-      const [lat, lon] = ll(a, o), isNew = hs === "O" || hs === "S";
+      const [lat, lon] = ll(a, o), isNew = hs === "O" || hs === "S" || hs === "C";
       poi.items.set("oS" + i, {id: "oS" + i, c: cafe ? "cafe" : "tea", lat, lon, n: disp || (isNew ? n : cleanReg(n)), reg: isNew ? "" : n, b: "", oh: oh || "", ohs: (hs || "").toLowerCase(),
-        addr, src: isNew ? (hs === "S" ? "星巴克官網" : "OpenStreetMap") : "財政部營業登記", off: 1, gov: isNew ? 0 : 1, newSrc: isNew});
+        addr, src: isNew ? ({S: "星巴克官網", C: "品牌官網"}[hs] || "OpenStreetMap") : "財政部營業登記", off: 1, gov: isNew ? 0 : 1, newSrc: isNew});
     });
     poi.official = true;
     poi.hasShops = !!(d.shop && d.shop.length);
@@ -2286,7 +2286,7 @@ addEventListener("online", syncOnline); addEventListener("offline", syncOnline);
 render();
 walkLocate(true);
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v36";
+const APP_VER = "krtc-2026-11-15-v37";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
