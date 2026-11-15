@@ -544,6 +544,12 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .pp-row b{font-size:12px;color:var(--muted);font-weight:700}
 .pp-row small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
 .pp-acts{display:grid;grid-template-columns:44px 1.4fr 1fr;gap:8px;padding-top:2px}
+.pp-hint{display:block;font-size:12px;color:var(--muted);margin-top:1px}
+.pp-st.open .pp-hint{color:var(--good)}
+.pp-exit{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-decoration:none;color:var(--ink);background:var(--surface)}
+.pp-exit b{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:9px;border:2px solid var(--ink);font-family:var(--font-display);font-size:16px}
+.pp-exit span{font-size:13px;font-weight:700;line-height:1.35}
+.pp-exit small{display:block;font-size:11.5px;font-weight:400;color:var(--muted)}
 .pp-star{border:1px solid var(--line);background:var(--soft);color:var(--muted);border-radius:12px;font-size:20px;line-height:1;cursor:pointer;min-height:42px}
 .pp-star[aria-pressed="true"]{color:#e8a317;border-color:#e8a317;background:color-mix(in srgb,#e8a317 12%,transparent)}
 .pp-acts a{display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none;background:var(--soft);color:var(--ink);border:1px solid var(--line)}
@@ -2056,6 +2062,23 @@ function parseOH(s) {
 const userOH = store.get("krtc-oh-user", {});
 const ohKey = it => `${it.c}|${it.lat.toFixed(4)},${it.lon.toFixed(4)}`;
 const ohOf = it => userOH[ohKey(it)] || it.oh;
+// 「到 22:00」「明天 10:00 開」這種提示
+function ohHint(it, st) {
+  if (!st.known) return "";
+  const p = parseOH(ohOf(it)); if (!p) return "";
+  if (p.always) return "24 小時";
+  if (!p.week) return "";
+  const now = new Date(), d = now.getDay(), m = now.getHours() * 60 + now.getMinutes(), t = x => fmt(x % 1440);
+  const today = p.week[d] || [], yest = p.week[(d + 6) % 7] || [];
+  if (st.open) {
+    const late = yest.find(([a, b]) => b > 1440 && m < b - 1440); if (late) return `到 ${t(late[1])}`;
+    const sp = today.find(([a, b]) => m >= a && m < b); if (!sp) return "";
+    return sp[1] >= 1440 ? (sp[1] === 1440 ? "到午夜" : `到凌晨 ${t(sp[1])}`) : `到 ${t(sp[1])}`;
+  }
+  const later = today.find(([a]) => a > m); if (later) return `${t(later[0])} 開`;
+  for (let k = 1; k <= 7; k++) { const w = p.week[(d + k) % 7]; if (w && w.length) return `${k === 1 ? "明天" : "週" + "日一二三四五六"[(d + k) % 7]} ${t(w[0][0])} 開`; }
+  return "";
+}
 function ohStatus(it) {
   const chain = it.c === "conv" && CONV.some(x => x.name === it.b);
   const oh = ohOf(it), p = parseOH(oh);
@@ -2269,6 +2292,12 @@ function poiTerms(q) {
   const al = ALIAS.find(g => g.some(x => normQ(x) === n || n.includes(normQ(x))));
   return al ? [...new Set([n, ...al.map(normQ)])] : [n];
 }
+function exitOf(stName, it) { // 這間店離車站哪個出口最近
+  const list = EXITS[stName]; if (!list) return null;
+  let best = null;
+  for (const e of list) { const d = haversine([e[1], e[2]], [it.lat, it.lon]); if (!best || d < best.d) best = {e, d}; }
+  return best;
+}
 function poiAnchor() { // 清單從哪裡算距離
   if (poi.src === "from" || poi.src === "to") { const nm = state[poi.src], id = byName[nm].ids[0]; return {p: COORDS[id], name: nm, st: true}; }
   const c = map.getCenter(); return {p: [c.lat, c.lng], name: "", st: false};
@@ -2294,9 +2323,11 @@ function poiRenderList() {
     if (favOnly ? !isFav(it) : !poi.cats[it.c]) continue;
     if (terms.length) { const hay = it._h || (it._h = normQ([it.n, it.reg, it.b, it.br, it.addr].filter(Boolean).join(" "))); if (!terms.some(t => hay.includes(t))) continue; }
     const st = ohStatus(it); if (!favOnly && !poiPass(it, st)) continue;
-    list.push({it, st, d: haversine(me, [it.lat, it.lon])});
+    const ex = A.st ? exitOf(A.name, it) : null;
+    list.push({it, st, d: ex ? ex.d : haversine(me, [it.lat, it.lon])});
   }
-  list.sort((a, b) => a.d - b.d);
+  const closed = x => x.st.known && !x.st.open ? 1 : 0; // 確定休息中的排到後面
+  list.sort((a, b) => terms.length || favOnly ? a.d - b.d : closed(a) - closed(b) || a.d - b.d);
   const total = list.length; list = list.slice(0, terms.length || favOnly ? 40 : A.st ? 12 : 8);
   $("poiResTitle").innerHTML = terms.length ? `找到 <b class="num">${total}</b> 間<span>由近到遠，從${A.st ? esc(A.name) + "站" : "地圖中心"}算</span>`
     : favOnly ? `我的收藏 <b class="num">${total}</b> 間<span>點店家資訊的 ☆ 就能收藏</span>`
@@ -2305,7 +2336,8 @@ function poiRenderList() {
   const note = terms.length ? `<p class="hint" style="padding:0 4px;margin:0">很多分店用公司名稱登記，品牌分店可能沒搜到，可以用下面的 Google 地圖找。</p>` : "";
   box.innerHTML = list.map(({it, st, d}) => {
     const cat = POI_CATS[it.c], atmT = atmOf(it);
-    const sub = [st.known ? (st.open ? "營業中" : "休息中") : "", atmT && !/沒有|不確定|未查到/.test(atmT) ? "ATM " + atmT.replace(/（.*?）/, "") : "", it.addr || ""].filter(Boolean).join("・") || cat.label;
+    const hint = ohHint(it, st), from = A.st && exitOf(A.name, it) ? `從 ${exitOf(A.name, it).e[0]} 號出口` : "";
+    const sub = [st.known ? (st.open ? "營業中" : "休息中") + (hint ? " " + hint : "") : "", atmT && !/沒有|不確定|未查到/.test(atmT) ? "ATM " + atmT.replace(/（.*?）/, "") : "", from || it.addr || ""].filter(Boolean).join("・") || cat.label;
     const dd = A.st ? [walkMin(d), "分鐘"] : d < 1000 ? [Math.round(d), "公尺"] : [(d / 1000).toFixed(1), "公里"];
     return `<button type="button" class="poires-row" data-id="${esc(it.id)}"><span class="sg md" style="--c:${cat.color}">${cat.glyph}</span><span class="t"><b>${isFav(it) ? '<i class="fav">★</i>' : ""}${esc(poiName(it))}</b><small class="${st.known ? (st.open ? "open" : "closed") : ""}">${esc(sub)}</small></span><span class="d"><b>${dd[0]}</b>${dd[1]}</span></button>`;
   }).join("") + note;
@@ -2341,10 +2373,12 @@ function poiPopup(it) {
   const cls = st.known ? (st.open ? "open" : "closed") : "";
   return `<div class="pop poipop" style="--c:${cat.color}">
     <div class="pp-h"><span class="sg lg">${cat.glyph}</span><div><h4>${esc(name)}</h4><p>${esc(sub)}</p></div></div>
-    <div class="pp-st ${cls}"><span class="pill">${st.known ? (st.open ? "營業中" : "休息中") : "營業時間"}</span><span>${esc(st.text)}${mine ? `<small class="pp-mine">你自己填的</small>` : ""}</span>
+    <div class="pp-st ${cls}"><span class="pill">${st.known ? (st.open ? "營業中" : "休息中") : "營業時間"}</span><span>${esc(st.text)}${st.known && !st.open && ohHint(it, st) ? `<small class="pp-hint">${esc(ohHint(it, st))}</small>` : ""}${mine ? `<small class="pp-mine">你自己填的</small>` : ""}</span>
       <button type="button" class="pp-edit" data-ohedit="${esc(it.id)}">${st.known || mine ? "修改" : "補上營業時間"}</button></div>
     ${atm ? `<div class="pp-row"><b>ATM</b><span>${esc(atm)}</span></div>` : ""}
     ${it.addr ? `<div class="pp-row"><b>地址</b><span>${esc(it.addr)}${reg}</span></div>` : ""}
+    ${(() => { if (!(poi.src === "from" || poi.src === "to")) return ""; const nm = state[poi.src], ex = exitOf(nm, it); if (!ex) return "";
+      return `<a class="pp-exit" href="https://www.google.com/maps/dir/?api=1&origin=${ex.e[1]},${ex.e[2]}&destination=${it.lat},${it.lon}&travelmode=walking" target="_blank" rel="noopener"><b>${ex.e[0]}</b><span>從${esc(nm)}站 ${ex.e[0]} 號出口走過去<small>約 ${walkMin(ex.d)} 分鐘・${distText(ex.d)}</small></span></a>`; })()}
     <div class="pp-acts"><button type="button" class="pp-star" data-poifav="${esc(it.id)}" aria-pressed="${isFav(it)}" aria-label="${isFav(it) ? "取消收藏" : "收藏這間店"}">${isFav(it) ? "★" : "☆"}</button><a class="go" href="${walkLink(it.lat, it.lon)}" target="_blank" rel="noopener">導航過去</a><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq(it))}" target="_blank" rel="noopener">Google 地圖</a></div>
     <p class="pp-src">${srcNote}</p></div>`;
 }
@@ -2682,7 +2716,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v55";
+const APP_VER = "krtc-2026-11-15-v56";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
