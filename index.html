@@ -256,63 +256,60 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .b-foot small{font-size:11.5px;color:#8a9bb4}
 .b-foot .warn{color:var(--amber);font-weight:700;background:rgba(255,184,77,.12)}
 .b-foot .warn b,.b-foot .warn small{color:var(--amber)}
-/* 旅程條 */
-.jr{display:grid;gap:10px;min-width:0}
-.jr-track{display:flex;gap:4px;height:40px;min-width:0}
-.jr-seg{position:relative;min-width:0;border-radius:12px;display:flex;align-items:center;gap:6px;padding:0 8px;overflow:hidden;font-size:12px;font-weight:700;white-space:nowrap;color:#fff;transform-origin:left center}
-.jr-seg span{overflow:hidden;text-overflow:clip;min-width:0}
-.jr-seg.ride.R{background:var(--red)} .jr-seg.ride.O{background:var(--orange);color:#1b1206} .jr-seg.ride.C{background:var(--lrt);color:#0d1a08}
-.jr-l{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.92);color:#0b1018;font-family:var(--font-display);font-size:13px;flex:none}
-.jr-seg.wait{background:repeating-linear-gradient(-55deg,rgba(255,255,255,.07) 0 6px,rgba(255,255,255,.015) 6px 12px);background-size:28px 100%;color:#9fb0c8;padding:0;min-width:34px;animation:jrFlow 1.6s linear infinite;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
-.jr-seg.wait::after{content:"";position:absolute;right:0;top:6px;bottom:6px;width:3px;border-radius:2px;background:var(--amber)}
-.jr-seg.wait.soon{box-shadow:inset 0 0 0 1px rgba(255,184,77,.6);color:var(--amber)}
-.jr-train{position:absolute;top:50%;width:22px;height:22px;margin-top:-11px;color:var(--amber);transition:left 1.2s cubic-bezier(.3,.7,.3,1);filter:drop-shadow(0 0 6px rgba(255,184,77,.45))}
-.jr-train svg{width:22px;height:22px;display:block}
+/* 旅程條：細軌道，小火車在等車段上前進 */
+.jr{display:grid;gap:0;min-width:0}
+.jr-track{display:flex;gap:3px;height:10px;min-width:0;margin-top:22px}
+.jr-seg{position:relative;min-width:0;border-radius:5px;transform-origin:left center}
+.jr-seg.ride.R{background:var(--red)} .jr-seg.ride.O{background:var(--orange)} .jr-seg.ride.C{background:var(--lrt)}
+.jr-seg.wait{min-width:30px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 5px,transparent 5px 9px);background-size:18px 100%;animation:jrFlow 1.4s linear infinite}
+.jr-seg.wait::after{content:"";position:absolute;right:-2px;top:-7px;bottom:-7px;width:3px;border-radius:2px;background:var(--amber)}
+.jr-seg.xfer,.jr-seg.walk{background:repeating-linear-gradient(90deg,rgba(255,255,255,.28) 0 2px,transparent 2px 6px);height:2px;align-self:center;border-radius:1px}
+.jr-train{position:absolute;bottom:13px;width:24px;height:24px;color:var(--amber);transition:left 1.2s cubic-bezier(.3,.7,.3,1);filter:drop-shadow(0 0 6px rgba(255,184,77,.5))}
+.jr-train svg{width:24px;height:24px;display:block}
 .jr-seg.wait.soon .jr-train{animation:jrNudge .9s ease-in-out infinite}
-.jr-seg.xfer,.jr-seg.walk{background:transparent;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22);color:#c9d4e3;justify-content:center;border-radius:9px;background-image:radial-gradient(circle,rgba(255,255,255,.28) 1.2px,transparent 1.6px);background-size:8px 8px;background-position:center}
-.jr-seg.xfer span,.jr-seg.walk span{background:var(--board);padding:1px 6px;border-radius:6px}
-.jr-ticks{display:flex;gap:3px;align-items:baseline;font-family:var(--font-display);font-size:13px;color:#8a9bb4;font-variant-numeric:tabular-nums;position:relative;min-height:16px}
-.jr-ticks > div{min-width:0;overflow:visible;white-space:nowrap}
-.jr-ticks span.hide{visibility:hidden}
-.jr-ticks em{position:absolute;right:0;font-style:normal;color:var(--board-ink);font-weight:700}
-/* 轉乘行程 */
-.js{list-style:none;margin:0;padding:0;display:grid;gap:0}
-.js li{position:relative;display:grid;grid-template-columns:58px 1fr;align-items:start;gap:12px;padding:5px 0;font-size:13.5px;color:#c9d4e3;line-height:1.45}
-.js li::before{content:"";position:absolute;left:66px;top:0;bottom:0;width:3px;margin-left:-1.5px;background:var(--seg,rgba(255,255,255,.18))}
-.js li::after{content:"";position:absolute;left:66px;top:11px;width:11px;height:11px;margin-left:-5.5px;border-radius:50%;background:var(--board);border:2.5px solid var(--seg,rgba(255,255,255,.5));box-sizing:border-box}
-.js li:first-child::before{top:12px}
-.js li:last-child::before{bottom:calc(100% - 12px)}
-.js li.R{--seg:var(--red)} .js li.O{--seg:var(--orange)} .js li.C{--seg:var(--lrt)}
-.js li.js-off::before{background:linear-gradient(var(--seg) 0 12px,rgba(255,255,255,.18) 12px)}
-.js li.js-wait::before,.js li.js-walk::before{background:repeating-linear-gradient(rgba(255,255,255,.3) 0 3px,transparent 3px 7px)}
-.js li.js-wait::after,.js li.js-walk::after{display:none}
-.js li.js-end::after{width:14px;height:14px;margin-left:-7px;top:9px;background:var(--seg,#fff);border-color:var(--board-ink)}
-.js time{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--board-ink);text-align:right;line-height:1.25;font-variant-numeric:tabular-nums;white-space:nowrap}
-.js time small{display:inline!important;font-family:var(--font-body);font-size:11px;font-weight:400;color:#8a9bb4;margin-right:2px}
-.js li > span{grid-column:2;padding-left:18px}
-.js em{font-style:normal;font-weight:700;color:var(--board-ink);margin-left:4px}
-.js small{display:block;font-size:11.5px;color:#8a9bb4}
-.js-b{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:5px;font-family:var(--font-display);font-size:12px;line-height:1;color:#fff;vertical-align:-3px;margin-left:4px;padding:0 3px}
-.js li.js-wait .js-b{vertical-align:0}
-.js-b.R{background:var(--red)} .js-b.O{background:var(--orange);color:#1b1206} .js-b.C{background:var(--lrt);color:#0d1a08}
-.js li.js-wait{padding:7px 0}
-.js li.js-wait > span{display:inline-flex;align-items:center;flex-wrap:wrap;gap:0 2px;justify-self:start;margin-left:18px;padding:5px 12px;border-radius:999px;background:rgba(255,184,77,.13);color:var(--amber);font-weight:700}
-.js li.js-wait b{font-family:var(--font-display);font-size:18px;margin:0 1px}
-.js li.js-wait small{display:inline;color:var(--amber);opacity:.8;margin-left:6px;font-weight:400}
-.js li.js-wait.now > span{background:var(--amber);color:#1b1206}
-.js li.js-wait.now small{color:#1b1206}
-.jr-route{margin:0;font-size:13px;color:#8a9bb4;line-height:1.65}
+.jr-ends{display:flex;justify-content:space-between;margin-top:8px;font-size:11.5px;letter-spacing:.06em;color:#7d8ea8}
+.jr-ends span:last-child{color:#c9d4e3}
+.jr-route{margin:12px 0 0;font-size:13px;color:#8a9bb4;line-height:1.65}
 .jr-n{color:var(--board-ink);font-weight:700}
 .jr-n.R{color:#ff8a90} .jr-n.O{color:#ffc266} .jr-n.C{color:#9be08a}
 .jr-x{color:#c9d4e3}
-.jr.draw .jr-seg{animation:jrIn .55s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 90ms)}
-.jr.draw .jr-seg.wait{animation:jrIn .55s cubic-bezier(.2,.8,.2,1) both,jrFlow 1.6s linear infinite .55s}
-.jr.draw .jr-ticks,.jr.draw .jr-route{animation:jrFade .5s ease both .35s}
+.jr.draw .jr-seg{animation:jrIn .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 80ms)}
+.jr.draw .jr-seg.wait{animation:jrIn .6s cubic-bezier(.2,.8,.2,1) both,jrFlow 1.4s linear infinite .6s}
+.jr.draw .js,.jr.draw .jr-route,.jr.draw .jr-ends{animation:jrFade .5s ease both .3s}
 @keyframes jrIn{from{transform:scaleX(0);opacity:0}}
 @keyframes jrFade{from{opacity:0;transform:translateY(4px)}}
-@keyframes jrFlow{to{background-position:28px 0}}
+@keyframes jrFlow{to{background-position:18px 0}}
 @keyframes jrNudge{50%{transform:translateX(3px)}}
-@media (prefers-reduced-motion:reduce){.jr-seg,.jr-seg.wait,.jr.draw .jr-seg,.jr.draw .jr-ticks,.jr.draw .jr-route,.jr-train{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion:reduce){.jr-seg,.jr-seg.wait,.jr.draw .jr-seg,.jr.draw .js,.jr.draw .jr-route,.jr.draw .jr-ends,.jr-train{animation:none!important;transition:none!important}}
+/* 轉乘行程 */
+.js{list-style:none;margin:16px 0 0;padding:0}
+.js li{position:relative;display:grid;grid-template-columns:50px 26px 1fr;align-items:start;min-height:40px}
+.js li > div{grid-column:3;padding:1px 0 10px}
+.js time{grid-column:1;font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--board-ink);text-align:right;line-height:1.15;font-variant-numeric:tabular-nums;white-space:nowrap}
+.js time small{font-family:var(--font-body);font-size:10.5px;font-weight:400;color:#8a9bb4;margin-right:2px}
+.js li::before{content:"";position:absolute;left:63px;top:0;bottom:0;width:3px;margin-left:-1.5px;background:var(--seg,rgba(255,255,255,.18))}
+.js li::after{content:"";position:absolute;left:63px;top:5px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--board);border:3px solid var(--seg,#fff);box-sizing:border-box}
+.js li:first-child::before{top:10px}
+.js li:last-child::before{bottom:calc(100% - 10px)}
+.js li.R{--seg:var(--red)} .js li.O{--seg:var(--orange)} .js li.C{--seg:var(--lrt)}
+.js li.js-off::before{background:linear-gradient(var(--seg) 0 10px,transparent 10px)}
+.js li.js-wait::before,.js li.js-walk::before{background:repeating-linear-gradient(rgba(255,255,255,.32) 0 3px,transparent 3px 7px)}
+.js li.js-wait::after{display:none}
+.js li.js-walk::after{border-color:rgba(255,255,255,.55)}
+.js li.js-end::after{width:15px;height:15px;margin-left:-7.5px;top:4px;background:var(--seg,#fff);border-color:var(--board-ink)}
+.js strong{display:block;font-size:15px;font-weight:700;color:var(--board-ink);line-height:1.3}
+.js strong span{font-weight:400;font-size:13px;color:#8a9bb4;margin-left:4px}
+.js li > div > small{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:12px;color:#8a9bb4}
+.js-b{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:5px;font-family:var(--font-display);font-size:12px;line-height:1;color:#fff;padding:0 3px;flex:none}
+.js-b.R{background:var(--red)} .js-b.O{background:var(--orange);color:#1b1206} .js-b.C{background:var(--lrt);color:#0d1a08}
+.js li.js-wait{min-height:0}
+.js li.js-wait > div{padding:0 0 12px}
+.js li.js-wait p{margin:0;display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px 10px;padding:6px 12px;border-radius:12px;background:rgba(255,184,77,.12);color:var(--amber);font-size:13px;font-weight:700}
+.js li.js-wait p b{font-family:var(--font-display);font-size:20px;line-height:1}
+.js li.js-wait p span{display:inline-flex;align-items:center;gap:5px;color:#d9c39a;font-weight:500}
+.js li.js-wait p em{font-style:normal;font-size:12px;opacity:.85}
+.js li.js-wait.now p{background:var(--amber);color:#1b1206}
+.js li.js-wait.now p span{color:#3a2a0e}
 .b-walkbtn{display:inline-flex;align-items:center;gap:6px;justify-self:start;border:1px dashed rgba(255,255,255,.25);background:none;color:#c9d4e3;border-radius:999px;padding:5px 12px 5px 9px;font-size:12.5px;font-weight:700;cursor:pointer;min-height:32px}
 .b-walkbtn svg{width:16px;height:16px;flex:none}
 .b-walk{display:flex;align-items:flex-start;gap:10px;background:rgba(255,255,255,.06);border-radius:12px;padding:9px 8px 9px 12px;font-size:13.5px;color:#c9d4e3;line-height:1.5}
@@ -1334,9 +1331,7 @@ function journeyBar(r, now, live, draw) {
   const pos = live ? Math.max(0, Math.min(1, 1 - wait / 20)) : 1; // 小火車靠近月台的位置
   const cells = segs.map((sg, i) => {
     const pct = sg.grow / total * 100, wide = pct > 22;
-    const inner = sg.k === "wait" ? `<i class="jr-train" style="left:calc(${pos} * (100% - 26px))">${RIDE_IC}</i>`
-      : sg.k === "ride" ? `<b class="jr-l">${sg.L}</b>${pct > 40 ? `<span>${esc(sg.txt)}</span>` : pct > 22 ? `<span>${sg.mins} 分</span>` : ""}`
-      : pct > 26 ? `<span>${esc(sg.txt)}</span>` : pct > 12 ? `<span>${sg.mins}′</span>` : "";
+    const inner = sg.k === "wait" ? `<i class="jr-train" style="left:calc(${pos} * (100% - 24px))">${RIDE_IC}</i>` : "";
     return `<div class="jr-seg ${sg.k} ${sg.L || ""}${sg.k === "wait" && wait <= 2 ? " soon" : ""}" style="flex:${sg.grow} 1 0;--i:${i}" title="${esc(sg.txt || "")}">${inner}</div>`;
   }).join("");
   const ticks = segs.map((sg, i) => {
@@ -1346,30 +1341,30 @@ function journeyBar(r, now, live, draw) {
   const route = (r.pre ? `步行到${esc(r.pre.to)} → ` : "") + r.legs.map((l, k) => (k ? ` → <span class="jr-x">${esc(J[k - 1].label)}</span> → ` : "")
     + `<span class="jr-n ${l.trip.L}">${LINE_NAME[l.trip.L]}${headTxt(l.trip)}</span>`).join("") + (r.post ? ` → 步行到${esc(r.post.to)}` : "");
   const multi = r.legs.length > 1 || r.pre || r.post;
-  return `<div class="jr${draw ? " draw" : ""}"><div class="jr-track">${cells}</div>${multi ? journeySteps(r, now, live) : `<p class="jr-route">${route}</p>`}</div>`;
+  const ends = `<div class="jr-ends"><span>${live ? "現在" : ""}</span><span>${r.est ? "約 " : ""}${fmt(r.arr)} 抵達</span></div>`;
+  return `<div class="jr${draw ? " draw" : ""}"><div class="jr-track">${cells}</div>${ends}${multi ? journeySteps(r, now, live) : `<p class="jr-route">${route}・${r.arr - r.dep} 分</p>`}</div>`;
 }
 // 轉乘行程：幾點到轉乘站、要等幾分、下一班幾點開
 function journeySteps(r, now, live) {
   const J = joinsOf(r), rows = [];
   const stn = id => esc(nameOf[id]);
   const badge = L_ => `<b class="js-b ${L_}">${L_}</b>`;
-  if (r.pre) {
-    rows.push(`<li class="js-walk"><time>${fmt(r.dep)}</time><span>從${esc(r.pre.from)}出發，步行到${esc(r.pre.to)}站<small>約 ${r.pre.mins} 分</small></span></li>`);
-  }
+  const row = (cls, time, name, sub) => `<li class="${cls}"><time>${time}</time><div><strong>${name}</strong>${sub ? `<small>${sub}</small>` : ""}</div></li>`;
+  if (r.pre) rows.push(row("js-walk", fmt(r.dep), `${esc(r.pre.from)} 出發`, `步行到${esc(r.pre.to)}站・約 ${r.pre.mins} 分`));
   r.legs.forEach((l, i) => {
     const t = l.trip, from = t.stops[l.i], to = t.stops[l.j];
-    rows.push(`<li class="js-on ${t.L}"><time>${fmt(l.dep)}</time><span>${stn(from)} 上車 ${badge(t.L)}<em>${LINE_NAME[t.L]}${headTxt(t)}</em><small>${l.j - l.i} 站・${l.arr - l.dep} 分</small></span></li>`);
+    rows.push(row(`js-on ${t.L}`, fmt(l.dep), `${stn(from)} <span>上車</span>`, `${badge(t.L)}${LINE_NAME[t.L]}${headTxt(t)}・${l.j - l.i} 站 ${l.arr - l.dep} 分`));
     if (i < r.legs.length - 1) {
       const j = J[i], nx = r.legs[i + 1], nf = nx.trip.stops[nx.i];
-      const walkTxt = nameOf[nf] !== nameOf[to] ? `，步行到${stn(nf)}站` : "";
-      rows.push(`<li class="js-off ${t.L}"><time>${fmt(l.arr)}</time><span>到${stn(to)}下車${walkTxt}</span></li>`);
-      const soon = live && l.arr <= now && nx.dep > now; // 已經在轉乘站等車
-      rows.push(`<li class="js-wait${soon ? " now" : ""}"><span>等 <b>${j.wait}</b> 分，${fmt(nx.dep)} 有下一班${badge(nx.trip.L)}${soon ? `<small>還有 ${nx.dep - now} 分</small>` : ""}</span></li>`);
+      const walkSub = nameOf[nf] !== nameOf[to] ? `步行到${stn(nf)}站` : "同站換車";
+      rows.push(row(`js-off ${t.L}`, fmt(l.arr), `${stn(to)} <span>下車</span>`, walkSub));
+      const soon = live && l.arr <= now && nx.dep > now;
+      rows.push(`<li class="js-wait${soon ? " now" : ""}"><time></time><div><p>等 <b>${j.wait}</b> 分<span>${fmt(nx.dep)} 下一班 ${badge(nx.trip.L)}</span>${soon ? `<em>還有 ${nx.dep - now} 分</em>` : ""}</p></div></li>`);
     } else {
-      rows.push(`<li class="js-end ${t.L}"><time>${r.est && !r.post ? '<small>約</small>' : ""}${fmt(l.arr)}</time><span>到${stn(to)}${r.post ? "下車" : "，抵達"}</span></li>`);
+      rows.push(row(`js-end ${t.L}`, `${r.est && !r.post ? "<small>約</small>" : ""}${fmt(l.arr)}`, `${stn(to)} <span>${r.post ? "下車" : "抵達"}</span>`, ""));
     }
   });
-  if (r.post) rows.push(`<li class="js-walk js-end"><time><small>約</small>${fmt(r.arr)}</time><span>步行到${esc(r.post.to)}站，抵達<small>約 ${r.post.mins} 分</small></span></li>`);
+  if (r.post) rows.push(row("js-walk js-end", `<small>約</small>${fmt(r.arr)}`, `${esc(r.post.to)} <span>抵達</span>`, `步行約 ${r.post.mins} 分`));
   return `<ol class="js">${rows.join("")}</ol>`;
 }
 
@@ -2611,7 +2606,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v52";
+const APP_VER = "krtc-2026-11-15-v53";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
