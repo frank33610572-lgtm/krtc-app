@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>高捷班次</title>
+<title>捷運輕軌班次</title>
 <meta name="description" content="高雄捷運紅線、橘線與環狀輕軌班次查詢：下一班倒數、到站時間、美麗島轉乘、最近車站與地圖。可離線使用。">
 <meta name="theme-color" content="#0d1420">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="高捷班次">
+<meta name="apple-mobile-web-app-title" content="捷運輕軌班次">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta property="og:type" content="website">
-<meta property="og:title" content="高捷班次｜高雄捷運班次查詢">
+<meta property="og:title" content="高雄捷運輕軌班次｜捷運、輕軌班次查詢">
 <meta property="og:description" content="選起訖站就知道下一班幾分鐘後到、幾點抵達，美麗島轉乘、最近車站與 YouBike 一次看。可安裝到手機、離線使用。">
 <meta property="og:image" content="https://frank33610572-lgtm.github.io/krtc-app/icon-512.png">
 <meta property="og:url" content="https://frank33610572-lgtm.github.io/krtc-app/">
@@ -513,6 +513,10 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .oh-acts button[hidden]{display:none}
 .pp-src{margin:0;font-size:11.5px;color:var(--muted);line-height:1.45}
 .maptoast:empty{display:none}
+.ttnote{display:flex;align-items:flex-start;gap:10px;background:color-mix(in srgb,var(--amber,#ffb84d) 16%,var(--surface));border:1px solid color-mix(in srgb,var(--amber,#ffb84d) 45%,transparent);border-radius:14px;padding:10px 8px 10px 14px;font-size:13.5px;line-height:1.5;color:var(--ink)}
+.ttnote[hidden]{display:none}
+.ttnote span{flex:1}
+.ttnote button{flex:none;border:0;background:none;color:var(--muted);font-size:18px;width:28px;height:28px;border-radius:50%;cursor:pointer}
 /* 好用地圖分類：放在地圖上方，三顆大按鈕＋一個開關，不會和地圖上的店家搶手指 */
 .poibar{display:grid;gap:8px}
 .poibar[hidden]{display:none}
@@ -593,7 +597,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
     <div class="topbar">
       <div class="brand">
         <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0d1420"/><rect x="14" y="5" width="4" height="22" rx="2" fill="#e1252f"/><rect x="5" y="14" width="22" height="4" rx="2" fill="#f39800"/><circle cx="16" cy="16" r="5" fill="#fff"/><circle cx="16" cy="16" r="2.4" fill="#0d1420"/></svg>
-        高捷班次
+        捷運輕軌班次
         <span class="offline">離線</span>
       </div>
       <button type="button" class="daychip" id="dayChip" aria-label="更改時刻表日別"><i></i><span id="dayChipText">平日</span></button>
@@ -628,6 +632,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
         <div class="pk-list" id="pkList" role="listbox" aria-labelledby="pkTitle" tabindex="-1"></div>
       </div>
     </dialog>
+    <div class="ttnote" id="ttNote" hidden><span id="ttNoteText"></span><button type="button" id="ttNoteX" aria-label="知道了">×</button></div>
     <section class="board view" id="board" data-view="list" aria-live="polite"></section>
     <dialog class="picker" id="exitDlg" aria-labelledby="exTitle">
       <div class="pk-in">
@@ -800,6 +805,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
         <div class="card about">
           <h2 style="color:var(--ink)">關於資料</h2>
           <p id="srcText"></p>
+          <p class="hint" id="ttStatus"></p>
           <p>標「約」的時間是終點站到站時間，由站間行駛時間推算，誤差約一分鐘。實際以高雄捷運現場公告為準。</p>
           <p>即時車廂擁擠度請看高雄捷運官方 App「高雄捷運—通勤助理」。常用路線與車廂備註只存在這支手機。</p>
         </div>
@@ -2218,6 +2224,7 @@ $("locate").onclick = () => {
 function showView(v) {
   state.view = v;
   document.querySelectorAll(".view").forEach(s => { s.hidden = s.dataset.view !== v; });
+  if (typeof paintTT === "function") paintTT();
   document.querySelectorAll(".tabbar button").forEach(b => { if (b.dataset.tab === v) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
   if (v === "favs") renderFavView();
   if (v === "map") {
@@ -2457,8 +2464,37 @@ const syncOnline = () => document.body.classList.toggle("is-offline", !navigator
 addEventListener("online", syncOnline); addEventListener("offline", syncOnline); syncOnline();
 render();
 walkLocate(true);
+// ---------- 官方時刻表改版提醒：每天最多查一次 TDX，有新版就提醒班次可能不準 ----------
+const TT_VER = {mrt: (DATA.src.match(/版本\s*(\d{4}-\d{2}-\d{2})/) || [])[1] || "", lrt: LRT.v};
+const TT_NAME = {mrt: "捷運", lrt: "輕軌"};
+function paintTT() {
+  const st = store.get("krtc-tt", {}), news = ["mrt", "lrt"].filter(k => st[k] && st[k] > TT_VER[k]);
+  const fresh = news.filter(k => st.dismiss?.[k] !== st[k]);
+  $("ttNote").hidden = !fresh.length || state.view !== "list";
+  if (fresh.length) $("ttNoteText").textContent = `官方${fresh.map(k => `${TT_NAME[k]}時刻表在 ${st[k]} 改版了`).join("、")}，這裡的班次還是舊的，可能不準，請以車站公告為準。`;
+  $("ttStatus").textContent = !st.t ? "" : news.length
+    ? `官方有新時刻表：${news.map(k => `${TT_NAME[k]} ${st[k]}`).join("、")}（App 內是 ${news.map(k => TT_VER[k]).join("、")}）。`
+    : `已確認是最新的官方時刻表（${new Date(st.t).getMonth() + 1}/${new Date(st.t).getDate()} 檢查）。`;
+}
+async function checkTT() {
+  const st = store.get("krtc-tt", {});
+  if (!navigator.onLine || (st.t && Date.now() - st.t < 20 * 3600e3)) return paintTT();
+  const ver = async sys => {
+    const r = await fetch(`https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/StationTimeTable/${sys}?%24select=SrcUpdateTime&%24top=1&%24format=JSON`);
+    if (!r.ok) throw new Error(r.status);
+    const j = await r.json(); return (j[0]?.SrcUpdateTime || "").slice(0, 10);
+  };
+  try {
+    const [m, l] = await Promise.all([ver("KRTC"), ver("KLRT")]);
+    store.set("krtc-tt", {...st, t: Date.now(), mrt: m || st.mrt, lrt: l || st.lrt});
+  } catch (e) {}
+  paintTT();
+}
+$("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss = {mrt: st.mrt, lrt: st.lrt}; store.set("krtc-tt", st); paintTT(); };
+addEventListener("load", () => setTimeout(checkTT, 3000));
+
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v44";
+const APP_VER = "krtc-2026-11-15-v45";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
