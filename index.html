@@ -121,6 +121,7 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .pk-tab small{display:block;font-size:11.5px;color:var(--muted);line-height:1.3;white-space:nowrap}
 .pk-tab[aria-selected="true"]{border-color:var(--lc);background:color-mix(in srgb,var(--lc) 10%,var(--surface))}
 .pk-tab[aria-selected="false"] .badge{opacity:.55}
+.pk-list:focus{outline:none}
 .pk-list{overflow-y:auto;overscroll-behavior:contain;padding:8px 10px 14px;padding-bottom:calc(14px + env(safe-area-inset-bottom));flex:1;min-height:0}
 .pk-row{--lc:var(--red);display:grid;grid-template-columns:34px 50px 1fr auto;align-items:center;gap:6px;width:100%;min-height:54px;border:0;background:none;border-radius:14px;padding:0 10px 0 4px;text-align:left;cursor:pointer;color:var(--ink)}
 .pk-list.O .pk-row{--lc:var(--orange)}
@@ -591,7 +592,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
             <button type="button" role="tab" class="pk-tab" data-l="O"><span class="badge O">O</span><span><b>橘線</b><small>大寮－哈瑪星</small></span></button>
           </div>
         </div>
-        <div class="pk-list" id="pkList" role="listbox" aria-labelledby="pkTitle"></div>
+        <div class="pk-list" id="pkList" role="listbox" aria-labelledby="pkTitle" tabindex="-1"></div>
       </div>
     </dialog>
     <section class="board view" id="board" data-view="list" aria-live="polite"></section>
@@ -602,7 +603,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
           <div class="pk-head"><h2 id="exTitle">選擇出口</h2><button type="button" class="pk-x" id="exClose" aria-label="關閉">×</button></div>
           <p class="ex-sub" id="exSub"></p>
         </div>
-        <div class="pk-list ex-list" id="exList"></div>
+        <div class="pk-list ex-list" id="exList" tabindex="-1"></div>
       </div>
     </dialog>
     <div class="favwrap">
@@ -712,7 +713,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
         <div class="card">
           <h2>時刻表日別</h2>
           <div class="days" id="days" role="radiogroup" aria-label="時刻表日別"></div>
-          <p class="hint">會依今天日期自動選擇。國定假日請選「假日」，國定假日前一天請選「假日前一天」。</p>
+          <p class="hint">會依今天日期自動選擇，國定假日、補假和連假前一天也會自動套用（已排到 2027 年底）。</p>
         </div>
         <div class="card">
           <h2>美麗島轉乘預留時間</h2>
@@ -822,9 +823,21 @@ function search(o, d, day, xfer) {
   }
   return res.sort((a, b) => a.dep - b.dep);
 }
+// 國定假日與補假（人事總處 115、116 年辦公日曆表），週末本來就算放假
+const HOLIDAYS = new Set(["2026-12-25", "2027-01-01", "2027-02-04", "2027-02-05", "2027-02-08", "2027-02-09", "2027-02-10",
+  "2027-03-01", "2027-04-05", "2027-04-06", "2027-04-30", "2027-06-09", "2027-09-15", "2027-09-28", "2027-10-11",
+  "2027-10-25", "2027-12-24", "2027-12-31"]);
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const isOff = d => d.getDay() === 0 || d.getDay() === 6 || HOLIDAYS.has(ymd(d));
+// 日別：上班日→平日；隔天放假的上班日→假日前一天；隔天也放假的假日→假日；隔天要上班的假日→週日
 function autoDay(date) {
   const d = new Date(date); if (d.getHours() < 4) d.setDate(d.getDate() - 1);
-  const w = d.getDay(); return w === 0 ? 3 : w === 6 ? 2 : w === 5 ? 1 : 0;
+  const n = new Date(d); n.setDate(n.getDate() + 1);
+  return !isOff(d) ? (isOff(n) ? 1 : 0) : (isOff(n) ? 2 : 3);
+}
+function tomorrowDay() { // 下一個營運日的日別（收班後用）
+  const d = new Date(); if (d.getHours() >= 4) d.setDate(d.getDate() + 1); d.setHours(12, 0, 0, 0);
+  return autoDay(d);
 }
 const nowSvc = () => { const n = new Date(); return toSvc(n.getHours() * 60 + n.getMinutes()); };
 
@@ -936,9 +949,10 @@ function render() {
   // 看板
   if (!next) {
     const later = res.find(r => (state.mode === "dep" ? r.dep : r.arr) > b);
+    const done = live && !res.some(r => r.dep >= now);
     board.innerHTML = `<div class="b-head"><span>${esc(o)} → ${esc(d)}</span><b>${DAY_SHORT[day]}</b></div>
-      <div class="b-empty">${inRange.length ? "這個範圍的車都開走了" : "這個時間範圍沒有班次"}
-      <small>${later ? `之後的下一班：${fmt(later.dep)} 上車，${later.est ? "約 " : ""}${fmt(later.arr)} 抵達。` : "今天已經沒有車了。"}可以把時間範圍放寬。</small></div>`;
+      <div class="b-empty">${done ? "今天已經收班" : inRange.length ? "這個範圍的車都開走了" : "這個時間範圍沒有班次"}
+      <small>${later ? `之後的下一班：${fmt(later.dep)} 上車，${later.est ? "約 " : ""}${fmt(later.arr)} 抵達。可以把時間範圍放寬。` : firstTomorrow(o, d)}</small></div>`;
   } else {
     const w = next.dep - now;
     const countHTML = live
@@ -1032,6 +1046,12 @@ function walkLine(res, next, now, firstUp) {
   return `<div class="b-walk"><span>${how}<br>搭 <b>${fmt(c.dep)}</b> 那班，${go}${firstUp && c !== firstUp ? `<small>${fmt(firstUp.dep)} 那班走過去來不及，已經幫你跳過</small>` : ""}</span>${off}</div>`;
 }
 
+function firstTomorrow(o, d) {
+  const last = search(o, d, state.day, state.xfer).slice(-1)[0];
+  const t = search(o, d, tomorrowDay(), state.xfer)[0];
+  return `今天的車已經收班了${last ? `（末班 ${fmt(last.dep)}）` : ""}。${t ? `明天首班 ${fmt(t.dep)} 上車，${t.est ? "約 " : ""}${fmt(t.arr)} 抵達。` : ""}`;
+}
+
 // 看板補充：再下一班、末班車提醒
 function boardMore(res, next, now, live) {
   if (!live) return "";
@@ -1050,7 +1070,7 @@ function favNext(f) {
   return search(f.o, f.d, todayDay, state.xfer).find(r => r.dep >= now) || null;
 }
 const nextHTML = (r, cls) => {
-  if (!r) return `<span class="${cls}">今天已無班次</span>`;
+  if (!r) return `<span class="${cls}">今天已收班</span>`;
   const w = r.dep - nowSvc();
   return `<span class="${cls}${w <= 10 ? " soon" : ""}">${w < 100 ? `<b>${w === 0 ? "現在" : w}</b>${w === 0 ? "" : "分後"}` : `<b>${fmt(r.dep)}</b>`}・${fmt(r.dep)} 上車</span>`;
 };
@@ -1376,6 +1396,7 @@ function initMap() {
   map.addControl(new maplibregl.NavigationControl({showCompass: true}), "top-right");
   map.addControl(new maplibregl.AttributionControl({compact: true}), "bottom-left");
   map.on("style.load", setupLayers);
+  map.on("styleimagemissing", e => { if (!map.hasImage(e.id)) map.addImage(e.id, {width: 1, height: 1, data: new Uint8Array(4)}); });
   for (const lid of ["poi", "poi-glyph"]) map.on("click", lid, e => {
     if (map.queryRenderedFeatures(e.point, {layers: ["stations"]}).length) return;
     const it = poi.items.get(e.features[0].properties.id); if (it) poiOpen(it);
@@ -2023,7 +2044,7 @@ function openPickerFor(opt) {
   $("pkNear").classList.remove("busy"); $("pkNear").lastChild.textContent = "離我最近";
   const d = $("picker");
   if (typeof d.showModal === "function") d.showModal(); else d.setAttribute("open", "");
-  pkRender(true);
+  pkRender(true); $("pkList").focus({preventScroll: true});
 }
 function closePicker() { const d = $("picker"); if (d.close) d.close(); else d.removeAttribute("open"); }
 document.querySelectorAll(".stnbtn").forEach(b => b.onclick = () => openPicker(b.dataset.pick));
@@ -2090,7 +2111,7 @@ function openExitPicker(name) {
       <span class="ex-d">${d != null ? `<b>${walkMin(d)}</b>分<small>${distText(d)}</small>` : ""}</span></button>`).join("");
   $("exList").dataset.station = name;
   const dlg = $("exitDlg"); if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
-  $("exList").scrollTop = 0;
+  $("exList").scrollTop = 0; $("exList").focus({preventScroll: true});
 }
 function closeExitPicker() { const d = $("exitDlg"); if (d.close) d.close(); else d.removeAttribute("open"); }
 $("exClose").onclick = closeExitPicker;
@@ -2159,7 +2180,7 @@ addEventListener("online", syncOnline); addEventListener("offline", syncOnline);
 render();
 walkLocate(true);
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v32";
+const APP_VER = "krtc-2026-11-15-v33";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
