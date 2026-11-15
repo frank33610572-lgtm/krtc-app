@@ -1150,7 +1150,7 @@ function renderFavs() {
     star = document.createElement("button"); star.type = "button"; star.className = "star";
     star.onclick = () => {
       const i = favIdx(state.from, state.to);
-      if (i >= 0) favs.splice(i, 1); else if (state.from !== state.to) favs.push({o: state.from, d: state.to, name: "", def: false});
+      if (i >= 0) favs.splice(i, 1); else if (state.from !== state.to) favs.push({o: state.from, d: state.to, name: "", def: !favs.length});
       saveFavs(); render();
     };
     document.querySelector(".journey").appendChild(star);
@@ -2288,7 +2288,7 @@ addEventListener("online", syncOnline); addEventListener("offline", syncOnline);
 render();
 walkLocate(true);
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v40";
+const APP_VER = "krtc-2026-11-15-v41";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
