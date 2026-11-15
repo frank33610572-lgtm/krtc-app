@@ -237,7 +237,8 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .board::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--trail,var(--red) 0 50%,var(--orange) 50% 100%))}
 .b-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;letter-spacing:.12em;color:#9fb0c8}
 .b-head b{color:var(--amber);font-weight:700;letter-spacing:.12em}
-.b-main{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.b-main{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;min-width:0}
+.board > *{min-width:0}
 .b-count{display:flex;align-items:baseline;gap:8px;color:var(--amber)}
 .b-count .big{font-family:var(--font-display);font-weight:800;font-size:92px;line-height:.82;font-variant-numeric:tabular-nums}
 .b-count .unit{font-size:16px;font-weight:700}
@@ -255,13 +256,13 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .b-more .warn{color:var(--amber);font-weight:700;background:rgba(255,184,77,.12)}
 .b-more .warn b,.b-more .warn small{color:var(--amber)}
 /* 旅程條 */
-.jr{display:grid;gap:6px}
-.jr-track{display:flex;gap:3px;height:34px}
-.jr-seg{position:relative;min-width:12px;border-radius:9px;display:flex;align-items:center;gap:6px;padding:0 8px;overflow:hidden;font-size:12px;font-weight:700;white-space:nowrap;color:#fff;transform-origin:left center}
-.jr-seg span{overflow:hidden;text-overflow:ellipsis}
+.jr{display:grid;gap:6px;min-width:0}
+.jr-track{display:flex;gap:3px;height:34px;min-width:0}
+.jr-seg{position:relative;min-width:0;border-radius:9px;display:flex;align-items:center;gap:6px;padding:0 8px;overflow:hidden;font-size:12px;font-weight:700;white-space:nowrap;color:#fff;transform-origin:left center}
+.jr-seg span{overflow:hidden;text-overflow:clip;min-width:0}
 .jr-seg.ride.R{background:var(--red)} .jr-seg.ride.O{background:var(--orange);color:#1b1206} .jr-seg.ride.C{background:var(--lrt);color:#0d1a08}
 .jr-l{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.92);color:#0b1018;font-family:var(--font-display);font-size:13px;flex:none}
-.jr-seg.wait{background:repeating-linear-gradient(-55deg,rgba(255,255,255,.07) 0 6px,rgba(255,255,255,.015) 6px 12px);background-size:28px 100%;color:#9fb0c8;justify-content:flex-end;padding-right:10px;animation:jrFlow 1.6s linear infinite;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.jr-seg.wait{background:repeating-linear-gradient(-55deg,rgba(255,255,255,.07) 0 6px,rgba(255,255,255,.015) 6px 12px);background-size:28px 100%;color:#9fb0c8;padding:0;min-width:34px;animation:jrFlow 1.6s linear infinite;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
 .jr-seg.wait::after{content:"";position:absolute;right:0;top:6px;bottom:6px;width:3px;border-radius:2px;background:var(--amber)}
 .jr-seg.wait.soon{box-shadow:inset 0 0 0 1px rgba(255,184,77,.6);color:var(--amber)}
 .jr-train{position:absolute;top:50%;width:22px;height:22px;margin-top:-11px;color:var(--amber);transition:left 1.2s cubic-bezier(.3,.7,.3,1);filter:drop-shadow(0 0 6px rgba(255,184,77,.45))}
@@ -270,7 +271,7 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .jr-seg.xfer,.jr-seg.walk{background:transparent;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22);color:#c9d4e3;justify-content:center;border-radius:9px;background-image:radial-gradient(circle,rgba(255,255,255,.28) 1.2px,transparent 1.6px);background-size:8px 8px;background-position:center}
 .jr-seg.xfer span,.jr-seg.walk span{background:var(--board);padding:1px 6px;border-radius:6px}
 .jr-ticks{display:flex;gap:3px;align-items:baseline;font-family:var(--font-display);font-size:13px;color:#8a9bb4;font-variant-numeric:tabular-nums;position:relative;min-height:16px}
-.jr-ticks > div{min-width:12px}
+.jr-ticks > div{min-width:0;overflow:visible;white-space:nowrap}
 .jr-ticks span.hide{visibility:hidden}
 .jr-ticks em{position:absolute;right:0;font-style:normal;color:var(--board-ink);font-weight:700}
 .jr-route{margin:2px 0 0;font-size:12.5px;color:#9fb0c8;line-height:1.6}
@@ -1306,9 +1307,9 @@ function journeyBar(r, now, live, draw) {
   const pos = live ? Math.max(0, Math.min(1, 1 - wait / 20)) : 1; // 小火車靠近月台的位置
   const cells = segs.map((sg, i) => {
     const pct = sg.grow / total * 100, wide = pct > 22;
-    const inner = sg.k === "wait" ? `<i class="jr-train" style="left:calc(${pos} * (100% - 22px))">${RIDE_IC}</i>${wide ? `<span>等車 ${wait} 分</span>` : ""}`
-      : sg.k === "ride" ? `<b class="jr-l">${sg.L}</b>${pct > 18 ? `<span>${esc(sg.txt)}</span>` : ""}`
-      : pct > 14 ? `<span>${esc(sg.txt)}</span>` : "";
+    const inner = sg.k === "wait" ? `<i class="jr-train" style="left:calc(${pos} * (100% - 26px))">${RIDE_IC}</i>`
+      : sg.k === "ride" ? `<b class="jr-l">${sg.L}</b>${pct > 40 ? `<span>${esc(sg.txt)}</span>` : pct > 22 ? `<span>${sg.mins} 分</span>` : ""}`
+      : pct > 26 ? `<span>${esc(sg.txt)}</span>` : pct > 12 ? `<span>${sg.mins}′</span>` : "";
     return `<div class="jr-seg ${sg.k} ${sg.L || ""}${sg.k === "wait" && wait <= 2 ? " soon" : ""}" style="flex:${sg.grow} 1 0;--i:${i}" title="${esc(sg.txt || "")}">${inner}</div>`;
   }).join("");
   const ticks = segs.map((sg, i) => {
@@ -2558,7 +2559,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v46";
+const APP_VER = "krtc-2026-11-15-v47";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
