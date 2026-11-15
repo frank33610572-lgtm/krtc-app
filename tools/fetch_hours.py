@@ -1,6 +1,6 @@
 """每月更新營業時間來源（GitHub Actions 執行）。
 
-- data/osm_hours.txt   ：OpenStreetMap 全高雄有填營業時間的超商、手搖飲、咖啡廳
+- data/osm_hours.txt   ：OpenStreetMap 全高雄有填營業時間的超商、手搖飲、咖啡廳、酒吧、餐廳
 - data/chain_hours2.txt：迷客夏、cama 官網的高雄門市營業時間
 星巴克（data/chain_hours.txt）的門市座標要在瀏覽器裡才拿得到，維持手動更新。
 任何一個來源抓失敗就保留舊檔，不會把資料清掉。
@@ -24,7 +24,8 @@ def osm():
     bbox = "22.45,120.15,22.92,120.52"
     q = (f'[out:json][timeout:180];(nwr["amenity"="cafe"]({bbox});'
          f'nwr["shop"~"^(bubble_tea|tea|beverages|convenience)$"]({bbox});'
-         f'nwr["cuisine"~"bubble_tea|tea|coffee|juice"]({bbox}););out center tags;')
+         f'nwr["cuisine"~"bubble_tea|tea|coffee|juice"]({bbox});'
+         f'nwr["amenity"~"^(bar|pub|biergarten|restaurant|fast_food|food_court)$"]({bbox}););out center tags;')
     for host in ("https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter",
                  "https://overpass.kumi.systems/api/interpreter", "https://overpass-api.de/api/interpreter"):
         try:
@@ -38,7 +39,12 @@ def osm():
     for e in j["elements"]:
         t = e.get("tags", {})
         if not t.get("opening_hours"): continue
-        k = "c" if t.get("shop") == "convenience" else "f" if t.get("amenity") == "cafe" and not re.search(r"bubble_tea|tea|juice", t.get("cuisine", "")) else "t"
+        am, cu = t.get("amenity", ""), t.get("cuisine", "")
+        if t.get("shop") == "convenience": k = "c"
+        elif am in ("bar", "pub", "biergarten"): k = "b"
+        elif am in ("restaurant", "fast_food", "food_court") and not re.search(r"bubble_tea|juice", cu): k = "r"
+        elif am == "cafe" and not re.search(r"bubble_tea|tea|juice", cu): k = "f"
+        else: k = "t"
         lat = e.get("lat", e.get("center", {}).get("lat")); lon = e.get("lon", e.get("center", {}).get("lon"))
         if lat is None: continue
         out.append("\t".join([k, e["type"][0] + str(e["id"]), clean(t.get("name")), clean(t.get("brand")), clean(t.get("branch")),

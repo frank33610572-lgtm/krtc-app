@@ -1,6 +1,6 @@
 """Merge opening hours (OSM + Starbucks official) into krtc-app/stores.json.
 
-shop rows become [name, addr, cafe, a, o, oh, display]; fam rows get oh at [5]; hl rows get oh at [6].
+shop rows become [name, addr, cat(0 手搖飲 1 咖啡廳 2 酒吧 3 餐廳), a, o, oh, display]; fam rows get oh at [5]; hl rows get oh at [6].
 Unmatched tea/cafe shops that have hours are added as new shop rows.
 """
 import json, math, re, sys
@@ -141,13 +141,13 @@ for c in [c for c in chains if not c["p"]]:
     if not ks: continue
     k = ks[0]; used.add(k); oh_of[k] = c["oh"]; disp_of[k] = c["name"]; src_of[k] = "c"; amatch += 1
 print("chain stores matched by address:", amatch, "/", sum(1 for c in chains if not c["p"]))
-src = [dict(o, src="osm") for o in osm if o["k"] in "tf" and o["oh"]] + [dict(c, src="sb" if c.get("tag") == "SB" else "ch") for c in chains if c["oh"] and c["p"]]
+src = [dict(o, src="osm") for o in osm if o["k"] in "tfbr" and o["oh"]] + [dict(c, src="sb" if c.get("tag") == "SB" else "ch") for c in chains if c["oh"] and c["p"]]
 added = []
 for o in src:
-    want_cafe = o["k"] == "f"
+    want = {"t": 0, "f": 1, "b": 2, "r": 3}.get(o["k"], 0)
     name = o["name"] or o.get("brand") or ""
     if o["src"] == "osm" and o.get("branch") and o["branch"] not in name: name = f"{name} {o['branch']}"
-    GENERIC = set("咖啡茶飲料店坊館屋冷紅綠奶鮮手搖工作室企業社商行小吃部高雄門市分")
+    GENERIC = set("咖啡茶飲料店坊館屋冷紅綠奶鮮手搖工作室企業社商行小吃部高雄門市分餐廳飯麵食堂酒吧")
     words = set(re.findall(r"[\u4e00-\u9fff]", name + (o.get("brand") or ""))) - GENERIC
     def ok(d, k):
         reg = shops[k][0]
@@ -155,7 +155,7 @@ for o in src:
         if re.search(r"公司|股份", reg): return d <= 30          # 登記的是公司名，看不出店名
         return d <= 6                                            # 名字對不上，只接受幾乎同一點
     cands = [(d, k) for d, k in G.near(o["p"], 40) if k not in used and ok(d, k)]
-    same = [(d, k) for d, k in cands if (shops[k][2] == 1) == want_cafe]
+    same = [(d, k) for d, k in cands if shops[k][2] == want]
     pick = (same or cands or [None])[0]
     if not pick and G.near(o["p"], 8): continue   # 旁邊已有別間店、又對不上，寧可不加以免重複
     if pick:
@@ -163,11 +163,13 @@ for o in src:
         if name: disp_of[k] = name
     else:
         a, b = off(*o["p"])
-        added.append([name or ("咖啡廳" if want_cafe else "手搖飲"), o.get("addr", ""), 1 if want_cafe else 0, a, b, o["oh"], "", {"sb": "S", "ch": "C"}.get(o["src"], "O")])
+        added.append([name or ["手搖飲", "咖啡廳", "酒吧", "餐廳"][want], o.get("addr", ""), want, a, b, o["oh"], "", {"sb": "S", "ch": "C"}.get(o["src"], "O")])
 for k, r in enumerate(shops):
     r += [oh_of.get(k, ""), disp_of.get(k, "") if disp_of.get(k, "") != r[0] else "", src_of.get(k, "")]
 S["shop"] = shops + added
 print("registry shops given hours:", len(oh_of), " new shops added:", len(added),
       " total shops with hours:", sum(1 for r in S["shop"] if r[5]), "/", len(S["shop"]))
+for r in S["shop"]:                     # 去掉尾端空欄位，檔案小一點
+    while r and r[-1] == "": r.pop()
 S["src"]["hours"] = "營業時間：OpenStreetMap、星巴克官網（2026-11-15）"
 json.dump(S, open(stores_path, "w"), ensure_ascii=False, separators=(",", ":"))

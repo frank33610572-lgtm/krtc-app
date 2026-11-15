@@ -24,14 +24,21 @@ def dec(s):
 ents = [dec(geo[i:i + 9]) for i in range(0, len(geo), 9)]
 off = lambda lat, lon: [round(lat * 1e5) - 2200000, round(lon * 1e5) - 12000000]
 
-shops, miss = [], 0
+# 類別：0 手搖飲、1 咖啡廳、2 酒吧、3 餐廳
+CAT = {"tea": 0, "cafe": 1, "bar": 2, "food": 3}
+# 「飲酒店」登記裡有不少是視聽歌唱、會館、茶室類，不是一般人要找的酒吧
+NOT_BAR = __import__("re").compile(r"會館|視聽|小吃部|小吃店|卡拉|KTV|好樂迪|錢櫃|娛樂|茶室|冷飲|飲料|美食|俱樂部|聯誼", __import__("re").I)
+shops, miss, dropped = [], 0, 0
 for (uid, name, addr, cat), e in zip(need["shops"], ents[:n_shop]):
     if not e:
         miss += 1
         continue
+    if cat == "bar" and NOT_BAR.search(name):
+        dropped += 1
+        continue
     a, o = off(e[0], e[1])
     addr = addr.translate({0xFF10 + i: 0x30 + i for i in range(10)}).replace("－", "-").replace("高雄市", "", 1)
-    shops.append([name, addr, 1 if cat == "cafe" else 0, a, o])
+    shops.append([name, addr, CAT[cat], a, o])
 
 hl = []
 for row, e in zip(stores["hl"], ents[n_shop:]):
@@ -42,4 +49,4 @@ stores["hl"] = hl
 stores["shop"] = shops
 stores["src"]["shop"] = "財政部營業稅籍登記（" + need["v"] + "）＋高雄市門牌座標"
 json.dump(stores, open(stores_path, "w"), ensure_ascii=False, separators=(",", ":"))
-print("shops", len(shops), "miss", miss, "hl with coords", sum(len(r) > 4 for r in hl), "/", len(hl))
+print("shops", len(shops), "miss", miss, "bar dropped", dropped, "by cat", __import__("collections").Counter(r[2] for r in shops), "hl with coords", sum(len(r) > 4 for r in hl), "/", len(hl))
