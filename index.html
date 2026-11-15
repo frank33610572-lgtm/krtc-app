@@ -114,7 +114,12 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .pk-near.busy svg{animation:spin 1s linear infinite}
 .pk-row.near:not(.sel) .pk-tag{border-color:var(--focus);color:var(--focus)}
 .pk-x{border:0;background:var(--soft);width:34px;height:34px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;color:var(--muted)}
-.pk-lines{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pk-lines{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.pk-lines .pk-tab{padding:8px 8px;gap:7px;min-height:54px;min-width:0}
+.pk-lines .pk-tab .badge{min-width:26px;height:26px;font-size:16px}
+.pk-lines .pk-tab > span:last-child{min-width:0}
+.pk-lines .pk-tab b{font-size:15px}
+.pk-lines .pk-tab small{white-space:normal;font-size:10.5px;line-height:1.25}
 .pk-tab{--lc:var(--red);display:flex;align-items:center;gap:10px;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:9px 11px;cursor:pointer;min-height:58px;transition:border-color .15s,background-color .15s}
 .pk-tab[data-l="O"]{--lc:var(--orange)}
 .pk-tab[data-l="C"]{--lc:var(--lrt)}
@@ -1114,6 +1119,12 @@ function render() {
   if (o === d) {
     board.innerHTML = `<div class="b-head"><span>高雄捷運</span></div><div class="b-empty">起站和終站相同<small>請換一個終站。</small></div>`;
     list.innerHTML = `<div class="empty"><b>請選擇不同的起站與終站</b></div>`; $("listTitle").textContent = "班次";
+    return;
+  }
+  const wp = LRT_X.find(x => (nameOf[x.c] === o && nameOf[x.m] === d) || (nameOf[x.m] === o && nameOf[x.c] === d));
+  if (wp) {
+    board.innerHTML = `<div class="b-head"><span>${esc(o)} → ${esc(d)}</span></div><div class="b-empty">走路就到了<small>${esc(o)}站和${esc(d)}站是捷運、輕軌的轉乘站，步行約 ${wp.walk} 分鐘，不用搭車。</small></div>`;
+    list.innerHTML = `<div class="empty"><b>步行約 ${wp.walk} 分鐘</b>兩站相鄰，直接走過去最快。</div>`; $("listTitle").textContent = "班次";
     return;
   }
   let a = parseT(els.tFrom.value), b = parseT(els.tTo.value);
@@ -2447,7 +2458,7 @@ addEventListener("online", syncOnline); addEventListener("offline", syncOnline);
 render();
 walkLocate(true);
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v42";
+const APP_VER = "krtc-2026-11-15-v43";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
