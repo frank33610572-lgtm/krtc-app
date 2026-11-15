@@ -6,6 +6,7 @@ Unmatched tea/cafe shops that have hours are added as new shop rows.
 import json, math, re, sys
 
 stores_path, osm_path, chain_path = sys.argv[1:4]
+chain_paths = [chain_path] + sys.argv[4:]
 S = json.load(open(stores_path))
 ll = lambda a, o: ((a + 2200000) / 1e5, (o + 12000000) / 1e5)
 off = lambda lat, lon: [round(lat * 1e5) - 2200000, round(lon * 1e5) - 12000000]
@@ -61,14 +62,44 @@ def sb_oh(t):
         rules.append(f"{ds} {','.join(spans)}")
     return "; ".join(rules)
 
+# 其他連鎖：「平日：09:00-22:00 假日：10:00-22:00」「週一~週五 7:30~18:00 例假日 9:00~18:00」「09:00-22:00」
+LABEL = [("週日/國定假日", "Su"), ("週一~週五", "Mo-Fr"), ("週一～週五", "Mo-Fr"), ("週六~週日", "Sa-Su"), ("週六～週日", "Sa-Su"),
+         ("例假日", "Sa-Su"), ("平日", "Mo-Fr"), ("假日", "Sa-Su"), ("星期六", "Sa"), ("週六", "Sa"), ("星期日", "Su"), ("週日", "Su")]
+TR = r"(\d{1,2}[:：]\d{2})\s*[-~～–]\s*(\d{1,2}[:：]\d{2})"
+def gen_oh(t):
+    t = t.replace("：", ":")
+    lab = "|".join(re.escape(l) for l, _ in LABEL)
+    parts = re.findall(rf"({lab})\s*[:：]?\s*(?:{TR}|(公休|店休))", t)
+    if not parts:
+        m = re.search(TR, t)
+        return f"Mo-Su {m.group(1).zfill(5)}-{m.group(2).zfill(5)}" if m else ""
+    seen, rules = set(), []
+    for l, a, b, closed in parts:
+        d = dict(LABEL)[l]
+        if d in seen: continue
+        seen.add(d)
+        rules.append(f"{d} off" if closed else f"{d} {a.replace('：', ':').zfill(5)}-{b.replace('：', ':').zfill(5)}")
+    return "; ".join(rules)
+
+def akey(a):  # 地址比對鍵：路名＋巷弄＋門牌，去掉縣市、區、里、樓層
+    a = (a or "").translate({0xFF10 + i: 0x30 + i for i in range(10)}).replace(" ", "").replace("－", "-").replace("臺", "台")
+    a = re.sub(r"^\d{3,6}", "", a).replace("高雄市", "")
+    a = re.sub(r"^.{1,3}區", "", a); a = re.sub(r"^.{1,3}里(\d+鄰)?", "", a)
+    m = re.search(r"([^\d區里鄰]+?(?:路|街|大道)(?:[一二三四五六七八九十]+段)?(?:\d+巷)?(?:\d+弄)?\d+(?:[-之]\d+)?號)", a)
+    return m.group(1).replace("-", "之") if m else ""
+
 chains = []
-for line in open(chain_path, encoding="utf-8"):
+for line in (l for cp in chain_paths for l in open(cp, encoding="utf-8")):
+    if not line.strip(): continue
     tag, name, lat, lon, hrs, addr = line.rstrip("\n").split("|")
-    if not lat: continue
+    if not lat:   # 沒座標：之後用地址對到登記店家
+        oh = gen_oh(hrs)
+        if oh: chains.append(dict(k="f" if tag == "CA" else "t", name=name, p=None, oh=oh, akey=akey(addr), addr=addr))
+        continue
     oh = sb_oh(hrs)
     a = re.sub(r"^(.{2,3}區)\1", r"\1", addr.replace("高雄市", ""))
     chains.append(dict(k="f", name=name, p=(float(lat), float(lon)), oh=oh, addr=a))
-print("starbucks with parsed hours:", sum(1 for c in chains if c["oh"]), "/", len(chains))
+print("chain stores with parsed hours:", sum(1 for c in chains if c["oh"]), "/", len(chains), " (no coords:", sum(1 for c in chains if not c["p"]), ")")
 
 # ---- convenience: 萊爾富 (official coords) and 全家 non-24
 conv_osm = [o for o in osm if o["k"] == "c"]
@@ -99,7 +130,17 @@ shops = [r[:5] for r in S["shop"]]
 pts = [ll(r[3], r[4]) for r in shops]
 G = Grid(pts)
 oh_of, disp_of, src_of, used = {}, {}, {}, set()
-src = [dict(o, src="osm") for o in osm if o["k"] in "tf" and o["oh"]] + [dict(c, src="sb") for c in chains if c["oh"]]
+by_addr = {}
+for k, r in enumerate(shops):
+    key = akey(r[1])
+    if key: by_addr.setdefault(key, []).append(k)
+amatch = 0
+for c in [c for c in chains if not c["p"]]:
+    ks = [k for k in by_addr.get(c["akey"], []) if k not in used]
+    if not ks: continue
+    k = ks[0]; used.add(k); oh_of[k] = c["oh"]; disp_of[k] = c["name"]; src_of[k] = "c"; amatch += 1
+print("chain stores matched by address:", amatch, "/", sum(1 for c in chains if not c["p"]))
+src = [dict(o, src="osm") for o in osm if o["k"] in "tf" and o["oh"]] + [dict(c, src="sb") for c in chains if c["oh"] and c["p"]]
 added = []
 for o in src:
     want_cafe = o["k"] == "f"

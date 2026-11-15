@@ -1640,7 +1640,7 @@ function poiAbsorb(it) {
   if (!g) return true;
   g.osm = it.id; poi.absorbed.add(it.id);
   if (it.n && it.n !== POI_CATS[it.c].label && g.reg && g.n === cleanReg(g.reg)) g.n = it.n; // 只取代看不出店名的公司登記名
-  if (it.oh && g.ohs !== "s") { g.oh = it.oh; g.ohs = "o"; }                                // 官網營業時間優先
+  if (it.oh && g.ohs !== "s" && g.ohs !== "c") { g.oh = it.oh; g.ohs = "o"; }                                // 官網營業時間優先
   if (it.b) g.b = it.b;
   return false;
 }
@@ -1919,7 +1919,7 @@ function poiName(it) {
 }
 function poiPopup(it) {
   const cat = POI_CATS[it.c], st = ohStatus(it), atm = atmOf(it), name = poiName(it);
-  const ohSrc = it.ohs === "s" ? "星巴克官網" : "OpenStreetMap";
+  const ohSrc = it.ohs === "s" ? "星巴克官網" : it.ohs === "c" ? "品牌官網" : "OpenStreetMap";
   const srcNote = it.newSrc ? `資料：${it.src}` : it.gov ? `位置：財政部營業登記＋高雄市門牌座標${it.oh ? `；營業時間：${ohSrc}` : ""}`
     : it.off ? `資料：${it.src}${it.atmSrc ? "；ATM 銀行：財金公司開放資料" : ""}` : "資料：OpenStreetMap，營業時間與 ATM 以現場為準";
   const sub = [cat.label, it.b && !name.startsWith(it.b) ? it.b : ""].filter(Boolean).join("・");
@@ -2185,7 +2185,7 @@ addEventListener("online", syncOnline); addEventListener("offline", syncOnline);
 render();
 walkLocate(true);
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v34";
+const APP_VER = "krtc-2026-11-15-v35";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
