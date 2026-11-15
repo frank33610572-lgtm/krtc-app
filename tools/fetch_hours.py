@@ -57,12 +57,14 @@ def milksha():
         lis = [html.unescape(re.sub(r"<[^>]+>", "", x)).strip() for x in re.findall(r"<li>(.*?)</li>", block, re.S)]
         hrs = " ".join(x for x in lis if re.search(r"\d{1,2}:\d{2}|公休|休", x))
         name = re.sub(r"❄️|Milksha Plus\s*", "", name).strip()
-        out.append("|".join(["MS", "迷客夏 " + name, "", "", hrs, addr]))
+        out.append("|".join(clean(x).replace("|", " ") for x in ["MS", "迷客夏 " + name, "", "", hrs, addr]))
     return out
 
 
 def cama():
     h = get("https://www.camacafe.com/store")
+    i = h.find("寶橋")
+    print("cama html len", len(h), "snippet:", re.sub(r"\s+", " ", h[max(0, i - 600):i + 400]) if i >= 0 else "(寶橋 not found)")
     h = re.sub(r"<script.*?</script>|<style.*?</style>", "", h, flags=re.S)
     h = re.sub(r"<br\s*/?>|</(p|div|li|h\d|tr|td|span)>", "\n", h)
     lines = [html.unescape(re.sub(r"<[^>]+>", "", x)).strip() for x in h.split("\n")]
@@ -79,7 +81,7 @@ def cama():
     for st in stores:
         if not st["lines"] or "高雄" not in st["lines"][0]: continue
         hrs = " ".join([x for x in st["lines"][1:] if re.search(r"\d{1,2}[:：]\d{2}|店休|公休", x)][:3])
-        out.append("|".join(["CA", "cama " + st["name"], "", "", hrs, st["lines"][0]]))
+        out.append("|".join(clean(x).replace("|", " ") for x in ["CA", "cama " + st["name"], "", "", hrs, st["lines"][0]]))
     return out
 
 

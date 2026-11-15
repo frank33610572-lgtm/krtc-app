@@ -90,8 +90,9 @@ def akey(a):  # 地址比對鍵：路名＋巷弄＋門牌，去掉縣市、區�
 
 chains = []
 for line in (l for cp in chain_paths for l in open(cp, encoding="utf-8")):
-    if not line.strip(): continue
-    tag, name, lat, lon, hrs, addr = line.rstrip("\n").split("|")
+    parts = line.rstrip("\n").split("|")
+    if len(parts) != 6: continue   # 格式不對的行直接略過
+    tag, name, lat, lon, hrs, addr = parts
     if not lat:   # 沒座標：之後用地址對到登記店家
         oh = gen_oh(hrs)
         if oh: chains.append(dict(k="f" if tag == "CA" else "t", name=name, p=None, oh=oh, akey=akey(addr), addr=addr))
