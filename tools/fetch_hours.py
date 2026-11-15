@@ -25,7 +25,8 @@ def osm():
     q = (f'[out:json][timeout:180];(nwr["amenity"="cafe"]({bbox});'
          f'nwr["shop"~"^(bubble_tea|tea|beverages|convenience)$"]({bbox});'
          f'nwr["cuisine"~"bubble_tea|tea|coffee|juice"]({bbox}););out center tags;')
-    for host in ("https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"):
+    for host in ("https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter",
+                 "https://overpass.kumi.systems/api/interpreter", "https://overpass-api.de/api/interpreter"):
         try:
             j = json.loads(get(host, ("data=" + urllib.parse.quote(q)).encode(), timeout=240))
             break
