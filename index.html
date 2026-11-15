@@ -277,9 +277,9 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .jr-ticks em{position:absolute;right:0;font-style:normal;color:var(--board-ink);font-weight:700}
 /* 轉乘行程 */
 .js{list-style:none;margin:0;padding:0;display:grid;gap:0}
-.js li{position:relative;display:grid;grid-template-columns:52px 1fr;align-items:start;gap:12px;padding:5px 0;font-size:13.5px;color:#c9d4e3;line-height:1.45}
-.js li::before{content:"";position:absolute;left:62px;top:0;bottom:0;width:3px;margin-left:-1.5px;background:var(--seg,rgba(255,255,255,.18))}
-.js li::after{content:"";position:absolute;left:62px;top:11px;width:11px;height:11px;margin-left:-5.5px;border-radius:50%;background:var(--board);border:2.5px solid var(--seg,rgba(255,255,255,.5));box-sizing:border-box}
+.js li{position:relative;display:grid;grid-template-columns:58px 1fr;align-items:start;gap:12px;padding:5px 0;font-size:13.5px;color:#c9d4e3;line-height:1.45}
+.js li::before{content:"";position:absolute;left:66px;top:0;bottom:0;width:3px;margin-left:-1.5px;background:var(--seg,rgba(255,255,255,.18))}
+.js li::after{content:"";position:absolute;left:66px;top:11px;width:11px;height:11px;margin-left:-5.5px;border-radius:50%;background:var(--board);border:2.5px solid var(--seg,rgba(255,255,255,.5));box-sizing:border-box}
 .js li:first-child::before{top:12px}
 .js li:last-child::before{bottom:calc(100% - 12px)}
 .js li.R{--seg:var(--red)} .js li.O{--seg:var(--orange)} .js li.C{--seg:var(--lrt)}
@@ -287,15 +287,16 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .js li.js-wait::before,.js li.js-walk::before{background:repeating-linear-gradient(rgba(255,255,255,.3) 0 3px,transparent 3px 7px)}
 .js li.js-wait::after,.js li.js-walk::after{display:none}
 .js li.js-end::after{width:14px;height:14px;margin-left:-7px;top:9px;background:var(--seg,#fff);border-color:var(--board-ink)}
-.js time{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--board-ink);text-align:right;line-height:1.25;font-variant-numeric:tabular-nums}
+.js time{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--board-ink);text-align:right;line-height:1.25;font-variant-numeric:tabular-nums;white-space:nowrap}
 .js time small{font-family:var(--font-body);font-size:11px;font-weight:400;color:#8a9bb4;margin-right:2px}
 .js li > span{grid-column:2;padding-left:18px}
 .js em{font-style:normal;font-weight:700;color:var(--board-ink);margin-left:4px}
 .js small{display:block;font-size:11.5px;color:#8a9bb4}
-.js-b{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:5px;font-family:var(--font-display);font-size:12px;color:#fff;vertical-align:1px;margin-left:4px;padding:0 3px}
+.js-b{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:5px;font-family:var(--font-display);font-size:12px;line-height:1;color:#fff;vertical-align:-3px;margin-left:4px;padding:0 3px}
+.js li.js-wait .js-b{vertical-align:0}
 .js-b.R{background:var(--red)} .js-b.O{background:var(--orange);color:#1b1206} .js-b.C{background:var(--lrt);color:#0d1a08}
 .js li.js-wait{padding:7px 0}
-.js li.js-wait > span{display:inline-block;justify-self:start;margin-left:18px;padding:5px 12px;border-radius:999px;background:rgba(255,184,77,.13);color:var(--amber);font-weight:700}
+.js li.js-wait > span{display:inline-flex;align-items:center;flex-wrap:wrap;gap:0 2px;justify-self:start;margin-left:18px;padding:5px 12px;border-radius:999px;background:rgba(255,184,77,.13);color:var(--amber);font-weight:700}
 .js li.js-wait b{font-family:var(--font-display);font-size:18px;margin:0 1px}
 .js li.js-wait small{display:inline;color:var(--amber);opacity:.8;margin-left:6px;font-weight:400}
 .js li.js-wait.now > span{background:var(--amber);color:#1b1206}
@@ -2610,7 +2611,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v50";
+const APP_VER = "krtc-2026-11-15-v51";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
