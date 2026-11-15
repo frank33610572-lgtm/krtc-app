@@ -479,6 +479,28 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .pp-acts{display:grid;grid-template-columns:1.4fr 1fr;gap:8px;padding-top:2px}
 .pp-acts a{display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none;background:var(--soft);color:var(--ink);border:1px solid var(--line)}
 .pp-acts a.go{background:var(--ink);border-color:var(--ink);color:var(--surface)!important}
+.pp-st{flex-wrap:wrap}
+.pp-st > span:nth-child(2){flex:1;min-width:0}
+.pp-mine{display:block;font-size:11px;color:var(--focus);margin-top:1px}
+.pp-edit{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 11px;font-size:12px;font-weight:700;cursor:pointer;min-height:30px}
+.oh-body{display:grid;gap:14px;padding:14px 18px calc(18px + env(safe-area-inset-bottom));overflow-y:auto}
+.oh-body:focus{outline:none}
+.oh-mode{display:grid;grid-template-columns:repeat(3,1fr)}
+.oh-mode button{border:0;background:none;padding:9px 4px;border-radius:8px;cursor:pointer;color:var(--muted);font:inherit;font-size:14px;font-weight:500;min-height:40px}
+.oh-mode button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.oh-row{display:grid;grid-template-columns:86px 1fr auto 1fr;gap:8px;align-items:center;font-size:14px;font-weight:700}
+.oh-row[hidden]{display:none}
+.oh-row i{font-style:normal;color:var(--muted);font-weight:400}
+.oh-row input{min-width:0;height:46px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;font-size:17px;font-weight:700;padding:0 10px;text-align:center}
+.oh-off{display:grid;gap:8px;font-size:14px;font-weight:700}
+#ohDays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+#ohDays button{height:42px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+#ohDays button[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#fff}
+#ohPreview{margin:0;font-size:12.5px;line-height:1.7}
+.oh-acts{display:grid;grid-template-columns:1.4fr 1fr;gap:8px}
+.oh-acts button{min-height:48px;border-radius:14px;border:1px solid var(--line);background:var(--soft);color:var(--ink);font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.oh-acts button.go{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.oh-acts button[hidden]{display:none}
 .pp-src{margin:0;font-size:11.5px;color:var(--muted);line-height:1.45}
 .maptoast:empty{display:none}
 /* 好用地圖分類：放在地圖上方，三顆大按鈕＋一個開關，不會和地圖上的店家搶手指 */
@@ -604,6 +626,28 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
           <p class="ex-sub" id="exSub"></p>
         </div>
         <div class="pk-list ex-list" id="exList" tabindex="-1"></div>
+      </div>
+    </dialog>
+    <dialog class="picker" id="ohDlg" aria-labelledby="ohTitle">
+      <div class="pk-in">
+        <div class="pk-top">
+          <span class="pk-grab" aria-hidden="true"></span>
+          <div class="pk-head"><h2 id="ohTitle">營業時間</h2><button type="button" class="pk-x" id="ohClose" aria-label="關閉">×</button></div>
+          <p class="ex-sub" id="ohSub">只存在這支手機，之後地圖上這間店都會用你填的時間。</p>
+        </div>
+        <div class="oh-body" id="ohBody" tabindex="-1">
+          <div class="seg oh-mode" role="radiogroup" aria-label="營業方式">
+            <button type="button" data-m="same" aria-pressed="true">每天一樣</button>
+            <button type="button" data-m="split" aria-pressed="false">平日、假日不同</button>
+            <button type="button" data-m="always" aria-pressed="false">24 小時</button>
+          </div>
+          <div class="oh-row" data-for="same"><span>每天</span><input type="time" id="ohA1" value="09:00" aria-label="開門"><i>到</i><input type="time" id="ohB1" value="22:00" aria-label="打烊"></div>
+          <div class="oh-row" data-for="split" hidden><span>週一到週五</span><input type="time" id="ohA2" value="09:00" aria-label="平日開門"><i>到</i><input type="time" id="ohB2" value="22:00" aria-label="平日打烊"></div>
+          <div class="oh-row" data-for="split" hidden><span>週六、週日</span><input type="time" id="ohA3" value="10:00" aria-label="假日開門"><i>到</i><input type="time" id="ohB3" value="22:00" aria-label="假日打烊"></div>
+          <div class="oh-off"><span>公休日</span><div id="ohDays">${"一二三四五六日".split("").map((d, i) => `<button type="button" data-d="${i}" aria-pressed="false">${d}</button>`).join("")}</div></div>
+          <p class="hint" id="ohPreview"></p>
+          <div class="oh-acts"><button type="button" class="go" id="ohSave">儲存</button><button type="button" id="ohClear">清除我填的</button></div>
+        </div>
       </div>
     </dialog>
     <div class="favwrap">
@@ -1690,17 +1734,21 @@ function parseOH(s) {
   }
   return {week};
 }
+// 使用者自己補的營業時間（存在這支手機）：用類別＋座標當鍵，店家資料重建後也對得上
+const userOH = store.get("krtc-oh-user", {});
+const ohKey = it => `${it.c}|${it.lat.toFixed(4)},${it.lon.toFixed(4)}`;
+const ohOf = it => userOH[ohKey(it)] || it.oh;
 function ohStatus(it) {
   const chain = it.c === "conv" && CONV.some(x => x.name === it.b);
-  const p = parseOH(it.oh);
+  const oh = ohOf(it), p = parseOH(oh);
   if (!p) return {known: false, text: it.non24 ? "未提供（這間不是 24 小時門市）" : chain ? "未提供（四大超商多數門市 24 小時）" : "未提供"};
   if (p.always) return {known: true, open: true, text: "24 小時營業"};
-  if (p.raw) return {known: false, text: it.oh};
+  if (p.raw) return {known: false, text: oh};
   const now = new Date(), d = now.getDay(), m = now.getHours() * 60 + now.getMinutes();
   const today = p.week[d], yest = p.week[(d + 6) % 7];
   const lateYest = !!yest && yest.some(([a, b]) => b > 1440 && m < b - 1440);
   const span = ([a, b]) => `${fmt(a)}–${b === 1440 ? "24:00" : fmt(b)}`;
-  if (p.week.every(w => w === null)) return {known: false, text: it.oh};
+  if (p.week.every(w => w === null)) return {known: false, text: oh};
   // opening_hours 的規則：沒寫到的日子就是公休
   const open = lateYest || (!!today && today.some(([a, b]) => m >= a && m < b));
   return {known: true, open, text: today && today.length ? "今天 " + today.map(span).join("、") : lateYest ? "今天公休（營業到凌晨）" : "今天公休"};
@@ -1919,6 +1967,7 @@ function poiName(it) {
 }
 function poiPopup(it) {
   const cat = POI_CATS[it.c], st = ohStatus(it), atm = atmOf(it), name = poiName(it);
+  const mine = !!userOH[ohKey(it)];
   const ohSrc = it.ohs === "s" ? "星巴克官網" : it.ohs === "c" ? "品牌官網" : "OpenStreetMap";
   const srcNote = it.newSrc ? `資料：${it.src}` : it.gov ? `位置：財政部營業登記＋高雄市門牌座標${it.oh ? `；營業時間：${ohSrc}` : ""}`
     : it.off ? `資料：${it.src}${it.atmSrc ? "；ATM 銀行：財金公司開放資料" : ""}` : "資料：OpenStreetMap，營業時間與 ATM 以現場為準";
@@ -1927,7 +1976,8 @@ function poiPopup(it) {
   const cls = st.known ? (st.open ? "open" : "closed") : "";
   return `<div class="pop poipop" style="--c:${cat.color}">
     <div class="pp-h"><span class="sg lg">${cat.glyph}</span><div><h4>${esc(name)}</h4><p>${esc(sub)}</p></div></div>
-    <div class="pp-st ${cls}"><span class="pill">${st.known ? (st.open ? "營業中" : "休息中") : "營業時間"}</span><span>${esc(st.text)}</span></div>
+    <div class="pp-st ${cls}"><span class="pill">${st.known ? (st.open ? "營業中" : "休息中") : "營業時間"}</span><span>${esc(st.text)}${mine ? `<small class="pp-mine">你自己填的</small>` : ""}</span>
+      <button type="button" class="pp-edit" data-ohedit="${esc(it.id)}">${st.known || mine ? "修改" : "補上營業時間"}</button></div>
     ${atm ? `<div class="pp-row"><b>ATM</b><span>${esc(atm)}</span></div>` : ""}
     ${it.addr ? `<div class="pp-row"><b>地址</b><span>${esc(it.addr)}${reg}</span></div>` : ""}
     <div class="pp-acts"><a class="go" href="${walkLink(it.lat, it.lon)}" target="_blank" rel="noopener">導航過去</a><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq(it))}" target="_blank" rel="noopener">Google 地圖</a></div>
@@ -2127,6 +2177,57 @@ $("exList").addEventListener("click", e => {
   if (r.dataset.n) exitPick[name] = r.dataset.n; else delete exitPick[name];
   store.set("krtc-exit", exitPick); closeExitPicker(); render();
 });
+// ---------- 自己補營業時間 ----------
+const OHK = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+const ohEd = {it: null, mode: "same"};
+function ohBuild() {
+  const off = [...document.querySelectorAll("#ohDays [aria-pressed=true]")].map(b => OHK[+b.dataset.d]);
+  const v = id => $(id).value || "00:00";
+  let rules;
+  if (ohEd.mode === "always") rules = off.length ? ["Mo-Su 00:00-24:00"] : ["24/7"];
+  else if (ohEd.mode === "split") rules = [`Mo-Fr ${v("ohA2")}-${v("ohB2")}`, `Sa-Su ${v("ohA3")}-${v("ohB3")}`];
+  else rules = [`Mo-Su ${v("ohA1")}-${v("ohB1")}`];
+  if (off.length) rules.push(`${off.join(",")} off`);
+  return rules.join("; ");
+}
+function ohPaint() {
+  document.querySelectorAll(".oh-mode button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.m === ohEd.mode)));
+  document.querySelectorAll(".oh-row").forEach(r => { r.hidden = r.dataset.for !== ohEd.mode; });
+  const p = parseOH(ohBuild()), names = "日一二三四五六";
+  $("ohPreview").textContent = p && p.week ? "一週：" + [1, 2, 3, 4, 5, 6, 0].map(d => `週${names[d]} ${p.week[d] && p.week[d].length ? p.week[d].map(([a, b]) => `${fmt(a)}–${b === 1440 ? "24:00" : fmt(b)}`).join("、") : "休"}`).join("　") : "每天 24 小時";
+}
+function openOhEditor(it) {
+  ohEd.it = it; ohEd.mode = "same";
+  $("ohTitle").textContent = `${poiName(it)}・營業時間`;
+  document.querySelectorAll("#ohDays button").forEach(b => b.setAttribute("aria-pressed", "false"));
+  const p = parseOH(ohOf(it)), t = m => `${String(Math.floor(m / 60) % 24).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+  if (p && p.always) ohEd.mode = "always";
+  else if (p && p.week) { // 用現有時間預先填好
+    const wk = [1, 2, 3, 4, 5, 6, 0].map(d => p.week[d]);
+    wk.forEach((w, i) => { if (w && !w.length) document.querySelector(`#ohDays [data-d="${i}"]`).setAttribute("aria-pressed", "true"); });
+    const firstSpan = ws => (ws.find(w => w && w.length) || [])[0];
+    const a = firstSpan(wk.slice(0, 5)), b = firstSpan(wk.slice(5));
+    if (a && b && (a[0] !== b[0] || a[1] !== b[1])) { ohEd.mode = "split"; $("ohA2").value = t(a[0]); $("ohB2").value = t(a[1]); $("ohA3").value = t(b[0]); $("ohB3").value = t(b[1]); }
+    else if (a || b) { const x = a || b; $("ohA1").value = t(x[0]); $("ohB1").value = t(x[1]); }
+  }
+  $("ohClear").hidden = !userOH[ohKey(it)];
+  ohPaint();
+  const d = $("ohDlg"); if (d.showModal) d.showModal(); else d.setAttribute("open", "");
+  $("ohBody").focus({preventScroll: true});
+}
+function closeOhEditor() { const d = $("ohDlg"); if (d.close) d.close(); else d.removeAttribute("open"); }
+function ohAfter() { closeOhEditor(); const it = ohEd.it; if (!it) return; poiDraw(); poiRenderList(); if (map && popup && popup.isOpen()) poiOpen(it); }
+document.querySelectorAll(".oh-mode button").forEach(b => b.onclick = () => { ohEd.mode = b.dataset.m; ohPaint(); });
+document.querySelectorAll("#ohDays button").forEach(b => b.onclick = () => { b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); ohPaint(); });
+["ohA1", "ohB1", "ohA2", "ohB2", "ohA3", "ohB3"].forEach(id => $(id).addEventListener("input", ohPaint));
+$("ohSave").onclick = () => { userOH[ohKey(ohEd.it)] = ohBuild(); store.set("krtc-oh-user", userOH); ohAfter(); };
+$("ohClear").onclick = () => { delete userOH[ohKey(ohEd.it)]; store.set("krtc-oh-user", userOH); ohAfter(); };
+$("ohClose").onclick = closeOhEditor;
+$("ohDlg").addEventListener("click", e => { if (e.target === $("ohDlg")) closeOhEditor(); });
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-ohedit]"); if (!b) return;
+  const it = poi.items.get(b.dataset.ohedit); if (it) openOhEditor(it);
+});
 const tick = () => {
   walkLocate(false);
   if (state.autoSpan) setRange(state.autoSpan);        // 「現在起 N 小時」會跟著時間往前滾
@@ -2185,7 +2286,7 @@ addEventListener("online", syncOnline); addEventListener("offline", syncOnline);
 render();
 walkLocate(true);
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v35";
+const APP_VER = "krtc-2026-11-15-v36";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
