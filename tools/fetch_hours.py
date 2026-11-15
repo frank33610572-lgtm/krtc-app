@@ -62,26 +62,20 @@ def milksha():
 
 
 def cama():
+    """cama 門市頁裡有 dataAry（含座標、地址、營業時間）"""
     h = get("https://www.camacafe.com/store")
-    i = h.find("寶橋")
-    print("cama html len", len(h), "snippet:", re.sub(r"\s+", " ", h[max(0, i - 600):i + 400]) if i >= 0 else "(寶橋 not found)")
-    h = re.sub(r"<script.*?</script>|<style.*?</style>", "", h, flags=re.S)
-    h = re.sub(r"<br\s*/?>|</(p|div|li|h\d|tr|td|span)>", "\n", h)
-    lines = [html.unescape(re.sub(r"<[^>]+>", "", x)).strip() for x in h.split("\n")]
-    lines = [x for x in lines if x]
-    stores, cur = [], None
-    for l in lines:
-        if re.search(r"門市[\d.]*\s*-\s*\S+店", l) or l.startswith("旗艦門市-"):
-            if cur: stores.append(cur)
-            cur = {"name": re.sub(r"^.*?-\s*", "", l), "lines": []}
-        elif cur:
-            cur["lines"].append(l)
-    if cur: stores.append(cur)
     out = []
-    for st in stores:
-        if not st["lines"] or "高雄" not in st["lines"][0]: continue
-        hrs = " ".join([x for x in st["lines"][1:] if re.search(r"\d{1,2}[:：]\d{2}|店休|公休", x)][:3])
-        out.append("|".join(clean(x).replace("|", " ") for x in ["CA", "cama " + st["name"], "", "", hrs, st["lines"][0]]))
+    for obj in re.findall(r"\{[^{}]*StoreLatitude[^{}]*\}", h):
+        f = dict(re.findall(r"(\w+)\s*:\s*'((?:[^'\\]|\\.)*)'", obj))
+        addr = f.get("Addr", "")
+        if "高雄" not in addr: continue
+        name = re.sub(r"<[^>]+>", "", html.unescape(f.get("StoreName", ""))); name = re.sub(r"^.*?-\s*", "", name)
+        hrs = re.sub(r"<br\s*/?>", " ", html.unescape(f.get("Summary", ""))).replace("\xa0", " ")
+        hrs = re.sub(r"<[^>]+>", "", hrs)
+        try: lat, lon = float(f["StoreLatitude"]), float(f["StoreLongitude"])
+        except Exception: lat = lon = None
+        ok = lat and 22.3 < lat < 23.2 and lon and 120.1 < lon < 120.9
+        out.append("|".join(clean(x).replace("|", " ") for x in ["CA", "cama " + name, f"{lat:.6f}" if ok else "", f"{lon:.6f}" if ok else "", hrs, addr]))
     return out
 
 

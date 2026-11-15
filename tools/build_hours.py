@@ -97,9 +97,9 @@ for line in (l for cp in chain_paths for l in open(cp, encoding="utf-8")):
         oh = gen_oh(hrs)
         if oh: chains.append(dict(k="f" if tag == "CA" else "t", name=name, p=None, oh=oh, akey=akey(addr), addr=addr))
         continue
-    oh = sb_oh(hrs)
+    oh = sb_oh(hrs) if tag == "SB" else gen_oh(hrs)
     a = re.sub(r"^(.{2,3}區)\1", r"\1", addr.replace("高雄市", ""))
-    chains.append(dict(k="f", name=name, p=(float(lat), float(lon)), oh=oh, addr=a))
+    chains.append(dict(k="t" if tag == "MS" else "f", name=name, p=(float(lat), float(lon)), oh=oh, addr=a, tag=tag))
 print("chain stores with parsed hours:", sum(1 for c in chains if c["oh"]), "/", len(chains), " (no coords:", sum(1 for c in chains if not c["p"]), ")")
 
 # ---- convenience: 萊爾富 (official coords) and 全家 non-24
@@ -141,7 +141,7 @@ for c in [c for c in chains if not c["p"]]:
     if not ks: continue
     k = ks[0]; used.add(k); oh_of[k] = c["oh"]; disp_of[k] = c["name"]; src_of[k] = "c"; amatch += 1
 print("chain stores matched by address:", amatch, "/", sum(1 for c in chains if not c["p"]))
-src = [dict(o, src="osm") for o in osm if o["k"] in "tf" and o["oh"]] + [dict(c, src="sb") for c in chains if c["oh"] and c["p"]]
+src = [dict(o, src="osm") for o in osm if o["k"] in "tf" and o["oh"]] + [dict(c, src="sb" if c.get("tag") == "SB" else "ch") for c in chains if c["oh"] and c["p"]]
 added = []
 for o in src:
     want_cafe = o["k"] == "f"
@@ -159,11 +159,11 @@ for o in src:
     pick = (same or cands or [None])[0]
     if not pick and G.near(o["p"], 8): continue   # 旁邊已有別間店、又對不上，寧可不加以免重複
     if pick:
-        k = pick[1]; used.add(k); oh_of[k] = o["oh"]; src_of[k] = "s" if o["src"] == "sb" else "o"
+        k = pick[1]; used.add(k); oh_of[k] = o["oh"]; src_of[k] = {"sb": "s", "ch": "c"}.get(o["src"], "o")
         if name: disp_of[k] = name
     else:
         a, b = off(*o["p"])
-        added.append([name or ("咖啡廳" if want_cafe else "手搖飲"), o.get("addr", ""), 1 if want_cafe else 0, a, b, o["oh"], "", "S" if o["src"] == "sb" else "O"])
+        added.append([name or ("咖啡廳" if want_cafe else "手搖飲"), o.get("addr", ""), 1 if want_cafe else 0, a, b, o["oh"], "", {"sb": "S", "ch": "C"}.get(o["src"], "O")])
 for k, r in enumerate(shops):
     r += [oh_of.get(k, ""), disp_of.get(k, "") if disp_of.get(k, "") != r[0] else "", src_of.get(k, "")]
 S["shop"] = shops + added
