@@ -543,7 +543,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .pp-row{display:grid;grid-template-columns:34px 1fr;gap:8px;font-size:13.5px;align-items:baseline}
 .pp-row b{font-size:12px;color:var(--muted);font-weight:700}
 .pp-row small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
-.pp-acts{display:grid;grid-template-columns:1.4fr 1fr;gap:8px;padding-top:2px}
+.pp-acts{display:grid;grid-template-columns:44px 1.4fr 1fr;gap:8px;padding-top:2px}
+.pp-star{border:1px solid var(--line);background:var(--soft);color:var(--muted);border-radius:12px;font-size:20px;line-height:1;cursor:pointer;min-height:42px}
+.pp-star[aria-pressed="true"]{color:#e8a317;border-color:#e8a317;background:color-mix(in srgb,#e8a317 12%,transparent)}
 .pp-acts a{display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none;background:var(--soft);color:var(--ink);border:1px solid var(--line)}
 .pp-acts a.go{background:var(--ink);border-color:var(--ink);color:var(--surface)!important}
 .pp-st{flex-wrap:wrap}
@@ -578,6 +580,14 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 /* 好用地圖分類：放在地圖上方，三顆大按鈕＋一個開關，不會和地圖上的店家搶手指 */
 .poibar{display:grid;gap:8px}
 .poibar[hidden]{display:none}
+.poitoggles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.poitoggles .poihide{font-size:13px;padding:0 12px;min-width:0}
+.poisrc{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:10px}
+.poisrc button{display:grid;gap:1px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:7px 9px;cursor:pointer;color:var(--ink);min-width:0;min-height:50px}
+.poisrc small{font-size:10.5px;color:var(--muted);white-space:nowrap}
+.poisrc b{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.poisrc button[aria-selected="true"]{border-color:var(--ink);background:var(--soft)}
+.poires-row i.fav{font-style:normal;color:#e8a317;margin-right:4px}
 .poicats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .poichip{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:9px;align-items:center;text-align:left;min-height:60px;padding:8px 10px;border-radius:16px;border:2px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;touch-action:manipulation;transition:border-color .15s,background-color .15s,opacity .15s}
 .poichip .sg{grid-row:1/3;width:32px;height:32px;font-size:16px;border-radius:9px}
@@ -793,7 +803,10 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
           <button type="button" class="poichip" data-cat="conv" aria-pressed="true" style="--c:#2f6fd6"><span class="sg">超</span><span class="pc-l">超商</span><b class="num" data-n="conv"></b></button>
           <button type="button" class="poichip" data-cat="cafe" aria-pressed="true" style="--c:#7c5cc4"><span class="sg">咖</span><span class="pc-l">咖啡廳</span><b class="num" data-n="cafe"></b></button>
         </div>
-        <button type="button" class="poihide" id="poiHide" aria-pressed="false"><span class="sw" aria-hidden="true"></span>隱藏休息中的店</button>
+        <div class="poitoggles">
+          <button type="button" class="poihide" id="poiHide" aria-pressed="false"><span class="sw" aria-hidden="true"></span>隱藏休息中</button>
+          <button type="button" class="poihide" id="poiAtm" aria-pressed="false"><span class="sw" aria-hidden="true"></span>超商只看有 ATM</button>
+        </div>
       </div>
       <div class="mapwrap">
         <div id="map" role="application" aria-label="高雄捷運與輕軌路線地圖"></div>
@@ -806,6 +819,12 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
         </div>
       </div>
       <div class="poisheet" id="poiPanel" hidden>
+        <div class="poisrc" role="tablist" aria-label="清單範圍">
+          <button type="button" role="tab" data-src="here" aria-selected="true"><small>看哪裡</small><b>地圖中心</b></button>
+          <button type="button" role="tab" data-src="from" aria-selected="false"><small>出發站附近</small><b id="psFrom"></b></button>
+          <button type="button" role="tab" data-src="to" aria-selected="false"><small>抵達站附近</small><b id="psTo"></b></button>
+          <button type="button" role="tab" data-src="fav" aria-selected="false"><small>我的收藏</small><b>★ <span id="psFav">0</span></b></button>
+        </div>
         <label class="poisearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
           <input id="poiQ" type="search" placeholder="搜尋店名、品牌或路名" enterkeyhint="search" autocomplete="off" aria-label="搜尋好用地圖店家">
           <button type="button" id="poiQx" hidden aria-label="清除搜尋">×</button></label>
@@ -1177,6 +1196,7 @@ function render() {
   $({"60": "rg60", "180": "rg180", all: "rgAll", custom: "rgCustom"}[state.rangeSel] || "rg60").checked = true;
   $("customBox").hidden = state.rangeSel !== "custom";
   renderFavs(); renderNote(); drawRoute();
+  if (typeof poi !== "undefined" && poi.on && map && (poi.src === "from" || poi.src === "to")) { poiRing(); poiRenderList(); }
   if (state.view === "favs") renderFavView();
 
   const board = $("board"), list = $("list");
@@ -1666,6 +1686,12 @@ function setupLayers() {
       "icon-image": ["concat", "sg-", ["get", "c"], ["case", ["==", ["get", "s"], 0], "-dim", ""]],
       "icon-size": ["interpolate", ["linear"], ["zoom"], 14.6, .62, 16, .8, 17.5, 1], "icon-allow-overlap": true, "icon-ignore-placement": true,
       "symbol-sort-key": ["case", ["==", ["get", "s"], 0], 1, 0]}});
+  map.addLayer({id: "poi-favring", type: "circle", source: "poi", filter: ["all", notC, ["==", ["get", "f"], 1]], minzoom: 12.5, layout: {...poiVis},
+    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 12.5, 7, 14.6, 11, 16, 15, 17.5, 19], "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#e8a317", "circle-stroke-width": 2.5}});
+  map.addSource("poi-ring", {type: "geojson", data: fc([])});
+  map.addLayer({id: "poi-ring-fill", type: "fill", source: "poi-ring", paint: {"fill-color": "#e8a317", "fill-opacity": .06}}, "lines-casing");
+  map.addLayer({id: "poi-ring", type: "line", source: "poi-ring", paint: {"line-color": "#e8a317", "line-width": 2, "line-dasharray": [2, 2], "line-opacity": .8}}, "lines-casing");
+  setTimeout(poiRing, 0);
   map.addSource("poi-sel", {type: "geojson", data: fc(poi.sel ? [poiPt(poi.sel)] : [])});
   map.addLayer({id: "poi-sel", type: "circle", source: "poi-sel", layout: {...poiVis},
     paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 10, 14.6, 13, 16, 17, 17.5, 21], "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": ink, "circle-stroke-width": 3}});
@@ -1900,8 +1926,11 @@ const CONV = [
   {re: /ok\s?超商|ok\s?mart/i, name: "OK 超商", atm: "台新銀行"}
 ];
 const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
+const poiFav = store.get("krtc-poi-fav", {});            // 收藏的店家 {類別|座標: 店名}
+const isFav = it => !!poiFav[`${it.c}|${it.lat.toFixed(4)},${it.lon.toFixed(4)}`];
+const hasATM = it => { const t = atmOf(it); return !!t && !/沒有|未查到|不確定/.test(t); };
 const CELL = 0.02;
-const poi = {on: false, cats: Object.assign({tea: true, conv: true, cafe: true}, store.get("krtc-poi-cats", {})), cells: store.get("krtc-poi", {}), loading: new Set(), items: new Map(), absorbed: new Set()};
+const poi = {src: "here", atm: store.get("krtc-poi-atm", false), on: false, cats: Object.assign({tea: true, conv: true, cafe: true}, store.get("krtc-poi-cats", {})), cells: store.get("krtc-poi", {}), loading: new Set(), items: new Map(), absorbed: new Set()};
 for (const [k, v] of Object.entries(poi.cells)) { if (!v || Date.now() - v.t > 7 * 864e5) delete poi.cells[k]; else v.items.forEach(it => poi.items.set(it.id, it)); }
 const cellKey = (i, j) => i + "," + j;
 // 官方門市資料（7-ELEVEN、全家位置；ATM 銀行來自財金公司開放資料）
@@ -2042,13 +2071,18 @@ function ohStatus(it) {
   const open = lateYest || (!!today && today.some(([a, b]) => m >= a && m < b));
   return {known: true, open, text: today && today.length ? "今天 " + today.map(span).join("、") : lateYest ? "今天公休（營業到凌晨）" : "今天公休"};
 }
+function poiPass(it, st) { // 分類、休息中、ATM 篩選
+  if (!poi.cats[it.c]) return false;
+  if (poi.hideClosed && st.known && !st.open) return false;
+  if (poi.atm && it.c === "conv" && !hasATM(it)) return false;
+  return true;
+}
 function poiFC() {
   const f = [];
   for (const it of poi.items.values()) {
-    if (!poi.cats[it.c]) continue;
     const st = ohStatus(it);
-    if (poi.hideClosed && st.known && !st.open) continue;
-    f.push({type: "Feature", properties: {id: it.id, c: it.c, g: POI_CATS[it.c].glyph, s: st.known ? (st.open ? 1 : 0) : -1}, geometry: {type: "Point", coordinates: [it.lon, it.lat]}});
+    if (!poiPass(it, st)) continue;
+    f.push({type: "Feature", properties: {id: it.id, c: it.c, g: POI_CATS[it.c].glyph, s: st.known ? (st.open ? 1 : 0) : -1, f: isFav(it) ? 1 : 0}, geometry: {type: "Point", coordinates: [it.lon, it.lat]}});
   }
   return fc(f);
 }
@@ -2078,7 +2112,8 @@ function poiOpen(it) {
 function poiDraw() {
   if (!map || !styleReady) return;
   map.getSource("poi").setData(poiFC());
-  for (const id of ["poi", "poi-glyph", "poi-cluster", "poi-count", "poi-sel"]) map.setLayoutProperty(id, "visibility", poi.on ? "visible" : "none");
+  for (const id of ["poi", "poi-glyph", "poi-cluster", "poi-count", "poi-sel", "poi-favring"]) map.setLayoutProperty(id, "visibility", poi.on ? "visible" : "none");
+  poiRing();
 }
 function poiPersist() {
   const keys = Object.keys(poi.cells).sort((a, b) => poi.cells[b].t - poi.cells[a].t).slice(0, 40), o = {};
@@ -2198,6 +2233,28 @@ document.querySelectorAll(".poichip[data-cat]").forEach(b => {
     store.set("krtc-poi-cats", poi.cats); poiDraw(); poiRenderList();
   };
 });
+document.querySelectorAll(".poisrc button").forEach(b => b.onclick = () => {
+  poi.src = b.dataset.src; $("poiQ").value = ""; $("poiQx").hidden = true;
+  if ((poi.src === "from" || poi.src === "to") && map) {
+    const id = byName[state[poi.src]].ids[0];
+    map.flyTo({center: LL(id), zoom: Math.max(map.getZoom(), 16), duration: 700});
+    document.querySelector(".mapwrap").scrollIntoView({behavior: "smooth", block: "nearest"});
+  }
+  poiRing(); poiRenderList();
+});
+$("poiAtm").setAttribute("aria-pressed", String(poi.atm));
+$("poiAtm").onclick = () => {
+  poi.atm = !poi.atm; store.set("krtc-poi-atm", poi.atm);
+  $("poiAtm").setAttribute("aria-pressed", String(poi.atm)); poiDraw(); poiRenderList();
+};
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-poifav]"); if (!b) return;
+  const it = poi.items.get(b.dataset.poifav); if (!it) return;
+  const k = `${it.c}|${it.lat.toFixed(4)},${it.lon.toFixed(4)}`;
+  if (poiFav[k]) delete poiFav[k]; else poiFav[k] = poiName(it);
+  store.set("krtc-poi-fav", poiFav); poiDraw(); poiRenderList();
+  if (map && popup && popup.isOpen()) poiOpen(it);
+});
 poi.hideClosed = store.get("krtc-poi-hc", false);
 $("poiHide").setAttribute("aria-pressed", String(poi.hideClosed));
 $("poiHide").onclick = () => {
@@ -2212,26 +2269,45 @@ function poiTerms(q) {
   const al = ALIAS.find(g => g.some(x => normQ(x) === n || n.includes(normQ(x))));
   return al ? [...new Set([n, ...al.map(normQ)])] : [n];
 }
+function poiAnchor() { // 清單從哪裡算距離
+  if (poi.src === "from" || poi.src === "to") { const nm = state[poi.src], id = byName[nm].ids[0]; return {p: COORDS[id], name: nm, st: true}; }
+  const c = map.getCenter(); return {p: [c.lat, c.lng], name: "", st: false};
+}
+function poiRing() { // 車站周邊 400 公尺（走路約 5、6 分）的圈
+  if (!map || !styleReady || !map.getSource("poi-ring")) return;
+  const a = poi.on && (poi.src === "from" || poi.src === "to") ? poiAnchor() : null;
+  if (!a) return map.getSource("poi-ring").setData(fc([]));
+  const [lat, lon] = a.p, R = 400, pts = [];
+  for (let k = 0; k <= 64; k++) { const t = k / 64 * 2 * Math.PI; pts.push([lon + R * Math.sin(t) / (111320 * Math.cos(lat * Math.PI / 180)), lat + R * Math.cos(t) / 111320]); }
+  map.getSource("poi-ring").setData(fc([{type: "Feature", properties: {}, geometry: {type: "Polygon", coordinates: [pts]}}]));
+}
+function poiSrcPaint() {
+  $("psFrom").textContent = state.from; $("psTo").textContent = state.to; $("psFav").textContent = Object.keys(poiFav).length;
+  document.querySelectorAll(".poisrc button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.src === poi.src)));
+}
 function poiRenderList() {
   const box = $("poiRes"); if (!box || !poi.on || !map) return;
-  const q = $("poiQ").value.trim(), terms = poiTerms(q), c = map.getCenter(), me = [c.lat, c.lng];
+  poiSrcPaint();
+  const q = $("poiQ").value.trim(), terms = poiTerms(q), A = poiAnchor(), me = A.p, favOnly = poi.src === "fav" && !terms.length;
   let list = [];
   for (const it of poi.items.values()) {
-    if (!poi.cats[it.c]) continue;
+    if (favOnly ? !isFav(it) : !poi.cats[it.c]) continue;
     if (terms.length) { const hay = it._h || (it._h = normQ([it.n, it.reg, it.b, it.br, it.addr].filter(Boolean).join(" "))); if (!terms.some(t => hay.includes(t))) continue; }
-    const st = ohStatus(it); if (poi.hideClosed && st.known && !st.open) continue;
+    const st = ohStatus(it); if (!favOnly && !poiPass(it, st)) continue;
     list.push({it, st, d: haversine(me, [it.lat, it.lon])});
   }
   list.sort((a, b) => a.d - b.d);
-  const total = list.length; list = list.slice(0, terms.length ? 30 : 8);
-  $("poiResTitle").innerHTML = terms.length ? `找到 <b class="num">${total}</b> 間<span>由近到遠，距離從地圖中心算</span>` : `地圖中心附近<span>移動地圖會更新</span>`;
-  if (!list.length) { box.innerHTML = `<p class="hint" style="padding:0 4px;margin:0">${terms.length ? "找不到符合的店家，換個關鍵字試試，或用下面的 Google 地圖搜尋。" : "這附近沒有店家，或分類都被關掉了。"}</p>`; return; }
+  const total = list.length; list = list.slice(0, terms.length || favOnly ? 40 : A.st ? 12 : 8);
+  $("poiResTitle").innerHTML = terms.length ? `找到 <b class="num">${total}</b> 間<span>由近到遠，從${A.st ? esc(A.name) + "站" : "地圖中心"}算</span>`
+    : favOnly ? `我的收藏 <b class="num">${total}</b> 間<span>點店家資訊的 ☆ 就能收藏</span>`
+    : A.st ? `${esc(A.name)}站附近<span>走路分鐘從車站算</span>` : `地圖中心附近<span>移動地圖會更新</span>`;
+  if (!list.length) { box.innerHTML = `<p class="hint" style="padding:0 4px;margin:0">${terms.length ? "找不到符合的店家，換個關鍵字試試，或用下面的 Google 地圖搜尋。" : favOnly ? "還沒有收藏的店家。打開任何一間店，按右下角的 ☆ 就會出現在這裡。" : "這附近沒有店家，或分類都被關掉了。"}</p>`; return; }
   const note = terms.length ? `<p class="hint" style="padding:0 4px;margin:0">很多分店用公司名稱登記，品牌分店可能沒搜到，可以用下面的 Google 地圖找。</p>` : "";
   box.innerHTML = list.map(({it, st, d}) => {
     const cat = POI_CATS[it.c], atmT = atmOf(it);
     const sub = [st.known ? (st.open ? "營業中" : "休息中") : "", atmT && !/沒有|不確定|未查到/.test(atmT) ? "ATM " + atmT.replace(/（.*?）/, "") : "", it.addr || ""].filter(Boolean).join("・") || cat.label;
-    const dd = d < 1000 ? [Math.round(d), "公尺"] : [(d / 1000).toFixed(1), "公里"];
-    return `<button type="button" class="poires-row" data-id="${esc(it.id)}"><span class="sg md" style="--c:${cat.color}">${cat.glyph}</span><span class="t"><b>${esc(poiName(it))}</b><small class="${st.known ? (st.open ? "open" : "closed") : ""}">${esc(sub)}</small></span><span class="d"><b>${dd[0]}</b>${dd[1]}</span></button>`;
+    const dd = A.st ? [walkMin(d), "分鐘"] : d < 1000 ? [Math.round(d), "公尺"] : [(d / 1000).toFixed(1), "公里"];
+    return `<button type="button" class="poires-row" data-id="${esc(it.id)}"><span class="sg md" style="--c:${cat.color}">${cat.glyph}</span><span class="t"><b>${isFav(it) ? '<i class="fav">★</i>' : ""}${esc(poiName(it))}</b><small class="${st.known ? (st.open ? "open" : "closed") : ""}">${esc(sub)}</small></span><span class="d"><b>${dd[0]}</b>${dd[1]}</span></button>`;
   }).join("") + note;
 }
 $("poiRes").addEventListener("click", e => {
@@ -2269,7 +2345,7 @@ function poiPopup(it) {
       <button type="button" class="pp-edit" data-ohedit="${esc(it.id)}">${st.known || mine ? "修改" : "補上營業時間"}</button></div>
     ${atm ? `<div class="pp-row"><b>ATM</b><span>${esc(atm)}</span></div>` : ""}
     ${it.addr ? `<div class="pp-row"><b>地址</b><span>${esc(it.addr)}${reg}</span></div>` : ""}
-    <div class="pp-acts"><a class="go" href="${walkLink(it.lat, it.lon)}" target="_blank" rel="noopener">導航過去</a><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq(it))}" target="_blank" rel="noopener">Google 地圖</a></div>
+    <div class="pp-acts"><button type="button" class="pp-star" data-poifav="${esc(it.id)}" aria-pressed="${isFav(it)}" aria-label="${isFav(it) ? "取消收藏" : "收藏這間店"}">${isFav(it) ? "★" : "☆"}</button><a class="go" href="${walkLink(it.lat, it.lon)}" target="_blank" rel="noopener">導航過去</a><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gq(it))}" target="_blank" rel="noopener">Google 地圖</a></div>
     <p class="pp-src">${srcNote}</p></div>`;
 }
 async function poiNearest(me, far) {
@@ -2606,7 +2682,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v53";
+const APP_VER = "krtc-2026-11-15-v54";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
