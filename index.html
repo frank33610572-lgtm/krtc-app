@@ -895,7 +895,9 @@ function render() {
   const res = search(o, d, day, state.xfer);
   const inRange = res.filter(r => { const v = state.mode === "dep" ? r.dep : r.arr; return v >= a && v <= b; });
   const now = nowSvc();
-  const next = live ? inRange.find(r => r.dep >= now) : inRange[0];
+  const firstUp = live ? inRange.find(r => r.dep >= now) : inRange[0];
+  const wmB = live ? walkNow() : null; // 開了走路時間：看板直接倒數「走得到的那班」
+  const next = wmB != null ? (inRange.find(r => r.dep - now >= wmB) || firstUp) : firstUp;
   const fastest = inRange.length ? Math.min(...inRange.map(r => r.arr - r.dep)) : null;
   const xf = isTransfer(o, d);
 
@@ -918,7 +920,7 @@ function render() {
       </div>
       <div class="b-route">${lchips(next)}</div>
       ${boardMore(res, next, now, live)}
-      ${live ? walkLine(res, next, now) : ""}
+      ${live ? walkLine(res, next, now, firstUp) : ""}
       <div class="b-stats"><span><b>${inRange.length}</b>班可搭</span><span><b>${fastest}</b>分 最短車程</span><span>${xf ? `美麗島轉乘・預留 ${state.xfer} 分` : "直達免轉乘"}</span></div>`;
     lastBoardKey = key;
   }
@@ -971,7 +973,7 @@ function walkLocate(force) {
     e => { walk.err = e.code === 1 ? "沒有定位權限，請在設定允許這個 App 使用位置" : "暫時定位不到"; render(); },
     {enableHighAccuracy: true, timeout: 10000, maximumAge: 90000});
 }
-function walkLine(res, next, now) {
+function walkLine(res, next, now, firstUp) {
   if (!walk.on) return `<button type="button" class="b-walkbtn" data-walk="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="m9 21 3-7 3 3v4M7 12l3-4h4l2 4 2 1M10 8l-1 5"/></svg>算進從我這裡走過去的時間</button>`;
   const off = `<button type="button" class="b-walkx" data-walk="off" aria-label="不算走路時間">×</button>`;
   if (walk.err) return `<div class="b-walk"><span>${walk.err}</span>${off}</div>`;
@@ -982,7 +984,7 @@ function walkLine(res, next, now) {
   if (!c) return `<div class="b-walk"><span>走到${esc(state.from)}站約 <b>${wm}</b> 分，今天已經趕不上車了</span>${off}</div>`;
   const lead = c.dep - now - wm;
   const go = lead <= 0 ? `<em>現在就出門</em>` : `<em>${lead} 分鐘後出門</em>`;
-  return `<div class="b-walk"><span>走到${esc(state.from)}站約 <b>${wm}</b> 分・搭 <b>${fmt(c.dep)}</b> 那班，${go}${c !== next ? `<small>${fmt(next.dep)} 那班走過去來不及</small>` : ""}</span>${off}</div>`;
+  return `<div class="b-walk"><span>走到${esc(state.from)}站約 <b>${wm}</b> 分・搭 <b>${fmt(c.dep)}</b> 那班，${go}${firstUp && c !== firstUp ? `<small>${fmt(firstUp.dep)} 那班走過去來不及，已經幫你跳過</small>` : ""}</span>${off}</div>`;
 }
 
 // 看板補充：再下一班、末班車提醒
@@ -2064,7 +2066,7 @@ addEventListener("online", syncOnline); addEventListener("offline", syncOnline);
 render();
 walkLocate(true);
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v30";
+const APP_VER = "krtc-2026-11-15-v31";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
