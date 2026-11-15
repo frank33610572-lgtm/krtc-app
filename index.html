@@ -89,6 +89,11 @@ body.is-offline .offline{display:inline-block}
 .stn{position:relative;display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center;padding:12px 0;min-height:66px}
 .stn+.stn{border-top:1px dashed var(--line)}
 .stn select{display:none}
+.fvpick{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:6px 12px;cursor:pointer;text-align:left;color:var(--ink)}
+.fvpick::after{content:"";width:7px;height:7px;margin-left:auto;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-2px) rotate(45deg)}
+.fvpick .badge{min-width:36px;height:26px;font-size:15px}
+.fvpick .badges.two .badge{height:19px;font-size:12px}
+.fvp-name{font-size:17px;font-weight:900}
 .stnbtn{position:absolute;inset:0;width:100%;border:0;background:none;cursor:pointer;border-radius:10px;padding:0}
 .stnbtn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 /* 選站：先選路線，再從路線圖上點車站 */
@@ -101,6 +106,12 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .pk-grab{display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
 .pk-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .pk-head h2{margin:0;font-size:20px;font-weight:900}
+.pk-head h2{margin-right:auto!important}
+.pk-head{gap:8px}
+.pk-near{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:0 12px;height:34px;font-size:13px;font-weight:700;cursor:pointer}
+.pk-near svg{width:16px;height:16px}
+.pk-near.busy svg{animation:spin 1s linear infinite}
+.pk-row.near:not(.sel) .pk-tag{border-color:var(--focus);color:var(--focus)}
 .pk-x{border:0;background:var(--soft);width:34px;height:34px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;color:var(--muted)}
 .pk-lines{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .pk-tab{--lc:var(--red);display:flex;align-items:center;gap:10px;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:9px 11px;cursor:pointer;min-height:58px;transition:border-color .15s,background-color .15s}
@@ -165,8 +176,9 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .fc-next.soon b{color:var(--good)}
 .favcard.add{border-style:dashed;color:var(--muted);display:grid;place-items:center;text-align:center;font-size:13px;font-weight:700;min-width:120px}
 .favcard.add b{display:block;font-size:22px;line-height:1;color:var(--ink)}
-.favcard.hint{flex:1 1 auto;min-width:0;max-width:100%;min-height:0;border-style:dashed;font-size:13px;color:var(--muted)}
-.favcard.hint b{color:var(--ink)}
+.favcard.hint{flex:1 1 auto;min-width:0;max-width:100%;min-height:0;border-style:dashed;font-size:14px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:10px;padding:10px 14px}
+.favcard.hint small{display:block;font-size:12px;font-weight:400;color:var(--muted);margin-top:1px}
+.favcard.hint .fh-star{font-size:20px;color:var(--amber);line-height:1}
 .favlist{display:grid;gap:10px}
 .fvrow{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .fvrow.on{border-color:var(--ink)}
@@ -227,6 +239,10 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .b-times b{font-family:var(--font-display);font-size:34px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
 .b-times .arr{color:#6f819b;font-size:18px;align-self:end;padding-bottom:4px}
 .b-route{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.b-more{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:#9fb0c8}
+.b-more b{font-family:var(--font-display);font-size:18px;color:var(--board-ink);font-weight:700;margin:0 1px;letter-spacing:.02em}
+.b-more .warn{color:var(--amber);font-weight:700}
+.b-more .warn b{color:var(--amber)}
 .lchip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px 3px 4px;font-size:13px;font-weight:700;background:rgba(255,255,255,.08)}
 .lchip i{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:10px;color:#fff;font-family:var(--font-display)}
 .lchip i.R{background:var(--red)} .lchip i.O{background:var(--orange)}
@@ -533,7 +549,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
       <div class="pk-in">
         <div class="pk-top" id="pkTop">
           <span class="pk-grab" aria-hidden="true"></span>
-          <div class="pk-head"><h2 id="pkTitle">選擇出發站</h2><button type="button" class="pk-x" id="pkClose" aria-label="關閉">×</button></div>
+          <div class="pk-head"><h2 id="pkTitle">選擇出發站</h2><button type="button" class="pk-near" id="pkNear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span>離我最近</span></button><button type="button" class="pk-x" id="pkClose" aria-label="關閉">×</button></div>
           <div class="pk-lines" role="tablist" aria-label="路線">
             <button type="button" role="tab" class="pk-tab" data-l="R"><span class="badge R">R</span><span><b>紅線</b><small>岡山車站－小港</small></span></button>
             <button type="button" role="tab" class="pk-tab" data-l="O"><span class="badge O">O</span><span><b>橘線</b><small>大寮－哈瑪星</small></span></button>
@@ -542,6 +558,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
         <div class="pk-list" id="pkList" role="listbox" aria-labelledby="pkTitle"></div>
       </div>
     </dialog>
+    <section class="board view" id="board" data-view="list" aria-live="polite"></section>
     <div class="favwrap">
       <div class="favhead"><h2>我的最愛</h2><button type="button" class="linkbtn" id="favManage">管理</button></div>
       <div class="favstrip" id="favs" aria-label="我的最愛"></div>
@@ -567,7 +584,6 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
       </div>
     </section>
 
-    <section class="board view" id="board" data-view="list" aria-live="polite"></section>
 
     <nav class="tabbar" aria-label="主選單">
       <button type="button" data-tab="list" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>班次</button>
@@ -591,8 +607,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
           <h2 id="fvTitle">新增我的最愛</h2>
           <div class="field"><label for="fvName">名稱（可不填）</label><input type="text" id="fvName" maxlength="12" placeholder="例如：上班、回家、去學校" autocomplete="off"></div>
           <div class="row2f">
-            <div class="field"><label for="fvFrom">起站</label><select id="fvFrom"></select></div>
-            <div class="field"><label for="fvTo">終站</label><select id="fvTo"></select></div>
+            <div class="field"><label for="fvFromBtn">起站</label><button type="button" class="fvpick" id="fvFromBtn" data-k="from"></button><select id="fvFrom" hidden></select></div>
+            <div class="field"><label for="fvToBtn">終站</label><button type="button" class="fvpick" id="fvToBtn" data-k="to"></button><select id="fvTo" hidden></select></div>
           </div>
           <label class="toggle"><input type="checkbox" id="fvDef">打開 App 時直接顯示這條路線</label>
           <p class="err" id="fvErr" role="alert"></p>
@@ -883,6 +899,7 @@ function render() {
         <div class="b-times"><div><small>上車</small><b>${fmt(next.dep)}</b></div><span class="arr">→</span><div><small>抵達</small><b>${next.est ? '<span style="font-size:.5em;color:#9fb0c8">約</span>' : ""}${fmt(next.arr)}</b></div></div>
       </div>
       <div class="b-route">${lchips(next)}</div>
+      ${boardMore(res, next, now, live)}
       <div class="b-stats"><span><b>${inRange.length}</b>班可搭</span><span><b>${fastest}</b>分 最短車程</span><span>${xf ? `美麗島轉乘・預留 ${state.xfer} 分` : "直達免轉乘"}</span></div>`;
     lastBoardKey = key;
   }
@@ -916,6 +933,16 @@ function render() {
   }).join("");
 }
 
+// 看板補充：再下一班、末班車提醒
+function boardMore(res, next, now, live) {
+  if (!live) return "";
+  const i = res.indexOf(next), after = i >= 0 ? res[i + 1] : null, last = res[res.length - 1], parts = [];
+  if (after) { const w = after.dep - now; parts.push(`<span>再下一班 <b>${fmt(after.dep)}</b>${w < 100 ? `（${w} 分後）` : ""}</span>`); }
+  if (next === last) parts.push(`<span class="warn">這是今天的末班車</span>`);
+  else if (last && last.dep - now <= 90) parts.push(`<span class="warn">末班車 <b>${fmt(last.dep)}</b>，還有 ${last.dep - now} 分</span>`);
+  return parts.length ? `<div class="b-more">${parts.join("")}</div>` : "";
+}
+
 // ---------- 我的最愛 ----------
 const favLabel = f => f.name || `${f.o} → ${f.d}`;
 const favIdx = (o, d) => favs.findIndex(f => f.o === o && f.d === d);
@@ -936,8 +963,12 @@ function goFav(f) {
 function renderFavs() {
   const box = $("favs");
   if (!favs.length) {
-    box.innerHTML = `<button type="button" class="favcard hint" id="favEmpty"><span><b>☆ 加入我的最愛</b><br>把常搭的路線存起來，下次點一下就切過去，還能直接看到下一班。</span></button>`;
-    $("favEmpty").onclick = () => openFavEditor(-1);
+    const same = state.from === state.to;
+    box.innerHTML = `<button type="button" class="favcard hint" id="favEmpty"><span class="fh-star">☆</span><span>${same ? "把常搭的路線加入我的最愛" : `把「${esc(state.from)} → ${esc(state.to)}」加入我的最愛`}<small>下次點一下就切過去，還能直接看到下一班</small></span></button>`;
+    $("favEmpty").onclick = () => {
+      if (same) return openFavEditor(-1);
+      favs.push({o: state.from, d: state.to, name: "", def: true}); saveFavs(); render();
+    };
   } else {
     box.innerHTML = favs.map((f, i) => `<button type="button" class="favcard${f.o === state.from && f.d === state.to ? " on" : ""}" data-i="${i}">
         <span class="fc-top"><span class="fc-name">${esc(favLabel(f))}</span>${f.def ? "<em>預設</em>" : ""}</span>
@@ -970,12 +1001,21 @@ function openFavEditor(i) {
   favEditing = i;
   const f = i >= 0 ? favs[i] : {o: state.from, d: state.to === state.from ? (state.from === "左營" ? "鳳山" : "左營") : state.to, name: "", def: !favs.length};
   $("fvTitle").textContent = i >= 0 ? "編輯我的最愛" : "新增我的最愛";
-  $("fvName").value = f.name || ""; $("fvFrom").value = f.o; $("fvTo").value = f.d; $("fvDef").checked = !!f.def;
+  $("fvName").value = f.name || ""; $("fvFrom").value = f.o; $("fvTo").value = f.d; $("fvDef").checked = !!f.def; paintFvPick();
   $("fvErr").textContent = "";
   $("favEditor").hidden = false;
   if (state.view !== "favs") showView("favs"); else renderFavView();
   setTimeout(() => { $("favEditor").scrollIntoView({behavior: "smooth", block: "start"}); }, 60);
 }
+function paintFvPick() {
+  for (const [k, sel] of [["from", "fvFrom"], ["to", "fvTo"]]) $(k === "from" ? "fvFromBtn" : "fvToBtn").innerHTML = `<span class="badges${byName[$(sel).value].ids.length > 1 ? " two" : ""}">${badgeHTML($(sel).value)}</span><span class="fvp-name">${esc($(sel).value)}</span>`;
+}
+document.querySelectorAll(".fvpick").forEach(b => b.onclick = () => {
+  const me = b.dataset.k === "from" ? "fvFrom" : "fvTo", ot = me === "fvFrom" ? "fvTo" : "fvFrom";
+  openPickerFor({title: me === "fvFrom" ? "我的最愛：起站" : "我的最愛：終站", cur: $(me).value, other: $(ot).value,
+    tags: me === "fvFrom" ? ["起站", "終站"] : ["終站", "起站"],
+    onPick: name => { if (name === $(ot).value) $(ot).value = $(me).value; $(me).value = name; paintFvPick(); $("fvErr").textContent = ""; }});
+});
 function closeFavEditor() { favEditing = -1; $("favEditor").hidden = true; }
 $("fvCancel").onclick = closeFavEditor;
 $("fvSave").onclick = () => {
@@ -1830,30 +1870,38 @@ $("dayChip").onclick = () => showView("settings");
 els.from.onchange = () => { state.from = els.from.value; render(); };
 els.to.onchange = () => { state.to = els.to.value; render(); };
 // ---------- 選站面板 ----------
-const pk = {which: "from", line: "R"};
+const pk = {which: "from", line: "R", cur: "", other: "", tags: ["出發", "抵達站"], onPick: null, near: null};
 function pkRender(scroll) {
-  const cur = state[pk.which], other = state[pk.which === "from" ? "to" : "from"], L = pk.line, seq = DATA.lines[L].slice().reverse(); // 站號由大到小往下排（紅線北邊在上）
+  const cur = pk.cur, other = pk.other, L = pk.line, seq = DATA.lines[L].slice().reverse(); // 站號由大到小往下排（紅線北邊在上）
   document.querySelectorAll(".pk-tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.l === L)));
   const list = $("pkList"); list.className = "pk-list " + L;
   list.innerHTML = seq.map(([id, name], i) => {
     const xf = byName[name].ids.find(x => lineOf[x] !== L);
     const sel = name === cur, oth = name === other;
-    const tag = sel ? (pk.which === "from" ? "出發" : "抵達") : oth ? (pk.which === "from" ? "抵達站" : "出發站") : "";
-    return `<button type="button" role="option" aria-selected="${sel}" class="pk-row${i === 0 ? " first" : ""}${i === seq.length - 1 ? " last" : ""}${sel ? " sel" : ""}${xf ? " xf" : ""}" data-name="${name}">
+    const nr = pk.near && pk.near.name === name;
+    const tag = sel ? pk.tags[0] : oth ? pk.tags[1] : nr ? `最近・${distText(pk.near.d)}` : "";
+    return `<button type="button" role="option" aria-selected="${sel}" class="pk-row${i === 0 ? " first" : ""}${i === seq.length - 1 ? " last" : ""}${sel ? " sel" : ""}${xf ? " xf" : ""}${nr ? " near" : ""}" data-name="${name}">
       <span class="pk-rail"><i></i></span><span class="pk-code">${id}</span>
       <span class="pk-name">${name}${xf ? `<small>可轉${LINE_NAME[lineOf[xf]]}<span class="badge ${lineOf[xf]}">${xf}</span></small>` : ""}</span>
       ${tag ? `<span class="pk-tag">${tag}</span>` : "<span></span>"}</button>`;
   }).join("");
   if (scroll) {
-    const s = list.querySelector(".pk-row.sel");
+    const s = (scroll === "near" && list.querySelector(".pk-row.near")) || list.querySelector(".pk-row.sel");
     list.scrollTop = s ? s.offsetTop - list.clientHeight / 2 + s.offsetHeight / 2 : 0;
   }
 }
 function openPicker(which) {
-  pk.which = which;
-  const ids = byName[state[which]].ids;
+  const o = which === "from" ? "to" : "from";
+  openPickerFor({title: which === "from" ? "選擇出發站" : "選擇抵達站", cur: state[which], other: state[o],
+    tags: which === "from" ? ["出發", "抵達站"] : ["抵達", "出發站"],
+    onPick: name => { if (name === state[o]) state[o] = state[which]; state[which] = name; render(); }});
+}
+function openPickerFor(opt) {
+  Object.assign(pk, opt);
+  const ids = byName[pk.cur].ids;
   if (!ids.some(x => lineOf[x] === pk.line)) pk.line = lineOf[ids[0]];
-  $("pkTitle").textContent = which === "from" ? "選擇出發站" : "選擇抵達站";
+  $("pkTitle").textContent = opt.title;
+  $("pkNear").classList.remove("busy"); $("pkNear").lastChild.textContent = "離我最近";
   const d = $("picker");
   if (typeof d.showModal === "function") d.showModal(); else d.setAttribute("open", "");
   pkRender(true);
@@ -1865,11 +1913,22 @@ $("pkClose").onclick = closePicker;
 $("picker").addEventListener("click", e => { if (e.target === $("picker")) closePicker(); });
 $("pkList").addEventListener("click", e => {
   const r = e.target.closest(".pk-row"); if (!r) return;
-  const name = r.dataset.name, o = pk.which === "from" ? "to" : "from";
-  if (name === state[o]) state[o] = state[pk.which];
-  state[pk.which] = name;
-  closePicker(); render();
+  closePicker(); pk.onPick && pk.onPick(r.dataset.name);
 });
+$("pkNear").onclick = () => {
+  const b = $("pkNear");
+  if (!navigator.geolocation) { b.textContent = "無法定位"; return; }
+  b.classList.add("busy");
+  navigator.geolocation.getCurrentPosition(pos => {
+    b.classList.remove("busy");
+    const me = [pos.coords.latitude, pos.coords.longitude];
+    const best = stations.map(st => ({name: st.name, ids: st.ids, d: Math.min(...st.ids.map(id => haversine(me, COORDS[id])))})).sort((x, y) => x.d - y.d)[0];
+    if (!best || best.d > 30000) { b.lastChild.textContent = "不在高雄附近"; return; }
+    pk.near = best;
+    if (!best.ids.some(x => lineOf[x] === pk.line)) pk.line = lineOf[best.ids[0]];
+    pkRender("near");
+  }, () => { b.classList.remove("busy"); b.lastChild.textContent = "沒有定位權限"; }, {enableHighAccuracy: true, timeout: 10000, maximumAge: 60000});
+};
 (() => { // 往下滑關閉
   let y0 = null; const top = $("pkTop"), d = $("picker");
   top.addEventListener("touchstart", e => { y0 = e.touches[0].clientY; }, {passive: true});
@@ -1944,7 +2003,7 @@ const syncOnline = () => document.body.classList.toggle("is-offline", !navigator
 addEventListener("online", syncOnline); addEventListener("offline", syncOnline); syncOnline();
 render();
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-14-v26";
+const APP_VER = "krtc-2026-11-15-v27";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
