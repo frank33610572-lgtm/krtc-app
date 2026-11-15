@@ -248,6 +248,7 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .b-times small{font-size:11px;color:#9fb0c8;letter-spacing:.1em}
 .b-times b{font-family:var(--font-display);font-size:34px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
 .b-times .arr{color:#6f819b;font-size:18px;align-self:end;padding-bottom:4px}
+@media (max-width:430px){.b-count .big{font-size:80px}.b-count.small .big{font-size:56px}.b-count .unit{font-size:14px}.b-times{gap:6px}.b-times b{font-size:29px}.b-times .arr{font-size:15px}.b-main{gap:10px;flex-wrap:nowrap}}
 .b-route{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .b-foot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12.5px;color:#9fb0c8;padding-top:2px;border-top:1px solid rgba(255,255,255,.07);padding-top:14px}
 .b-foot > span{display:inline-flex;align-items:baseline;gap:6px;background:rgba(255,255,255,.06);border-radius:999px;padding:5px 12px}
@@ -2559,7 +2560,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v48";
+const APP_VER = "krtc-2026-11-15-v49";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
