@@ -1069,6 +1069,7 @@ function walkNow() { // 回傳走路＋進站分鐘；沒開、沒定位或太�
 }
 function walkLocate(force) {
   if (!walk.on || !navigator.geolocation) return;
+  if (!force && (document.visibilityState !== "visible" || state.view !== "list")) return; // 省電：沒在看班次就不定位
   if (!force && Date.now() - walk.t < 120000) return;
   walk.t = Date.now();
   navigator.geolocation.getCurrentPosition(pos => { walk.me = [pos.coords.latitude, pos.coords.longitude]; walk.err = ""; render(); },
@@ -1711,7 +1712,7 @@ function parseOH(s) {
   s = s.trim();
   if (s === "24/7") return {always: true};
   const week = Array(7).fill(null);
-  for (let rule of s.split(";")) {
+  for (let rule of s.split(/;|,\s+(?=(?:Mo|Tu|We|Th|Fr|Sa|Su)\b)/)) {
     rule = rule.trim(); if (!rule || /^(PH|SH)\b/.test(rule)) continue;
     const m = rule.match(/^((?:(?:Mo|Tu|We|Th|Fr|Sa|Su)(?:-(?:Mo|Tu|We|Th|Fr|Sa|Su))?,?)+)\s+(.+)$/);
     let days = [0, 1, 2, 3, 4, 5, 6], rest = rule;
@@ -2287,7 +2288,7 @@ addEventListener("online", syncOnline); addEventListener("offline", syncOnline);
 render();
 walkLocate(true);
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v39";
+const APP_VER = "krtc-2026-11-15-v40";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
