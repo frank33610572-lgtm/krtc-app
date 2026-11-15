@@ -426,7 +426,12 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 #map{height:calc(100dvh - 170px - env(safe-area-inset-bottom));min-height:440px;background:var(--soft)}
 #map canvas{outline:none}
 @media (min-width:980px){#map{height:calc(100vh - 90px)}}
-.maptoast{position:absolute;left:12px;right:64px;top:12px;z-index:3;background:color-mix(in srgb,var(--surface) 86%,transparent);backdrop-filter:blur(12px) saturate(1.4);-webkit-backdrop-filter:blur(12px) saturate(1.4);border:1px solid color-mix(in srgb,var(--line) 70%,transparent);border-radius:14px;padding:9px 13px;font-size:13px;line-height:1.45;color:var(--ink);box-shadow:0 6px 20px rgba(0,0,0,.12);pointer-events:none}
+.maptoast{position:absolute;left:12px;top:12px;z-index:3;width:max-content;max-width:calc(100% - 84px);background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(12px) saturate(1.4);-webkit-backdrop-filter:blur(12px) saturate(1.4);border:1px solid color-mix(in srgb,var(--line) 70%,transparent);border-radius:14px;padding:7px 30px 7px 12px;font-size:12.5px;line-height:1.45;color:var(--ink);box-shadow:0 6px 20px rgba(0,0,0,.12);opacity:0;transform:translateY(-8px);pointer-events:none;transition:opacity .35s ease,transform .35s ease}
+.maptoast.show{opacity:1;transform:none;pointer-events:auto;cursor:pointer}
+.maptoast::after{content:"×";position:absolute;right:10px;top:50%;transform:translateY(-52%);font-size:16px;line-height:1;color:var(--muted)}
+.maptoast.busy::after{content:none}
+.maptoast.busy{padding-right:12px}
+@media (prefers-reduced-motion:reduce){.maptoast{transition:none}}
 .mapfabs{position:absolute;right:12px;bottom:36px;z-index:3;display:grid;gap:10px}
 .fab{width:48px;height:48px;border-radius:16px;border:1px solid color-mix(in srgb,var(--line) 70%,transparent);background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--ink);display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.16);transition:transform .15s}
 .fab:active{transform:scale(.94)}
@@ -818,7 +823,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
       </div>
       <div class="mapwrap">
         <div id="map" role="application" aria-label="高雄捷運與輕軌路線地圖"></div>
-        <div class="maptoast" id="locMsg" role="status">點車站看下一班車，也能設成起站、終站或導航過去</div>
+        <div class="maptoast" id="locMsg" role="status"></div>
         <div class="mapfabs">
           <button type="button" class="fab poifab" id="poiBtn" aria-pressed="false" aria-label="好用地圖：餐廳、手搖飲、咖啡廳、酒吧、超商" title="好用地圖"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"/><path d="M5.5 12v8h13v-8M10 20v-5h4v5"/></svg><span>好用</span></button>
           <button type="button" class="fab" id="ybToggle" aria-pressed="false" aria-label="顯示 YouBike 站" title="顯示 YouBike 站"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9 9h6l3.5 7.5M9 9 7.5 6H5M15 9l-2.5 7.5H5.5M13 6h3"/></svg></button>
@@ -2211,10 +2216,31 @@ function poiCounts() {
   for (const it of poi.items.values()) if (b.contains([it.lon, it.lat])) n[it.c]++;
   return n;
 }
+// 地圖上方的提示：幾秒後自己淡出、點一下就關；「…」結尾的載入訊息會留著直到換掉
+(() => {
+  const el = $("locMsg"); let tm = 0;
+  const hide = () => { clearTimeout(tm); el.classList.remove("show"); };
+  new MutationObserver(() => {
+    clearTimeout(tm);
+    const t = el.textContent.trim();
+    if (!t) return hide();
+    const busy = /…$/.test(t);
+    el.classList.add("show"); el.classList.toggle("busy", busy);
+    if (!busy) tm = setTimeout(hide, Math.min(8000, 2800 + t.length * 90));
+  }).observe(el, {childList: true, characterData: true, subtree: true});
+  el.addEventListener("click", hide);
+})();
+// 教學提示：每次打開 App 最多出現一次，看過 3 次以後就不再出現
+const hintSeen = store.get("krtc-hints", {}), hintNow = new Set();
+function mapHint(key, text) {
+  if (hintNow.has(key) || (hintSeen[key] || 0) >= 3) return;
+  hintNow.add(key); hintSeen[key] = (hintSeen[key] || 0) + 1; store.set("krtc-hints", hintSeen);
+  $("locMsg").textContent = text;
+}
 async function poiLoadView() {
   if (!map || !poi.on) return;
   const msg = $("locMsg");
-  if (map.getZoom() < 13.5) { poiChipCounts(); msg.textContent = "圓圈裡是那一區的店家數，點圓圈或放大就會看到單一店家"; poiDraw(); return; }
+  if (map.getZoom() < 13.5) { poiChipCounts(); mapHint("cluster", "圓圈裡是那一區的店家數，點圓圈或放大就會看到單一店家"); poiDraw(); return; }
   const b = map.getBounds(), cells = [];
   for (let i = Math.floor(b.getSouth() / CELL); i <= Math.floor(b.getNorth() / CELL); i++)
     for (let j = Math.floor(b.getWest() / CELL); j <= Math.floor(b.getEast() / CELL); j++) cells.push([i, j]);
@@ -2464,7 +2490,7 @@ function showView(v) {
   if (v === "map") {
     if (!map) {
       $("locMsg").textContent = "地圖載入中…";
-      loadMapLib().then(() => { initMap(); $("locMsg").textContent = "點車站看下一班車，也能設成起站、終站或導航過去"; })
+      loadMapLib().then(() => { initMap(); $("locMsg").textContent = ""; mapHint("station", "點車站看下一班車，也能設成起站、終站或導航過去"); })
         .catch(() => { $("locMsg").textContent = "地圖第一次載入需要網路，連上網路後再點一次「地圖」"; });
     } else setTimeout(() => { map.resize(); drawRoute(); }, 60);
   }
@@ -2728,7 +2754,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-16-v57";
+const APP_VER = "krtc-2026-11-16-v58";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
