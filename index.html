@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>高捷班次</title>
-<meta name="description" content="高雄捷運紅線、橘線班次查詢：下一班倒數、到站時間、美麗島轉乘、最近車站與地圖。可離線使用。">
+<meta name="description" content="高雄捷運紅線、橘線與環狀輕軌班次查詢：下一班倒數、到站時間、美麗島轉乘、最近車站與地圖。可離線使用。">
 <meta name="theme-color" content="#0d1420">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -733,7 +733,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
         <button type="button" class="poihide" id="poiHide" aria-pressed="false"><span class="sw" aria-hidden="true"></span>隱藏休息中的店</button>
       </div>
       <div class="mapwrap">
-        <div id="map" role="application" aria-label="高雄捷運路線地圖"></div>
+        <div id="map" role="application" aria-label="高雄捷運與輕軌路線地圖"></div>
         <div class="maptoast" id="locMsg" role="status">點車站看下一班車，也能設成起站、終站或導航過去</div>
         <div class="mapfabs">
           <button type="button" class="fab poifab" id="poiBtn" aria-pressed="false" aria-label="好用地圖：手搖飲、超商、咖啡廳" title="好用地圖"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"/><path d="M5.5 12v8h13v-8M10 20v-5h4v5"/></svg><span>好用</span></button>
@@ -1080,7 +1080,7 @@ function setRange(r) {
   else { els.tFrom.value = fmt(n); els.tTo.value = fmt(n + r); }
 }
 setRange(60);
-$("srcText").textContent = "資料來源：" + DATA.src + "。";
+$("srcText").textContent = "資料來源：" + DATA.src + "；輕軌：" + LRT.src + "，時刻表版本 " + LRT.v + "。輕軌只有平日、假日兩種時刻表，抵達時間依官方站間行駛時間推算，和實際可能差 1、2 分鐘。";
 $("footer").textContent = "資料：" + DATA.src;
 
 // ---------- 主要畫面 ----------
@@ -2191,9 +2191,9 @@ $("locate").onclick = () => {
     const near = stations.map(st => ({st, id: st.ids[0], d: haversine(me, COORDS[st.ids[0]])})).sort((x, y) => x.d - y.d).slice(0, 3);
     near.forEach(n => { const ex = (EXITS[n.st.name] || []).map(e => ({e, d: haversine(me, [e[1], e[2]])})).sort((a, b) => a.d - b.d)[0]; if (ex) { n.ex = ex.e[0]; n.d = ex.d; } });
     const far = near[0].d > 30000;
-    msg.textContent = far ? "你離高雄捷運很遠，下面是直線距離最近的車站" : `最近的捷運站是${near[0].st.name}`;
-    $("nearList").innerHTML = `<div class="neartitle">最近的捷運站</div>` + near.map(n => {
-      const g = nextDeps(n.st.name, 1).filter(x => x.deps.length).map(x => `往${x.head} <b class="num">${fmt(x.deps[0])}</b>`).join("　");
+    msg.textContent = far ? "你離高雄捷運、輕軌很遠，下面是直線距離最近的車站" : `最近的車站是${near[0].st.name}`;
+    $("nearList").innerHTML = `<div class="neartitle">最近的捷運、輕軌站</div>` + near.map(n => {
+      const g = nextDeps(n.st.name, 1).filter(x => x.deps.length).map(x => `${x.L === "C" ? x.head : "往" + x.head} <b class="num">${fmt(x.deps[0])}</b>`).join("　");
       return `<div class="nearrow"><div class="nm"><span class="badges${n.st.ids.length > 1 ? " two" : ""}">${badgeHTML(n.st.name)}</span>${n.st.name}<span class="dist"><b>${walkMin(n.d)} 分</b>${n.ex ? `走到 ${n.ex} 號出口` : "步行"}・${distText(n.d)}</span></div>${g ? `<div class="hint">下一班：${g}</div>` : ""}${stationActs(n.st.name, n.id)}</div>`;
     }).join("");
     if (map) {
@@ -2206,7 +2206,7 @@ $("locate").onclick = () => {
     ybNearest(me).then(top => {
       if (!top || far) return;
       const a = ybInfo(top.st[0]);
-      msg.textContent = `最近的捷運站：${near[0].st.name}。${a ? "最近有車的 YouBike" : "最近的 YouBike"}：${top.st[1]}（${distText(top.d)}${a && a[0] === 1 ? `，可借 ${a[1]} 台` : ""}）`;
+      msg.textContent = `最近的車站：${near[0].st.name}。${a ? "最近有車的 YouBike" : "最近的 YouBike"}：${top.st[1]}（${distText(top.d)}${a && a[0] === 1 ? `，可借 ${a[1]} 台` : ""}）`;
     });
   }, err => {
     btn.classList.remove("busy");
@@ -2458,7 +2458,7 @@ addEventListener("online", syncOnline); addEventListener("offline", syncOnline);
 render();
 walkLocate(true);
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v43";
+const APP_VER = "krtc-2026-11-15-v44";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
