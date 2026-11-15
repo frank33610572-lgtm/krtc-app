@@ -234,7 +234,7 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 /* ---------- 發車看板 ---------- */
 .board{position:relative;overflow:hidden;background:var(--board);color:var(--board-ink);border-radius:20px;padding:18px 18px 16px;display:grid;gap:14px;isolation:isolate}
 .board::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.13;background-image:radial-gradient(circle,#fff 1px,transparent 1.3px);background-size:6px 6px;-webkit-mask-image:linear-gradient(115deg,#000 0%,transparent 70%);mask-image:linear-gradient(115deg,#000 0%,transparent 70%)}
-.board::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--red) 0 50%,var(--orange) 50% 100%)}
+.board::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--trail,var(--red) 0 50%,var(--orange) 50% 100%))}
 .b-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;letter-spacing:.12em;color:#9fb0c8}
 .b-head b{color:var(--amber);font-weight:700;letter-spacing:.12em}
 .b-main{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap}
@@ -248,10 +248,43 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .b-times b{font-family:var(--font-display);font-size:34px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
 .b-times .arr{color:#6f819b;font-size:18px;align-self:end;padding-bottom:4px}
 .b-route{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.b-more{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:#9fb0c8}
-.b-more b{font-family:var(--font-display);font-size:18px;color:var(--board-ink);font-weight:700;margin:0 1px;letter-spacing:.02em}
-.b-more .warn{color:var(--amber);font-weight:700}
-.b-more .warn b{color:var(--amber)}
+.b-more{display:flex;flex-wrap:wrap;gap:8px;font-size:12.5px;color:#9fb0c8}
+.b-more > span{display:inline-flex;align-items:baseline;gap:6px;background:rgba(255,255,255,.06);border-radius:999px;padding:5px 12px}
+.b-more b{font-family:var(--font-display);font-size:17px;color:var(--board-ink);font-weight:700;letter-spacing:.02em}
+.b-more small{font-size:11.5px;color:#8a9bb4}
+.b-more .warn{color:var(--amber);font-weight:700;background:rgba(255,184,77,.12)}
+.b-more .warn b,.b-more .warn small{color:var(--amber)}
+/* 旅程條 */
+.jr{display:grid;gap:6px}
+.jr-track{display:flex;gap:3px;height:34px}
+.jr-seg{position:relative;min-width:12px;border-radius:9px;display:flex;align-items:center;gap:6px;padding:0 8px;overflow:hidden;font-size:12px;font-weight:700;white-space:nowrap;color:#fff;transform-origin:left center}
+.jr-seg span{overflow:hidden;text-overflow:ellipsis}
+.jr-seg.ride.R{background:var(--red)} .jr-seg.ride.O{background:var(--orange);color:#1b1206} .jr-seg.ride.C{background:var(--lrt);color:#0d1a08}
+.jr-l{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.92);color:#0b1018;font-family:var(--font-display);font-size:13px;flex:none}
+.jr-seg.wait{background:repeating-linear-gradient(-55deg,rgba(255,255,255,.07) 0 6px,rgba(255,255,255,.015) 6px 12px);background-size:28px 100%;color:#9fb0c8;justify-content:flex-end;padding-right:10px;animation:jrFlow 1.6s linear infinite;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.jr-seg.wait::after{content:"";position:absolute;right:0;top:6px;bottom:6px;width:3px;border-radius:2px;background:var(--amber)}
+.jr-seg.wait.soon{box-shadow:inset 0 0 0 1px rgba(255,184,77,.6);color:var(--amber)}
+.jr-train{position:absolute;top:50%;width:22px;height:22px;margin-top:-11px;color:var(--amber);transition:left 1.2s cubic-bezier(.3,.7,.3,1);filter:drop-shadow(0 0 6px rgba(255,184,77,.45))}
+.jr-train svg{width:22px;height:22px;display:block}
+.jr-seg.wait.soon .jr-train{animation:jrNudge .9s ease-in-out infinite}
+.jr-seg.xfer,.jr-seg.walk{background:transparent;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22);color:#c9d4e3;justify-content:center;border-radius:9px;background-image:radial-gradient(circle,rgba(255,255,255,.28) 1.2px,transparent 1.6px);background-size:8px 8px;background-position:center}
+.jr-seg.xfer span,.jr-seg.walk span{background:var(--board);padding:1px 6px;border-radius:6px}
+.jr-ticks{display:flex;gap:3px;align-items:baseline;font-family:var(--font-display);font-size:13px;color:#8a9bb4;font-variant-numeric:tabular-nums;position:relative;min-height:16px}
+.jr-ticks > div{min-width:12px}
+.jr-ticks span.hide{visibility:hidden}
+.jr-ticks em{position:absolute;right:0;font-style:normal;color:var(--board-ink);font-weight:700}
+.jr-route{margin:2px 0 0;font-size:12.5px;color:#9fb0c8;line-height:1.6}
+.jr-n{color:var(--board-ink);font-weight:700}
+.jr-n.R{color:#ff8a90} .jr-n.O{color:#ffc266} .jr-n.C{color:#9be08a}
+.jr-x{color:#c9d4e3}
+.jr.draw .jr-seg{animation:jrIn .55s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 90ms)}
+.jr.draw .jr-seg.wait{animation:jrIn .55s cubic-bezier(.2,.8,.2,1) both,jrFlow 1.6s linear infinite .55s}
+.jr.draw .jr-ticks,.jr.draw .jr-route{animation:jrFade .5s ease both .35s}
+@keyframes jrIn{from{transform:scaleX(0);opacity:0}}
+@keyframes jrFade{from{opacity:0;transform:translateY(4px)}}
+@keyframes jrFlow{to{background-position:28px 0}}
+@keyframes jrNudge{50%{transform:translateX(3px)}}
+@media (prefers-reduced-motion:reduce){.jr-seg,.jr-seg.wait,.jr.draw .jr-seg,.jr.draw .jr-ticks,.jr.draw .jr-route,.jr-train{animation:none!important;transition:none!important}}
 .b-walkbtn{display:flex;align-items:center;gap:8px;justify-self:start;border:1px dashed rgba(255,255,255,.25);background:none;color:#c9d4e3;border-radius:12px;padding:8px 12px;font-size:13px;font-weight:700;cursor:pointer;min-height:40px}
 .b-walkbtn svg{width:18px;height:18px;flex:none}
 .b-walk{display:flex;align-items:flex-start;gap:10px;background:rgba(255,255,255,.06);border-radius:12px;padding:9px 8px 9px 12px;font-size:13.5px;color:#c9d4e3;line-height:1.5}
@@ -1106,7 +1139,7 @@ function legDetail(l) {
   }
   return `<div class="leg ${t.L}"><h4><span class="badge ${t.L}" style="height:20px;min-width:0;font-size:12px;padding:0 6px">${LINE_NAME[t.L]}</span>${headTxt(t)}・${l.j - l.i} 站・${l.arr - l.dep} 分</h4><ol class="stops">${items.join("")}</ol></div>`;
 }
-let lastBoardKey = "", lastListSig = "";
+let lastBoardKey = "", lastListSig = "", lastDrawKey = "";
 function render() {
   persist();
   paintStations();
@@ -1158,17 +1191,17 @@ function render() {
     const countHTML = live
       ? (w === 0 ? `<span class="big">現在</span>` : w < 100 ? `<span class="big">${w}</span><span class="unit">分鐘後</span>` : `<span class="big">${fmt(next.dep)}</span>`)
       : `<span class="big">${fmt(next.dep)}</span>`;
-    const key = routeKey() + next.dep + w;
+    const key = routeKey() + next.dep + w, drawKey = routeKey() + next.dep + day;
     board.innerHTML = `<div class="b-head"><span>${live ? "下一班" : "第一班"}・${esc(o)} → ${esc(d)}</span><b>${DAY_SHORT[day]}</b></div>
       <div class="b-main">
         <div class="b-count ${live && w > 0 && w < 100 ? "" : "small"} ${key !== lastBoardKey ? "tick" : ""}">${countHTML}</div>
         <div class="b-times"><div><small>${next.pre ? "出發" : "上車"}</small><b>${fmt(next.dep)}</b></div><span class="arr">→</span><div><small>抵達</small><b>${next.est ? '<span style="font-size:.5em;color:#9fb0c8">約</span>' : ""}${fmt(next.arr)}</b></div></div>
       </div>
-      <div class="b-route">${lchips(next)}</div>
+      ${journeyBar(next, now, live, drawKey !== lastDrawKey)}
       ${boardMore(res, next, now, live)}
-      ${live ? walkLine(res, next, now, firstUp) : ""}
-      <div class="b-stats"><span><b>${inRange.length}</b>班可搭</span><span><b>${fastest}</b>分 最短車程</span><span>${xfText(next)}</span></div>`;
-    lastBoardKey = key;
+      ${live ? walkLine(res, next, now, firstUp) : ""}`;
+    board.style.setProperty("--trail", next.legs.map((l, k, a) => `${lineColor(l.trip.L)} ${k / a.length * 100}% ${(k + 1) / a.length * 100}%`).join(","));
+    lastBoardKey = key; lastDrawKey = drawKey;
   }
 
   // 清單
@@ -1256,13 +1289,44 @@ function firstTomorrow(o, d) {
   return `今天的車已經收班了${last ? `（末班 ${fmt(last.dep)}）` : ""}。${t ? `明天首班 ${fmt(t.dep)} 上車，${t.est ? "約 " : ""}${fmt(t.arr)} 抵達。` : ""}`;
 }
 
+// ---------- 看板的旅程條：等車 → 各段車程 → 轉乘，寬度依分鐘數 ----------
+const RIDE_IC = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="14" rx="3" fill="currentColor"/><rect x="7.5" y="6" width="9" height="5" rx="1" fill="#0b1018" opacity=".55"/><circle cx="9" cy="14" r="1.2" fill="#0b1018"/><circle cx="15" cy="14" r="1.2" fill="#0b1018"/><path d="m8 21 2-3h4l2 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>';
+function journeyBar(r, now, live, draw) {
+  const J = joinsOf(r), segs = [];
+  const wait = live ? Math.max(0, r.dep - now - (r.pre ? r.pre.mins : 0)) : 0;
+  if (live) segs.push({k: "wait", mins: wait, t: now, grow: Math.max(Math.min(wait, 20), 4)});
+  if (r.pre) segs.push({k: "walk", mins: r.pre.mins, t: r.dep, txt: `步行 ${r.pre.mins} 分`});
+  r.legs.forEach((l, i) => {
+    if (i) segs.push({k: "xfer", mins: J[i - 1].wait, t: r.legs[i - 1].arr, txt: `換車 ${J[i - 1].wait} 分`, at: J[i - 1].at});
+    segs.push({k: "ride", L: l.trip.L, mins: l.arr - l.dep, t: l.dep, txt: `${headTxt(l.trip)}・${l.arr - l.dep} 分`, at: i ? "" : ""});
+  });
+  if (r.post) segs.push({k: "walk", mins: r.post.mins, t: r.legs[r.legs.length - 1].arr, txt: `步行 ${r.post.mins} 分`});
+  segs.forEach(sg => { if (sg.grow == null) sg.grow = Math.max(sg.mins, sg.k === "ride" ? 6 : 3); });
+  const total = segs.reduce((a, b) => a + b.grow, 0);
+  const pos = live ? Math.max(0, Math.min(1, 1 - wait / 20)) : 1; // 小火車靠近月台的位置
+  const cells = segs.map((sg, i) => {
+    const pct = sg.grow / total * 100, wide = pct > 22;
+    const inner = sg.k === "wait" ? `<i class="jr-train" style="left:calc(${pos} * (100% - 22px))">${RIDE_IC}</i>${wide ? `<span>等車 ${wait} 分</span>` : ""}`
+      : sg.k === "ride" ? `<b class="jr-l">${sg.L}</b>${pct > 18 ? `<span>${esc(sg.txt)}</span>` : ""}`
+      : pct > 14 ? `<span>${esc(sg.txt)}</span>` : "";
+    return `<div class="jr-seg ${sg.k} ${sg.L || ""}${sg.k === "wait" && wait <= 2 ? " soon" : ""}" style="flex:${sg.grow} 1 0;--i:${i}" title="${esc(sg.txt || "")}">${inner}</div>`;
+  }).join("");
+  const ticks = segs.map((sg, i) => {
+    const pct = sg.grow / total * 100, lab = sg.k === "wait" ? "現在" : fmt(sg.t);
+    return `<div style="flex:${sg.grow} 1 0"><span class="${i && (pct < 13 || (i === segs.length - 1 && pct < 26)) ? "hide" : ""}">${lab}</span></div>`;
+  }).join("") + `<em>${r.est ? "約" : ""}${fmt(r.arr)}</em>`;
+  const route = (r.pre ? `步行到${esc(r.pre.to)} → ` : "") + r.legs.map((l, k) => (k ? ` → <span class="jr-x">${esc(J[k - 1].label)}</span> → ` : "")
+    + `<span class="jr-n ${l.trip.L}">${LINE_NAME[l.trip.L]}${headTxt(l.trip)}</span>`).join("") + (r.post ? ` → 步行到${esc(r.post.to)}` : "");
+  return `<div class="jr${draw ? " draw" : ""}"><div class="jr-track">${cells}</div><div class="jr-ticks">${ticks}</div><p class="jr-route">${route}</p></div>`;
+}
+
 // 看板補充：再下一班、末班車提醒
 function boardMore(res, next, now, live) {
   if (!live) return "";
   const i = res.indexOf(next), after = i >= 0 ? res[i + 1] : null, last = res[res.length - 1], parts = [];
-  if (after) { const w = after.dep - now; parts.push(`<span>再下一班 <b>${fmt(after.dep)}</b>${w < 100 ? `（${w} 分後）` : ""}</span>`); }
+  if (after) { const w = after.dep - now; parts.push(`<span>再下一班 <b>${fmt(after.dep)}</b>${w < 100 ? `<small>${w} 分後</small>` : ""}</span>`); }
   if (next === last) parts.push(`<span class="warn">這是今天的末班車</span>`);
-  else if (last && last.dep - now <= 90) parts.push(`<span class="warn">末班車 <b>${fmt(last.dep)}</b>，還有 ${last.dep - now} 分</span>`);
+  else if (last && last.dep - now <= 90) parts.push(`<span class="warn">末班 <b>${fmt(last.dep)}</b><small>剩 ${last.dep - now} 分</small></span>`);
   return parts.length ? `<div class="b-more">${parts.join("")}</div>` : "";
 }
 
@@ -2494,7 +2558,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v45";
+const APP_VER = "krtc-2026-11-15-v46";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
