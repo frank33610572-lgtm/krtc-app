@@ -1,18 +1,13 @@
-# 一次性：列出高雄市稅籍登記中 56 開頭（餐飲業）行業代號的家數與範例店名
-import csv, io, urllib.request, zipfile, collections, random
+# 一次性：測試能否從 GitHub Actions 取得高雄市門牌坐標資料
+import urllib.request, re, time, json
 UA = {"User-Agent": "Mozilla/5.0 krtc-app data builder"}
-raw = zipfile.ZipFile(io.BytesIO(urllib.request.urlopen(urllib.request.Request("https://eip.fia.gov.tw/data/BGMOPEN1.zip", headers=UA), timeout=300).read()))
-f = raw.open(raw.namelist()[0]).read()
-try: text = f.decode("utf-8-sig")
-except UnicodeDecodeError: text = f.decode("cp950", "replace")
-rows = csv.reader(io.StringIO(text)); header = next(rows); print(header); print(next(rows))
-cnt, names, ex = collections.Counter(), {}, collections.defaultdict(list)
-for r in rows:
-    if len(r) < 16 or not r[0].startswith("高雄市"): continue
-    c = r[8]
-    if not c.startswith("56"): continue
-    cnt[c] += 1; names[c] = r[9]
-    if len(ex[c]) < 400: ex[c].append(r[3])
-random.seed(1)
-for c, n in sorted(cnt.items()):
-    print(c, names[c], n, "|", "、".join(random.sample(ex[c], min(25, len(ex[c])))))
+def get(u, t=60):
+    with urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=t) as r: return r.read()
+for page in ["https://data.kcg.gov.tw/DataSet/Detail/b9579154-2b39-40f3-aacd-4d160029fbb9", "https://data.kcg.gov.tw/dataset?q=%E9%96%80%E7%89%8C%E5%9D%90%E6%A8%99"]:
+    try:
+        h = get(page).decode("utf-8", "replace")
+        print("OK", page, len(h))
+        print(sorted(set(re.findall(r"https?://api\.kcg\.gov\.tw[^\"'<> ]+", h)))[:20])
+        print(sorted(set(re.findall(r"/[Dd]ata[Ss]et/[Dd]etail/[0-9a-f-]{36}", h)))[:40])
+        for m in re.finditer(r"門牌坐標[^<]{0,40}", h): print(" ", m.group(0))
+    except Exception as e: print("ERR", page, e)
