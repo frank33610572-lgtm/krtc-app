@@ -2237,7 +2237,7 @@ document.querySelectorAll(".poisrc button").forEach(b => b.onclick = () => {
   poi.src = b.dataset.src; $("poiQ").value = ""; $("poiQx").hidden = true;
   if ((poi.src === "from" || poi.src === "to") && map) {
     const id = byName[state[poi.src]].ids[0];
-    map.flyTo({center: LL(id), zoom: Math.max(map.getZoom(), 16), duration: 700});
+    map.flyTo({center: LL(id), zoom: 15.4, duration: 700});
     document.querySelector(".mapwrap").scrollIntoView({behavior: "smooth", block: "nearest"});
   }
   poiRing(); poiRenderList();
@@ -2682,7 +2682,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v54";
+const APP_VER = "krtc-2026-11-15-v55";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
