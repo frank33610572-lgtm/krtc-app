@@ -1586,24 +1586,25 @@ function loadOfficial() {
       poi.items.set("o7" + i, {id: "o7" + i, c: "conv", lat, lon, n: `7-ELEVEN ${n}門市`, b: "7-ELEVEN", br: n, oh,
         atmText: atm ? "中國信託" : "這間門市沒有 ATM", src: "7-ELEVEN 官網", off: 1});
     });
-    d.fam.forEach(([n, a, o, bank, non24], i) => {
+    d.fam.forEach(([n, a, o, bank, non24, oh], i) => {
       const [lat, lon] = ll(a, o);
-      poi.items.set("oF" + i, {id: "oF" + i, c: "conv", lat, lon, n: `全家 ${n}`, b: "全家", br: n, oh: "", non24,
+      poi.items.set("oF" + i, {id: "oF" + i, c: "conv", lat, lon, n: `全家 ${n}`, b: "全家", br: n, oh: oh || "", non24,
         atmText: bank ? BANKS[bank] : "未查到這間門市的 ATM 資料", atmSrc: bank ? 1 : 0, src: "全家官網", off: 1});
     });
     poi.hlAtm = {};
-    d.hl.forEach(([n, addr, atm, bank, a, o], i) => {
+    d.hl.forEach(([n, addr, atm, bank, a, o, hoh], i) => {
       const atmText = bank ? BANKS[bank] : atm ? "有 ATM（銀行未確認）" : "這間門市沒有 ATM";
       poi.hlAtm[normStore(n)] = atmText;
       if (a == null) return;
       const [lat, lon] = ll(a, o);
-      poi.items.set("oH" + i, {id: "oH" + i, c: "conv", lat, lon, n: `萊爾富 ${n.replace(/^萊爾富/, "")}`, b: "萊爾富", br: n, oh: "", addr: addr.replace(/^高雄市/, ""),
+      poi.items.set("oH" + i, {id: "oH" + i, c: "conv", lat, lon, n: `萊爾富 ${n.replace(/^萊爾富/, "")}`, b: "萊爾富", br: n, oh: hoh || "", addr: addr.replace(/^高雄市/, ""),
         atmText, atmSrc: bank ? 1 : 0, src: "萊爾富官網", off: 1});
     });
     // 手搖飲、咖啡廳：財政部營業稅籍登記（行業代碼）＋高雄市門牌座標
-    (d.shop || []).forEach(([n, addr, cafe, a, o], i) => {
-      const [lat, lon] = ll(a, o);
-      poi.items.set("oS" + i, {id: "oS" + i, c: cafe ? "cafe" : "tea", lat, lon, n: cleanReg(n), reg: n, b: "", oh: "", addr, src: "財政部營業登記", off: 1, gov: 1});
+    (d.shop || []).forEach(([n, addr, cafe, a, o, oh, disp, hs], i) => {
+      const [lat, lon] = ll(a, o), isNew = hs === "O" || hs === "S";
+      poi.items.set("oS" + i, {id: "oS" + i, c: cafe ? "cafe" : "tea", lat, lon, n: disp || (isNew ? n : cleanReg(n)), reg: isNew ? "" : n, b: "", oh: oh || "", ohs: (hs || "").toLowerCase(),
+        addr, src: isNew ? (hs === "S" ? "星巴克官網" : "OpenStreetMap") : "財政部營業登記", off: 1, gov: isNew ? 0 : 1, newSrc: isNew});
     });
     poi.official = true;
     poi.hasShops = !!(d.shop && d.shop.length);
@@ -1635,9 +1636,12 @@ function poiAbsorb(it) {
     return true;
   }
   if (!poi.hasShops) return true;
-  const g = offNear(it, 30, o => o.gov && !o.osm && o.c === it.c) || offNear(it, 12, o => o.gov && !o.osm);
+  const g = offNear(it, 30, o => (o.gov || o.newSrc) && !o.osm && o.c === it.c) || offNear(it, 12, o => (o.gov || o.newSrc) && !o.osm);
   if (!g) return true;
-  g.osm = it.id; poi.absorbed.add(it.id); if (it.n && it.n !== POI_CATS[it.c].label) g.n = it.n; if (it.oh) g.oh = it.oh; if (it.b) g.b = it.b;
+  g.osm = it.id; poi.absorbed.add(it.id);
+  if (it.n && it.n !== POI_CATS[it.c].label && g.reg && g.n === cleanReg(g.reg)) g.n = it.n; // 只取代看不出店名的公司登記名
+  if (it.oh && g.ohs !== "s") { g.oh = it.oh; g.ohs = "o"; }                                // 官網營業時間優先
+  if (it.b) g.b = it.b;
   return false;
 }
 function atmOf(it) {
@@ -1915,7 +1919,8 @@ function poiName(it) {
 }
 function poiPopup(it) {
   const cat = POI_CATS[it.c], st = ohStatus(it), atm = atmOf(it), name = poiName(it);
-  const srcNote = it.gov ? `位置：財政部營業登記＋高雄市門牌座標${it.oh ? "；營業時間：OpenStreetMap" : ""}`
+  const ohSrc = it.ohs === "s" ? "星巴克官網" : "OpenStreetMap";
+  const srcNote = it.newSrc ? `資料：${it.src}` : it.gov ? `位置：財政部營業登記＋高雄市門牌座標${it.oh ? `；營業時間：${ohSrc}` : ""}`
     : it.off ? `資料：${it.src}${it.atmSrc ? "；ATM 銀行：財金公司開放資料" : ""}` : "資料：OpenStreetMap，營業時間與 ATM 以現場為準";
   const sub = [cat.label, it.b && !name.startsWith(it.b) ? it.b : ""].filter(Boolean).join("・");
   const reg = it.gov && it.reg !== it.n ? `<small>登記名稱：${esc(it.reg)}</small>` : "";
@@ -2180,7 +2185,7 @@ addEventListener("online", syncOnline); addEventListener("offline", syncOnline);
 render();
 walkLocate(true);
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v33";
+const APP_VER = "krtc-2026-11-15-v34";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
