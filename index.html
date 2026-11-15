@@ -40,6 +40,7 @@
   --amber:#ffb23e;
   --red:#e1252f;
   --orange:#f39800;
+  --lrt:#4fa83d;
   --good:#128556;
   --focus:#2f6fd6;
   --font-display:"Big Shoulders Display","Barlow Condensed","Arial Narrow",sans-serif;
@@ -50,13 +51,13 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#090d13; --surface:#131922; --ink:#e9edf3; --muted:#9aa3b1; --line:#252d39; --soft:#1a212c;
-    --board:#05080d; --board-ink:#e8edf5; --amber:#ffb84d; --red:#ff4b55; --orange:#ffa526; --good:#3fcf8e; --focus:#7fb0ff;
+    --board:#05080d; --board-ink:#e8edf5; --amber:#ffb84d; --red:#ff4b55; --orange:#ffa526; --lrt:#6cc756; --good:#3fcf8e; --focus:#7fb0ff;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#090d13; --surface:#131922; --ink:#e9edf3; --muted:#9aa3b1; --line:#252d39; --soft:#1a212c;
-  --board:#05080d; --board-ink:#e8edf5; --amber:#ffb84d; --red:#ff4b55; --orange:#ffa526; --good:#3fcf8e; --focus:#7fb0ff;
+  --board:#05080d; --board-ink:#e8edf5; --amber:#ffb84d; --red:#ff4b55; --orange:#ffa526; --lrt:#6cc756; --good:#3fcf8e; --focus:#7fb0ff;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -113,9 +114,11 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .pk-near.busy svg{animation:spin 1s linear infinite}
 .pk-row.near:not(.sel) .pk-tag{border-color:var(--focus);color:var(--focus)}
 .pk-x{border:0;background:var(--soft);width:34px;height:34px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;color:var(--muted)}
-.pk-lines{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pk-lines{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .pk-tab{--lc:var(--red);display:flex;align-items:center;gap:10px;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:9px 11px;cursor:pointer;min-height:58px;transition:border-color .15s,background-color .15s}
 .pk-tab[data-l="O"]{--lc:var(--orange)}
+.pk-tab[data-l="C"]{--lc:var(--lrt)}
+.pk-list.C .pk-row{--lc:var(--lrt)}
 .pk-tab .badge{min-width:30px;height:30px;font-size:18px}
 .pk-tab b{display:block;font-size:16px;font-weight:900;line-height:1.2}
 .pk-tab small{display:block;font-size:11.5px;color:var(--muted);line-height:1.3;white-space:nowrap}
@@ -151,7 +154,7 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .stn:focus-within{outline:2px solid var(--focus);outline-offset:-2px;border-radius:10px}
 .badges{display:flex;flex-direction:column;gap:3px;align-items:center}
 .badge{display:inline-grid;place-items:center;min-width:40px;height:30px;padding:0 5px;border-radius:7px;color:#fff;font-family:var(--font-display);font-weight:800;font-size:17px;letter-spacing:.02em;line-height:1}
-.badge.R{background:var(--red)} .badge.O{background:var(--orange)}
+.badge.R{background:var(--red)} .badge.O{background:var(--orange)} .badge.C{background:var(--lrt)}
 .badges.two .badge{height:22px;font-size:14px;min-width:38px}
 .swap{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--soft);cursor:pointer;display:grid;place-items:center;transition:transform .25s}
 .swap:hover{border-color:var(--focus)}
@@ -258,6 +261,7 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .ex-sub{margin:-4px 0 0;font-size:12.5px;color:var(--muted);line-height:1.5}
 .ex-list{--lc:var(--red);display:grid;align-content:start;gap:2px}
 .ex-list.O{--lc:var(--orange)}
+.ex-list.C{--lc:var(--lrt)}
 .ex-row{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;width:100%;min-height:62px;border:0;background:none;border-radius:14px;padding:8px 10px;text-align:left;cursor:pointer;color:var(--ink)}
 .ex-row:active{background:var(--soft)}
 .ex-row.sel{background:color-mix(in srgb,var(--lc) 12%,transparent)}
@@ -274,7 +278,7 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .b-walkx{flex:none;border:0;background:rgba(255,255,255,.1);color:#c9d4e3;width:28px;height:28px;border-radius:50%;font-size:16px;line-height:1;cursor:pointer}
 .lchip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px 3px 4px;font-size:13px;font-weight:700;background:rgba(255,255,255,.08)}
 .lchip i{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:10px;color:#fff;font-family:var(--font-display)}
-.lchip i.R{background:var(--red)} .lchip i.O{background:var(--orange)}
+.lchip i.R{background:var(--red)} .lchip i.O{background:var(--orange)} .lchip i.C{background:var(--lrt)}
 .lchip.x{background:none;border:1px dashed rgba(255,255,255,.3);padding:3px 10px;font-weight:500}
 .b-stats{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#9fb0c8;border-top:1px solid rgba(255,255,255,.1);padding-top:10px;padding-bottom:4px}
 .b-stats b{font-family:var(--font-display);font-size:20px;color:var(--board-ink);font-weight:700;margin-right:2px}
@@ -328,7 +332,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .r-mid{display:grid;gap:6px;min-width:0}
 .jbar{display:flex;height:8px;gap:2px;transform-origin:left;animation:grow .5s ease both}
 .jbar i{border-radius:4px;min-width:4px}
-.jbar i.R{background:var(--red)} .jbar i.O{background:var(--orange)}
+.jbar i.R{background:var(--red)} .jbar i.O{background:var(--orange)} .jbar i.C{background:var(--lrt)}
 .jbar i.w{background:repeating-linear-gradient(90deg,var(--muted) 0 3px,transparent 3px 6px);opacity:.6;height:2px;align-self:center}
 @keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 .r-meta{font-size:12px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
@@ -348,7 +352,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .stops li.end{color:var(--ink);font-weight:700}
 .stops li.end .pt{background:var(--c)}
 .stops::before{content:"";position:absolute;left:60px;top:12px;bottom:12px;width:3px;background:var(--c);border-radius:2px}
-.leg.R{--c:var(--red)} .leg.O{--c:var(--orange)}
+.leg.R{--c:var(--red)} .leg.O{--c:var(--orange)} .leg.C{--c:var(--lrt)}
 .xline{font-size:13px;color:var(--muted);padding:6px 10px;border:1px dashed var(--line);border-radius:10px}
 .empty{padding:28px 18px;text-align:center;color:var(--muted)}
 .empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
@@ -400,7 +404,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .deps{display:grid;gap:7px;border-top:1px solid var(--line);padding-top:10px}
 .dep{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:13px}
 .dep i{width:8px;height:8px;border-radius:50%}
-.dep i.R{background:var(--red)} .dep i.O{background:var(--orange)}
+.dep i.R{background:var(--red)} .dep i.O{background:var(--orange)} .dep i.C{background:var(--lrt)}
 .dep b{font-family:var(--font-display);font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
 .dep b small{font-family:var(--font-body);font-size:11px;color:var(--good);font-weight:700;margin-left:4px}
 .dep .none{color:var(--muted);font-size:12px}
@@ -613,6 +617,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
           <div class="pk-lines" role="tablist" aria-label="路線">
             <button type="button" role="tab" class="pk-tab" data-l="R"><span class="badge R">R</span><span><b>紅線</b><small>岡山車站－小港</small></span></button>
             <button type="button" role="tab" class="pk-tab" data-l="O"><span class="badge O">O</span><span><b>橘線</b><small>大寮－哈瑪星</small></span></button>
+            <button type="button" role="tab" class="pk-tab" data-l="C"><span class="badge C">C</span><span><b>輕軌</b><small>環狀線 38 站</small></span></button>
           </div>
         </div>
         <div class="pk-list" id="pkList" role="listbox" aria-labelledby="pkTitle" tabindex="-1"></div>
@@ -804,9 +809,12 @@ const DATA = {"lines":{"R":[["R3","小港"],["R4","高雄國際機場"],["R4A","
 const COORDS = {"O1":[22.62149,120.27451],"O2":[22.6235,120.28378],"O4":[22.62893,120.29477],"O5":[22.63128,120.30325],"O6":[22.63068,120.31139],"O7":[22.63022,120.31763],"O8":[22.62941,120.32773],"O9":[22.6272,120.33465],"O10":[22.62505,120.34104],"O11":[22.62527,120.34812],"O12":[22.62595,120.35517],"O13":[22.62518,120.3635],"O14":[22.62466,120.37133],"OT1":[22.62212,120.39053],"R3":[22.56478,120.35381],"R4":[22.57017,120.34177],"R4A":[22.58035,120.32857],"R5":[22.58848,120.32169],"R6":[22.59676,120.31512],"R7":[22.60605,120.30808],"R8":[22.61398,120.30459],"R9":[22.62484,120.30121],"R10":[22.63139,120.30199],"R11":[22.63969,120.3027],"R12":[22.6485,120.30341],"R13":[22.65727,120.30324],"R14":[22.66616,120.30336],"R15":[22.67669,120.30662],"R16":[22.68838,120.30889],"R17":[22.70184,120.30253],"R18":[22.70887,120.30232],"R19":[22.71865,120.30724],"R20":[22.72232,120.31637],"R21":[22.72953,120.32101],"R22":[22.74434,120.3178],"R22A":[22.75316,120.3147],"R23":[22.76025,120.31098],"R24":[22.78064,120.30188],"RK1":[22.79245,120.29923]};
 // 各站出入口：[編號, 緯度, 經度, 設施(1=電梯 2=電扶梯), 地址]（交通部 TDX）
 const EXITS = {"哈瑪星":[["1",22.62202,120.2734,3,"鼓山區臨海二路24號"],["2",22.62154,120.27542,2,"鼓山區鼓山一路32號"]],"鹽埕埔":[["1",22.62328,120.28348,2,"鹽埕區大勇路96號地下一層"],["2",22.62448,120.28449,3,"鹽埕區大勇路96號"],["3",22.62411,120.28409,2,"鹽埕區大勇路77號"],["4",22.62369,120.28382,0,"鹽埕區五福四路178號"]],"前金":[["1",22.62911,120.29369,3,"中正四路192號"],["2",22.62839,120.29379,2,"中正四路211號"],["3",22.62901,120.2954,2,"中正四路157號"],["4",22.62929,120.29531,2,"中正四路168號"]],"美麗島":[["1",22.63171,120.30142,3,"中山橫路1號"],["2",22.63093,120.30154,2,"中山一路144號"],["3",22.63093,120.30238,3,"中山一路100號"],["4",22.63176,120.30249,2,"新興區中山一路115號地下一樓"],["5",22.6311,120.30345,0,"中正三路179號"],["6",22.63104,120.30423,2,"中正三路177號"],["7",22.6314,120.30353,0,"中正三路172號"],["8",22.63131,120.30434,2,"中正三路158號"],["9",22.63233,120.30187,0,"中山一路135號"],["10",22.63232,120.30221,0,"中山一路162號"],["11",22.63279,120.30191,0,"中山一路153號"]],"信義國小":[["1",22.63096,120.31062,2,"新興區中正三路34號"],["2",22.63093,120.31129,1,"新興區中正三路30號"],["3",22.63063,120.31052,2,"新興區中正三路7號"],["4",22.63052,120.31214,2,"新興區中正三路1-12號"],["5",22.63079,120.31231,2,"新興區中正三路12號"]],"文化中心":[["1",22.63048,120.31671,2,"高雄巿苓雅區中正二路184號"],["2",22.63021,120.31702,2,"高雄巿苓雅區中正二路87號"],["3",22.62987,120.31839,3,"高雄巿苓雅區中正二路45號"],["4",22.63044,120.31842,2,"高雄巿苓雅區中正二路74號"]],"五塊厝":[["1",22.62974,120.32696,2,"高雄巿苓雅區中正一路320號"],["2",22.62971,120.32738,0,"高雄巿苓雅區中正一路304號"],["3",22.62949,120.32685,2,"苓雅區中正一路286號地下一層"],["4",22.62918,120.32778,3,"苓雅區中正一路286號地下一層"],["5",22.62967,120.32799,0,"高雄巿苓雅區中正一路284-1號"],["6",22.62942,120.3287,2,"高雄巿苓雅區中正一路262號"]],"苓雅運動園區":[["1",22.62776,120.33385,3,"苓雅區中正一路100號"],["2",22.62715,120.33402,2,"苓雅區中正一路99號地下一層"],["3",22.62683,120.33493,3,"苓雅區中正一路99號地下一層"],["4",22.62737,120.33504,2,"苓雅區中正一路99號地下一層"]],"衛武營":[["1",22.62559,120.34044,2,"苓雅區中正一路2號地下一層"],["2",22.6251,120.34035,2,"苓雅區中正一路2號地下一層"],["3",22.62481,120.34097,2,"苓雅區中正一路2號地下一層"],["4",22.62512,120.34196,3,"苓雅區中正一路2號地下一層"],["5",22.625,120.34252,3,"苓雅區建軍路2號"],["6",22.62415,120.34128,3,"苓雅區中正一路2號地下一層"]],"鳳山西站":[["1",22.62499,120.34738,2,"鳳山區自由路281號地下層"],["2",22.62515,120.34906,3,"鳳山區自由路281號地下層"]],"鳳山":[["1",22.62594,120.35596,2,"鳳山區光遠路446號地下層"],["2",22.6262,120.35588,3,"鳳山區光遠路446號地下層"]],"大東":[["1",22.62545,120.36363,3,"鳳山區光遠路226號地下一層"],["2",22.62523,120.3628,2,"鳳山區光遠路226號地下一層"]],"鳳山國中":[["1",22.62469,120.37136,3,"鳳山區中山東路225號地下一層"],["2",22.62424,120.37172,2,"鳳山區中山東路225號地下一層"],["3",22.62507,120.37359,2,"鳳山區中山東路225號地下一層"]],"大寮":[["1",22.62128,120.39058,3,"大寮區捷西路300號"],["2",22.62134,120.39177,3,"大寮區捷西路300號"]],"小港":[["1",22.56436,120.354,2,"小港區沿海一路280號地下一樓"],["2",22.56428,120.35457,2,"小港區沿海一路343號"],["3",22.56535,120.35359,2,"小港區沿海一路269號"],["4",22.56481,120.35327,3,"小港區沿海一路280號地下一樓"]],"高雄國際機場":[["1",22.56928,120.34409,3,"高雄公園"],["2",22.57063,120.34382,2,"小港區中山四路2之2號地下一樓"],["3",22.57025,120.34176,0,"小港區中山四路2之2號地下一樓"],["4",22.5702,120.34314,0,"小港區中山四路2之2號地下一樓"],["5",22.57026,120.34145,2,"小港區中山四路2之2號地下一樓"],["6",22.57124,120.34171,3,"小港區中山四路2之2號地下一樓"],["7",22.57025,120.34116,0,"小港區中山四路2之2號地下一樓"]],"草衙":[["1",22.5794,120.32876,2,"前鎮區翠亨南路555號地下一樓"],["2",22.58076,120.32921,3,"前鎮區中山四路100號"],["3",22.58013,120.32847,3,"前鎮區翠亨南路555號地下一樓"],["4",22.58075,120.32793,2,"前鎮區翠亨南路555號地下一樓"]],"前鎮高中":[["1",22.58774,120.32187,3,"前鎮區翠亨北路203號"],["2",22.58882,120.32228,3,"前鎮區翠亨北路225號地下一樓"],["3",22.58886,120.32116,0,"前鎮區翠亨北路225號地下一樓"]],"凱旋":[["1",22.59605,120.31535,3,"中山三路與凱旋四路交叉口"],["2",22.59652,120.31611,2,"中山三路與凱旋四路交叉口"],["3",22.59757,120.31432,2,"時代大道與中山三路交叉口"]],"獅甲":[["1",22.60546,120.30827,2,"前鎮區中山三路43號"],["2",22.60563,120.30875,2,"前鎮區中山三路130號"],["3",22.60665,120.30798,3,"前鎮區中山二路2號"],["4",22.60637,120.30753,2,"前鎮區中山三路45號"]],"三多商圈":[["1",22.61321,120.30438,2,"三多四路21號"],["2",22.61299,120.30466,1,"三多四路21號"],["3",22.6131,120.30506,2,"前鎮區中山二路260號"],["4",22.61389,120.30515,3,"前鎮區中山二路268之1號"],["5",22.61424,120.30467,0,"前鎮區中山二路268號地下一層"],["6",22.61483,120.30438,2,"苓雅區中山二路274號"],["7",22.61466,120.30404,2,"苓雅區中山二路323號"]],"中央公園":[["1",22.6249,120.30046,3,"前金區中山一路11號地下一層"],["2",22.62363,120.30124,2,"前金區中山一路11號地下一層"],["3",22.62599,120.30155,2,"前金區中山一路11號地下一層"]],"高雄車站":[["1",22.63812,120.30259,1,"807三民區建國二路320號"],["2",22.63911,120.30259,3,"三民區建國二路320號地下三層"],["3",22.63976,120.30269,3,"三民區建國二路320號地下三層"],["4",22.64067,120.30274,3,"三民區建國二路320號地下三層"]],"後驛":[["1",22.64782,120.3031,2,"三民區博愛一路229號旁"],["2",22.6478,120.30362,3,"博愛一路與察哈爾一街交叉口"],["3",22.64896,120.30372,2,"三民區博愛一路300號"],["4",22.64918,120.30322,2,"三民區博愛一路287號"]],"凹子底":[["1",22.65706,120.3029,3,"鼓山區博愛二路21號地下一層"],["2",22.657,120.30342,2,"博愛二路20號"],["3",22.65793,120.30318,0,"博愛二路88號"],["4",22.65872,120.30251,3,"鼓山區博愛二路21號地下一層"]],"巨蛋":[["1",22.66587,120.30269,2,"左營區博愛二路485號地下一層"],["2",22.66553,120.30301,3,"左營區博愛二路485號地下一層"],["3",22.66638,120.30317,0,"左營區博愛二路485號地下一層"],["4",22.66671,120.30353,2,"博愛二路420號"],["5",22.66683,120.30318,2,"左營區博愛二路485號地下一層"]],"生態園區":[["1",22.676,120.30648,2,"左營區博愛三路435號地下一層"],["2",22.67736,120.30667,3,"左營區博愛三路435號地下一層"]],"左營":[["1",22.68762,120.30863,3,"左營區高鐵路123號"],["2",22.6886,120.30784,3,"左營區高鐵路107號地下一層"]],"世運":[["1",22.70127,120.30241,2,"楠梓區左楠路1號"],["2",22.702,120.30237,1,"楠梓區左楠路1號"],["3",22.70126,120.30271,2,"楠梓區左楠路1號"],["4",22.70177,120.3027,1,"楠梓區左楠路1號"]],"油廠國小":[["1",22.70823,120.3021,3,"楠梓區左楠路6號"],["2",22.70893,120.30209,0,"楠梓區左楠路6號"],["3",22.70824,120.30249,2,"楠梓區左楠路6號"],["4",22.70894,120.30244,0,"楠梓區左楠路6號"]],"楠梓科技園區":[["1",22.71844,120.30636,3,"楠梓區加昌路600號"],["2",22.71833,120.30645,0,"楠梓區宏毅二路北八巷11號"],["3",22.71864,120.30725,2,"楠梓區宏毅三路九巷6號"],["4",22.71883,120.3079,0,"楠梓區宏毅三路九巷24號"],["5",22.71905,120.30778,2,"楠梓區加昌路598號"],["6",22.71913,120.30801,0,"楠梓區加昌路598號"]],"後勁":[["1",22.72246,120.31626,2,"楠梓區加昌路180號"],["2",22.7227,120.31684,3,"楠梓區加昌路178號"],["3",22.72245,120.31693,2,"楠梓區學專路775號"]],"都會公園":[["1",22.72876,120.32093,3,"楠梓區高楠公路1835號"],["2",22.72884,120.32131,2,"楠梓區高楠公路1768號"],["3",22.73004,120.321,2,"楠梓區高楠公路1840號"],["4",22.72994,120.32058,2,"楠梓區高楠公路1855號"]],"青埔":[["1",22.74366,120.31769,3,"橋頭區經武路20號"]],"橋頭糖廠":[["1",22.7527,120.31458,3,"橋南路166巷27號"],["2",22.75312,120.31474,0,"橋頭區興糖路13號"],["3",22.75292,120.31481,1,"興糖路3巷4號"]],"橋頭火車站":[["1",22.75998,120.31124,3,"橋頭區站前街12之1號"],["2",22.76092,120.31013,3,"橋頭區站前街12之1號"]],"岡山高醫":[["1",22.78046,120.30126,3,"岡山區中山南路268號"],["2",22.78071,120.30191,1,"岡山區大遼里9鄰捷安路16號"]],"岡山車站":[["1",22.79237,120.29891,3,"岡山區中山北路1號"],["2",22.79245,120.29923,3,"岡山區中山北路1號"]]};
+// 高雄環狀輕軌（交通部 TDX）：st=[代號, 站名, 緯度, 經度, 從籬仔內順時針的秒數]，tt=各站各方向時刻
+const LRT = {"v":"2026-08-04","src":"TDX 運輸資料流通服務（高雄輕軌）","loop":5400,"st":[["C1","籬仔內",22.604625,120.324651,0],["C2","凱旋瑞田",22.599533,120.319799,180],["C3","前鎮之星",22.595503,120.315368,300],["C4","凱旋中華",22.593656,120.310517,480],["C5","夢時代",22.594886,120.305004,600],["C6","經貿園區",22.600961,120.30266,720],["C7","軟體園區",22.605684,120.300832,900],["C8","高雄展覽館",22.610133,120.298022,1020],["C9","旅運中心",22.611587,120.293424,1200],["C10","光榮碼頭",22.616805,120.293234,1320],["C11","真愛碼頭",22.619315,120.289466,1440],["C12","駁二大義",22.618562,120.284204,1560],["C13","駁二蓬萊",22.6205,120.279923,1740],["C14","哈瑪星",22.621617,120.275849,1860],["C15","壽山公園站",22.626541,120.278601,1920],["C16","文武聖殿站",22.62959,120.2807,2100],["C17","鼓山區公所站",22.635988,120.282567,2220],["C18","鼓山",22.642037,120.281067,2400],["C19","馬卡道",22.647089,120.281415,2520],["C20","臺鐵美術館",22.652074,120.281669,2640],["C21A","內惟藝術中心",22.65497,120.282868,2700],["C21","美術館",22.655026,120.287437,2880],["C22","聯合醫院",22.654827,120.290918,3000],["C23","龍華國小",22.654493,120.295042,3180],["C24","愛河之心",22.65604,120.30282,3300],["C25","新上國小",22.6567,120.3083,3480],["C26","大順民族",22.6556,120.3149,3600],["C27","灣仔內(大順鼎山)",22.6538,120.3185,3780],["C28","高雄高工",22.64996,120.32385,3960],["C29","樹德家商",22.6442,120.3262,4140],["C30","科工館",22.6375,120.3274,4320],["C31","聖功醫院",22.633278,120.325819,4440],["C32","凱旋公園站",22.629433,120.322785,4560],["C33","衛生局站",22.6252,120.3237,4680],["C34","五權國小站",22.62121,120.3252,4800],["C35","凱旋武昌站",22.61693,120.3269,4920],["C36","凱旋二聖站",22.61253,120.3272,5100],["C37","輕軌機廠站",22.6085,120.3261,5280]],"tt":[{"1H":"2i2x3c3r464l505f5u696o737i7x8c8r969la0aaafaub9boc3cdclcxd7dhdpe1ebejevf5fffpfzg9gjgth3hdhnhxi7ihirj1jbjljvk5kfkpkzl9ljltm3mdmnmxn7nhnro6olp0pfpuq9qor3rirxscsrt6","1W":"2i2s323c3m3w464g4q505a5k5u696o737i7x8c8r969la0afaub9boc3cicxdcdre6elf0fffug9ghgoh3hbhihxi5icirj1jbjljvk5kfkpkzl9ljltm3mdmnn2nhnwoboqp5pkpzqeqtr8rns2shswtb","0W":"2i2s323c3m3w464g4q505a5k5u696o737i7x8c8r969la0afaub9boc3cicxdcdre6elf0fffug9ghgoh3hbhihxi5icirj1jbjljvk5kfkpkzl9ljltm3mdmnn2nhnwoboqp5pkpzqeqtr8rns2shswtb","0H":"2i2x3c3r464l505f5u696o737i7x8c8r969la0afaub4bebobyc8cicsd2dcdmdwe6egeqf0fafkfug4gegogyh8hihsi2icimiwj6jgjqk0kakkkul4lellltm8mnn2nhnwoboqp5pkpzqeqtr8rns2shswtb"},{"0W":"2k2u343e3o3y484i4s525c5m5w6b6q757k7z8e8t989na2ahawbbbqc5ckczdedte8enf2fhfwgbgjgqh5hdhkhzi7ieitj3jdjnjxk7khkrl1lblllvm5mfmpn4njnyodosp7pmq1qgqvrarps4sjsytd","1W":"2y393j3t424d4n4v555f5p626b6j6w757d7q7z878m919g9vaaapb4bjbycdcsd7dme1egevfafpg4gjgyhdhsi7imiwj5jgjqjzkakkktl4lelolym8mimvn3ncnpnxo6ojorp0pfpuq9qor3rirxscsrt6tlu0ufuuv9vo","1H":"2t393n424h4v5a5p646j6y7d7s878m919g9vaaapb4bjbycectd3didxecerf1f9flfvg5gdgpgzh7hjhti3idinixj7jhjrk1kbklkvl5lflplzm9mjmtn3ndnnnxo2obohowp5pbpppzq5qjqyrdrss7smt1tgtvuaupv4vj","0H":"2k2z3e3t484n525h5w6b6q757k7z8e8t989na2ahawb6bgbqc0cackcud4dedodye8eiesf2fcfmfwg6gggqh0hahkhui4ieioiyj8jijsk2kckmkwl6lglnlvmampn4njnyodosp7pmq1qgqvrarps4sjsytd"},{"0W":"2n2x373h3r414b4l4v555f5p5z6e6t787n828h8w9b9qa5akazbebtc8cnd2dhdwebeqf5fkfzgegmgth8hghni2iaihiwj6jgjqk0kakkkul4lelolym8mimsn7nmo1ogovpappq4qjqyrdrss7smt1tg","0H":"2n323h3w4b4q555k5z6e6t787n828h8w9b9qa5alb0babkbuc4cecocyd8didse2ecemewf6fgfqg0gagkguh4hehohyi8iiisj2jcjmjvk6kgkpl0laljlrlymdmsn7nmo1ogovpappq4qjqyrdrss7smt1tg","1H":"2r373l404f4t585n626h6w7b7q858k8z9e9ta8anb2bhbwcccrd1dgdveaepezf7fjftg3gbgngxh5hhhri1ibilivj5jfjpjzk9kjktl3ldlnlxm7mhmrn1nbnlnvo0o9ofoup3p9pnpxq3qhqwrbrqs5sksztettu8unv2vh","1W":"2w373h3r404b4l4t535d5n60696h6u737b7o7x858k8z9e9ta8anb2bhbwcbcqd5dkdzeeetf8fng2ghgwhbhqi5ikiuj3jejojxk8kikrl2lclmlwm6mgmtn1nannnvo4ohopoypdpsq7qmr1rgrvsaspt4tjtyudusv7vm"},{"0W":"2p2z393j3t434d4n4x575h5r616g6v7a7p848j8y9d9sa7amb1bgbvcacpd4djdyedesf7fmg1gggogvhahihpi4icijiyj8jijsk2kckmkwl6lglqm0mamkmun9noo3oioxpcprq6qlr0rfrus9sot3ti","0H":"2p343j3y4d4s575m616g6v7a7p848j8y9d9sa7anb2bcbmbwc6cgcqd0dadkdue4eeeoeyf8fifsg2gcgmgwh6hghqi0iaikiuj4jejojxk8kikrl2lcllltm0mfmun9noo3oioxpcprq6qlr0rfrus9sot3ti","1W":"2u353f3p3y494j4r515b5l5y676f6s71797m7v838i8x9c9ra6alb0bfbuc9cod3didxecerf6flg0gfguh9hoi3iiisj1jcjmjvk6kgkpl0lalklum4memrmzn8nlnto2ofonowpbpqq5qkqzrerts8snt2thtwubuqv5vk","1H":"2p353j3y4d4r565l606f6u797o838i8x9c9ra6alb0bfbucacpczdedte8enexf5fhfrg1g9glgvh3hfhphzi9ijitj3jdjnjxk7khkrl1lblllvm5mfmpmzn9njntnyo7odosp1p7plpvq1qfqur9ros3sisxtctru6ulv0vf"},{"0H":"2r363l404f4u595o636i6x7c7r868l909f9ua9aqb5bgbqc0cackcud4dedodye8eiesf2fcfmfwg6gggqh0hahkhui4ieioiyj8jhjrjzkbklktl5lflnlvm2mhmwnbnqo5okozpeptq8qnr2rhrwsbsqt5tk","1W":"2s333d3n3w474h4p4z595j5w656d6q6z777k7t818g8v9a9pa4ajaybdbsc7cmd1dgdveaepf4fjfygdgsh7hmi1igiqizjajkjtk4keknkyl8lilsm2mcmpmxn6njnro0odoloup9poq3qiqxrcrrs6slt0tftuu9uov3vi","0W":"2i2r313b3l3v454f4p4z595j5t636i6x7c7r868l909f9ua9aob3bibxcccrd6dle0efeuf9fog3gigqgxhchkhri6ieilj0jajkjuk4kekokyl8lilsm2mcmmmwnbnqo5okozpeptq8qnr2rhrwsbsqt5tk","1H":"2n333h3w4b4p545j5y6d6s777m818g8v9a9pa4ajaybdbsc8cncxdcdre6elevf3fffpfzg7gjgth1hdhnhxi7ihirj1jbjljvk5kfkpkzl9ljltm3mdmnmxn7nhnrnwo5oboqozp5pjptpzqdqsr7rms1sgsvtatpu4ujuyvd"},{"0W":"2k2t333d3n3x474h4r515b5l5v656k6z7e7t888n929h9wabaqb5bkbzcectd8dne2ehewfbfqg5gkgsgzhehmhti8iginj2jcjmjwk6kgkql0lalklum4memomyndnso7omp1pgpvqaqpr4rjrysdsst7tm","1H":"2k303f3u494n525h5w6b6q757k7z8e8t989na2ahawbbbqc5cjctd8dne2eherezfbflfvg3gfgpgxh9hjhti3idinixj7jhjrk1kbklkvl5lflplzm9mjmtn3ndnnnto2o8onowp2pgpqpxqbqqr5rkrzsestt8tnu2uhuwvb","0H":"2t383n424h4w5b5q656k6z7e7t888n929h9wabasb7bibsc2cccmcwd6dgdqe0eaekeuf4fefofyg8gigsh2hchmhwi6igiqj0jajjjtk1kdknkvl7lhlplxm4mjmyndnso7omp1pgpvqaqpr4rjrysdsst7tm","1W":"2p303a3k3u444e4n4x575h5u626b6o6w757i7q7z8e8t989na2ahawbbbqc5ckczdedte8enf2fhfwgbgqh5hkhzieioixj8jijrk2kcklkwl6lglqm0mamnmvn4nhnpnyobojosp7pmq1qgqvrarps4sjsytdtsu7umv1vg"},{"0W":"2m2w363g3q404a4k4u545e5o5y686n727h7w8b8q959k9zaeatb8bnc2chcwdbdqe5ekezfeftg8gngvh2hhhphwibijiqj5jfjpjzk9kjktl3ldlnlxm7mhmrn1ngnvoaopp4pjpyqdqsr7rms1sgsvtatp","1W":"2n2y383i3r424c4k4u545e5r60686l6u727f7o7w8b8q959k9zaeatb8bnc2chcwdbdqe5ekezfeftg8gnh2hhhwibiliuj5jfjojzk9kiktl3ldlnlxm7mkmsn1nenmnvo8ogopp4pjpyqdqsr7rms1sgsvtatpu4ujuyvd","0H":"2i2w3b3q454k4z5e5t686n727h7w8b8q959k9zaeavbabkbuc4cecocyd8didse2ecemewf6fgfqg0gagkguh4hehohyi8iiisj2jcjmjwk4kgkqkylalklsm0m7mmn1ngnvoaopp4pjpyqdqsr7rms1sgsvtatp","1H":"2i2y3c3r464k4z5e5t686n727h7w8b8q959k9zaeatb8bnc3chcqd5dkdzeeeoewf8fifsg0gcgmguh6hghqi0iaikiuj4jejojyk8kiksl2lclmlwm6mgmqn0nanknqo0o6oloup0pepopuq8qnr2rhrwsbsqt5tktzueutv8"},{"0H":"2k2y3d3s474m515g5v6a6p747j7y8d8s979ma1agaxbcbnbxc7chcrd1dbdldve5efepezf9fjftg3gdgngxh7hhhri1ibilivj5jfjojyk6kiksl0lclmlum2m9mon3ninxocorp6plq0qfqur9ros3sisxtctr","1H":"2v393o434h4w5b5q656k6z7e7t888n929h9wabaqb5bkc0cecnd2dhdwebeletf5fffpfxg9gjgrh3hdhnhxi7ihirj1jbjljvk5kfkpkzl9ljltm3mdmnmxn7nhnnnxo3oioroxpbplprq5qkqzrerts8snt2thtwubuqv5","0W":"2p2y383i3s424c4m4w565g5q606a6p747j7y8d8s979ma1agavbabpc4cjcydddse7emf1fgfvgagpgxh4hjhrhyidilisj7jhjrk1kbklkvl5lflplzm9mjmtn3ninxocorp6plq0qfqur9ros3sisxtctr","1W":"2k2v353f3o3z494h4r515b5o5x656i6r6z7c7l7t888n929h9wabaqb5bkbzcectd8dne2ehewfbfqg5gkgzhehti8iiirj2jcjljwk6kfkql0lalklum4mhmpmynbnjnso5odomp1pgpvqaqpr4rjrysdsst7tmu1uguvva"},{"0H":"2m303f3u494o535i5x6c6r767l808f8u999oa3aiazbebpbzc9cjctd3dddndxe7eherf1fbflfvg5gfgpgzh9hjhti3idinixj7jhjqk0k8kkkul2lelolwm4mbmqn5nknzoeotp8pnq2qhqwrbrqs5sksztett","1W":"2i2t333d3m3x474f4p4z595m5v636g6p6x7a7j7r868l909f9ua9aob3bibxcccrd6dle0efeuf9fog3gigxhchri6igipj0jajjjuk4kdkokyl8lilsm2mfmnmwn9nhnqo3obokozpeptq8qnr2rhrwsbsqt5tktzueutv8","1H":"2t373m414f4u595o636i6x7c7r868l909f9ua9aob3bibycccld0dfdue9ejerf3fdfnfvg7ghgph1hbhlhvi5ifipizj9jjjtk3kdknkxl7lhlrm1mbmlmvn5nfnlnvo1ogopovp9pjppq3qiqxrcrrs6slt0tftuu9uov3","0W":"2i2r303a3k3u444e4o4y585i5s626c6r767l808f8u999oa3aiaxbcbrc6cld0dfdue9eof3fifxgcgrgzh6hlhti0ifiniuj9jjjtk3kdknkxl7lhlrm1mbmlmvn5nknzoeotp8pnq2qhqwrbrqs5sksztett"},{"1H":"2q353k3z4d4s575m616g6v7a7p848j8y9d9sa7amb1bgbvc9cjcydddse7ehepf1fbflftg5gfgngzh9hjhti3idinixj7jhjrk1kbklkvl5lflplzm9mjmtn3ndnjnsnyodomosp6pgpnq1qgqvrarps4sjsytdtsu7umv1","0H":"2o333i3x4c4r565l606f6u797o838i8x9c9ra6alb2bhbrc1cbclcvd5dfdpdze9ejetf3fdfnfxg7ghgrh1hbhlhvi5ifipizj9jjjtk3kbknkxl5lhlrlzm7memtn8nno2ohowpbpqq5qkqzrerts8snt2thtw","0W":"2k2t333d3n3x474h4r515b5l5v656f6u797o838i8x9c9ra6alb0bfbuc9cod3didxecerf6flg0gfguh2h9hohwi3iiiqixjcjmjwk6kgkql0lalklum4memomyn8nno2ohowpbpqq5qkqzrerts8snt2thtw","1W":"2q303a3k3u444d4n4x575k5s616e6m6v787g7p848j8y9d9sa7amb1bgbvcacpd4djdyedesf7fmg1gggvhahpi4ieiniyj8jhjsk2kbkmkwl6lglqm0mdmlmun7nfnoo1o9oioxpcprq6qlr0rfrus9sot3titxucurv6"},{"1W":"2o2y383i3s424b4l4v555i5q5z6c6k6t767e7n828h8w9b9qa5akazbebtc8cnd2dhdwebeqf5fkfzgegth8hni2iciliwj6jfjqk0k9kkkul4lelolymbmjmsn5ndnmnzo7ogovpappq4qjqyrdrss7smt1tgtvuaupv4","1H":"2o333i3x4b4q555k5z6e6t787n828h8w9b9qa5akazbebtc7cgcvdadpe4eeemeyf8fifqg2gcgkgwh6hghqi0iaikiuj4jejojyk8kiksl2lclmlwm6mgmqn0nanhnqnwobokoqp4peplpzqeqtr8rns2shswtbtqu5ukuz","0W":"2m2v353f3p3z494j4t535d5n5x676h6w7b7q858k8z9e9ta8anb2bhbwcbcqd5dkdzeeetf8fng2ghgwh4hbhqhyi5ikisizjejojyk8kiksl2lclmlwm6mgmqn0nanpo4ojoypdpsq7qmr1rgrvsaspt4tjty","0H":"2q353k3z4e4t585n626h6w7b7q858k8z9e9ta8anb4bjbtc3cdcncxd7dhdre1ebelevf5fffpfzg9gjgth3hdhnhxi7ihirj1jbjljvk5kdkpkzl7ljltm1m9mgmvnanpo4ojoypdpsq7qmr1rgrvsaspt4tjty"},{"0H":"2s373m414g4v5a5p646j6y7d7s878m919g9vaaapb6bmbxc7chcrd1dbdldve5efepezf9fjftg3gdgngxh7hhhri1ibilivj5jfjpjyk8kfksl2l9lmlwm3mbmimxncnro6olp0pfpuq9qor3rirxscsrt6tlu0","1W":"2m2w363g3q40494j4t535g5o5x6a6i6r747c7l808f8u999oa3aiaxbcbrc6cld0dfdue9eof3fifxgcgrh6hli0iaijiuj4jdjojyk7kiksl2lclmlwm9mhmqn3nbnknxo5oeotp8pnq2qhqwrbrqs5sksztettu8unv2","0W":"2o2x373h3r414b4l4v555f5p5z696j6y7d7s878m919g9vaaapb4bjbycdcsd7dme1egevfafpg4gjgyh6hdhsi0i7imiuj1jgjqk0kakkkul4lelolym8mimsn2ncnro6olp0pfpuq9qor3rirxscsrt6tlu0","1H":"2m313g3v494o535i5x6c6r767l808f8u999oa3aiaxbcbrc5cectd8dne2ecekewf6fgfog0gagiguh4hehohyi8iiisj2jcjmjwk6kgkql0lalklum4memomyn8nfnonuo9oioop2pcpjpxqcqrr6rls0sfsut9tou3uiux"},{"1W":"2k2v353e3p3y474h4r515e5m5v686g6p727a7j7y8d8s979ma1agavbabpc4cjcydddse7emf1fgfvgagph4hjhyi8ihisj2jbjmjwk5kgkql0lalklum7mfmon1n9ninvo3ocorp6plq0qfqur9ros3sisxtctru6ulv0","1H":"2k2z3e3t474m515g5v6a6p747j7y8d8s979ma1agavbabpc3cbcqd5dkdze9ehetf3fdflfxg7gfgrh1hbhlhvi5ifipizj9jjjtk3kdknkxl7lhlrm1mbmlmvn5ndnmnso7ogomp0paphpvqaqpr4rjrysdsst7tmu1uguv","0H":"2u393o434i4x5c5r666l707f7u898o939i9xacarb8bobzc9cjctd3dddndxe7eherf1fbflfvg5gfgpgzh9hjhti3idinixj7jhjrk0kakhkul4lblolym5mdmkmznento8onp2phpwqbqqr5rkrzsestt8tnu2","0W":"2q2z393j3t434d4n4x575h5r616b6l707f7u898o939i9xacarb6blc0cfcud9doe3eiexfcfrg6glh0h8hfhui2i9ioiwj3jijsk2kckmkwl6lglqm0mamkmun4nento8onp2phpwqbqqr5rkrzsestt8tnu2"},{"1H":"2i2w3b3q444j4y5d5s676m717g7v8a8p949j9yadasb7bmc0c8cnd2dhdwe6eeeqf0fafifug4gcgogyh8hihsi2icimiwj6jgjqk0kakkkul4lelolym8mimsn2nanknqo5oeokoyp8pepsq7qmr1rgrvsaspt4tjtyudus","0H":"2i2x3c3r464l505f5u696o737i7x8c8r969la0afaubbbsc3cdcncxd7dhdre1ebelevf5fffpfzg9gjgth3hdhnhxi7ihirj1jbjljvk5kekkkzl8leltm2m8mgmnn2nhnwoboqp5pkpzqeqtr8rns2shswtbtqu5","1W":"2i2s323b3m3w444e4o4y5b5k5s656e6m6z787g7v8a8p949j9yadasb7bmc1cgcvdadpe4ejeyfdfsg7gmh1hghvi5ieipizj8jjjtk2kdknkxl7lhlrm4mcmlmyn6nfnso0o9oop3pipxqcqrr6rls0sfsut9tou3uiux","0W":"2i2t323c3m3w464g4q505a5k5u646e6o737i7x8c8r969la0afaub9boc3cicxdcdre6elf0fffug9goh3hbhjhxi5idirizj7jljvk5kfkpkzl9ljltm3mdmnmxn7nhnwoboqp5pkpzqeqtr8rns2shswtbtqu5"},{"0W":"2k2v343e3o3y484i4s525c5m5w666g6q757k7z8e8t989na2ahawbbbqc5ckczdedte8enf2fhfwgbgqh5hdhlhzi7ifitj1j9jnjxk7khkrl1lblllvm5mfmpmzn9njnyodosp7pmq1qgqvrarps4sjsytdtsu7","0H":"2k2z3e3t484n525h5w6b6q757k7z8e8t989na2ahawbdbuc5cfcpczd9djdte3edenexf7fhfrg1gbglgvh5hfhphzi9ijitj3jdjnjxk7kgkml1lalglvm4mamimpn4njnyodosp7pmq1qgqvrarps4sjsytdtsu7","1H":"2u393o424h4w5b5q656k6z7e7t888n929h9wabaqb5bkbxc4cjcydddse2eaemewf6fefqg0g8gkguh4hehohyi8iiisj2jcjmjwk6kgkql0lalklum4memomyn7nhnno2obohovp5pcpqq5qkqzrerts8snt2thtwubuq","1W":"2q30393k3u424c4m4w585h5q626b6k6w757e7t888n929h9wabaqb5bkbzcectd8dne2ehewfbfqg5gkgzhehti2ibiniwj5jhjqjzkbklkvl5lflpm1m9mjmvn3ndnpnxo7omp1pgpvqaqpr4rjrysdsst7tmu1uguv"},{"1H":"2t383n414g4v5a5p646j6y7d7s878m919g9vaaapb4bjbwc3cicxdcdre1e9elevf5fdfpfzg7gjgth3hdhnhxi7ihirj1jbjljvk5kfkpkzl9ljltm3mdmnmxn6ngnmo1oaogoup4pbppq4qjqyrdrss7smt1tgtvuaup","0H":"2l313f3u494o535i5x6c6r767l808f8u999oa3aiaxbebvc7chcrd1dbdldve5efepezf9fjftg3gdgngxh7hhhri1ibilivj5jfjpjzk8khknl2lblhlwm5mbmjmqn5nknzoeotp8pnq2qhqwrbrqs5sksztettu8","0W":"2l2w363f3p3z494j4t535d5n5x676h6r767l808f8u999oa3aiaxbcbrc6cld0dfdue9eof3fifxgcgrh6hehmi0i8igiuj2jajojyk8kiksl2lclmlwm6mgmqn0nanknzoeotp8pnq2qhqwrbrqs5sksztettu8","1W":"2p2z383j3s414b4l4v575f5p61696j6v737d7s878m919g9vaaapb4bjbycdcsd7dme1egevfafpg4gjgyhdhsi1iaimivj4jgjpjykakkkul4lelom0m8mimun2ncnonwo6olp0pfpuq9qor3rirxscsrt6tlu0ufuu"},{"1W":"2m2w353g3q3y484i4s545d5m5y676g6s717a7p848j8y9d9sa7amb1bgbvcacpd4djdyedesf7fmg1gggvhahphyi7ijisj1jdjmjvk7khkrl1lblllxm5mfmrmzn9nlnto3oioxpcprq6qlr0rfrus9sot3titxucur","0H":"2o343i3x4c4r565l606f6u797o838i8x9c9ra6alb0bhbycackcud4dedodye8eiesf2fcfmfwg6gggqh0hahkhui4ieioiyj8jijsk2kbkkkql5lelklzm8memmmtn8nno2ohowpbpqq5qkqzrerts8snt2thtwub","0W":"2o2z393i3s424c4m4w565g5q606a6k6u797o838i8x9c9ra6alb0bfbuc9cod3didxecerf6flg0gfguh9hhhpi3ibijixj5jdjrk1kbklkvl5lflplzm9mjmtn3ndnno2ohowpbpqq5qkqzrerts8snt2thtwub","1H":"2q353k3y4d4s575m616g6v7a7p848j8y9d9sa7amb1bgbtc0cfcud9dodye6eiesf2fafmfwg4gggqh0hahkhui4ieioiyj8jijsk2kckmkwl6lglqm0mamkmun3ndnjnyo7odorp1p8pmq1qgqvrarps4sjsytdtsu7um"},{"0W":"2q313b3k3u444e4o4y585i5s626c6m6w7b7q858k8z9e9ta8anb2bhbwcbcqd5dkdzeeetf8fng2ghgwhbhjhri5idilizj7jfjtk3kdknkxl7lhlrm1mbmlmvn5nfnpo4ojoypdpsq7qmr1rgrvsaspt4tjtyud","1H":"2o333i3w4b4q555k5z6e6t787n828h8w9b9qa5akazbebrbycdcsd7dmdwe4egeqf0f8fkfug2gegogyh8hihsi2icimiwj6jgjqk0kakkkul4lelolym8mimsn1nbnhnwo5obopozp6pkpzqeqtr8rns2shswtbtqu5uk","0H":"2q363k3z4e4t585n626h6w7b7q858k8z9e9ta8anb2bjc0cccmcwd6dgdqe0eaekeuf4fefofyg8gigsh2hchmhwi6igiqj0jajkjuk4kdkmksl7lglmm1mamgmomvnanpo4ojoypdpsq7qmr1rgrvsaspt4tjtyud","1W":"2k2u333e3n3w464g4q525a5k5w646e6q6y787n828h8w9b9qa5akazbebtc8cnd2dhdwebeqf5fkfzgegth8hnhwi5ihiqizjbjkjtk5kfkpkzl9ljlvm3mdmpmxn7njnro1ogovpappq4qjqyrdrss7smt1tgtvuaup"},{"1W":"2i2s313c3l3u444e4o50585i5u626c6o6w767l808f8u999oa3aiaxbcbrc6cld0dfdue9eof3fifxgcgrh6hlhui3ifioixj9jijrk3kdknkxl7lhltm1mbmnmvn5nhnpnzoeotp8pnq2qhqwrbrqs5sksztettu8un","0W":"2i2u343e3n3x474h4r515b5l5v656f6p6z7e7t888n929h9wabaqb5bkbzcectd8dne2ehewfbfqg5gkgzhehnhvi8ihipj2jbjjjwk6kgkql0lalklum4memomyn8ninso7omp1pgpvqaqpr4rjrysdsst7tmu1ug","0H":"2t383n424h4w5b5q656k6z7e7t888n929h9xabarb5bmc4cfcpczd9djdte3edenexf7fhfrg1gbglgvh5hfhphzi9ijitj3jdjnjxk7kgkpkvlaljlpm4mdmjmrmyndnso7omp1pgpvqaqpr4rjrysdsst7tmu1ug","1H":"2m313g3u494o535i5x6c6r767l808f8u999oa3aiaxbcbpbwcbcqd5dkdue2eeeoeyf6fifsg0gcgmgwh6hghqi0iaikiuj4jejojyk8kiksl2lclmlwm6mgmqmzn9nfnuo3o9onoxp4pipxqcqrr6rls0sfsut9tou3ui"},{"0W":"2j2v353f3o3y484i4t525c5n5w666h6q707f7u898o939i9xacarb6blc0cfcud9doe3eiexfcfrg6glh0hfhohxi9iiirj3jcjljxk7khkrl1lblmlvm5mgmpmznanjnto8onp2phpwqbqqr5rkrzsestt8tnu2uh","1H":"2k2z3e3r464l505f5u696o737i7x8c8r969la0afaub9blbsc7cmd1dgdqdyeaekeuf2fefofwg8gigsh2hchmhwi6igiqj0jajkjuk4kekokyl8lilsm2mcmmmvn5ncnqnzo6ojotp1pfpuq9qor3rirxscsrt6tlu0uf","0H":"2u3a3o434i4x5c5r666l707f7u898o939i9zacatb6boc6chcrd1dbdldve5efepezf9fjftg3gdgngxh7hhhri1ibilivj5jfjpjzk8khkqkwlblklqm5memkmsmznento8onp2phpwqbqqr5rkrzsestt8tnu2uh","1W":"2q2z3a3j3r414b4l4x555f5r5z696l6t737i7x8c8r969la0afaub9boc3cicxdcdre6elf0fffug9goh3hihri0iciliuj6jfjok0kakkkul4lelqlym8mkmsn2nenmnwoboqp5pkpzqeqtr8rns2shswtbtqu5uk"},{"0W":"2l2x373h3q404a4k4v545e5p5y686j6s727h7w8b8q959k9zaeatb8bnc2chcwdbdqe5ekezfeftg8gnh2hhhqhzibikitj5jejnjzk9kjktl3ldlolxm7mimrn1ncnlnvoaopp4pjpyqdqsr7rms1sgsvtatpu4uj","1H":"2i2x3c3p444j4y5d5s676m717g7v8a8p949j9yadasb7bibpc4cjcydddndve7eherezfbflftg5gfgpgzh9hjhti3idinixj7jhjrk1kbklkvl5lflplzm9mjmsn2nannnwo4ogoqozpdpsq7qmr1rgrvsaspt4tjtyud","1W":"2o2x383h3p3z494j4u535d5o5x676i6r717g7v8a8p949j9yadasb7bmc1cgcvdadpe4ejeyfdfsg7gmh1hghohxiaiiirj4jcjljyk8kiksl2lclnlwm6mhmqn0nbnknuo9oop3pipxqcqrr6rls0sfsut9tou3ui","0H":"2i2w3c3q454k4z5e5t686n727h7w8b8q959ka1aeavb8bqc8cjctd3dddndxe7eherf1fbflfvg5gfgpgzh9hjhti3idinixj7jhjrk1kakjkskyldlmlsm7mgmmmun1ngnvoaopp4pjpyqdqsr7rms1sgsvtatpu4uj"},{"1H":"2v3a3o434i4x5c5r666l707f7u898o939i9xacarb6bhboc3cicxdcdmdue6egeqeyfafkfsg4gegogyh8hihsi2icimiwj6jgjqk0kakkkul4lelolym8mimrn1n9nmnvo3ofopoypcprq6qlr0rfrus9sot3titxuc","0H":"2j2y3d3s474m515g5v6a6p747j7y8d8s979ma3agaxbabscaclcvd5dfdpdze9ejetf3fdfnfxg7ghgrh1hbhlhvi5ifipizj9jjjtk3kcklkul0lflolum9mimomwn3ninxocorp6plq0qfqur9ros3sisxtctru6ul","1W":"2m2v363g3o3y484i4t525c5n5w666h6q707f7u898o939i9xacarb6blc0cfcud9doe3eiexfcfrg6glh0hfhnhvi9ihipj3jbjjjxk7khkrl1lblmlvm5mgmpmznanjnto8onp2phpwqbqqr5rkrzsestt8tnu2uh","0W":"2n2z393j3s424c4m4x565g5r606a6l6u747j7y8d8s979ma1agavbabpc4cjcydddse7emf1fgfvgagph4hjhsi0idimiuj7jgjok1kbklkvl5lflqlzm9mkmtn3nennnxocorp6plq0qfqur9ros3sisxtctru6ul"},{"0W":"2p313b3l3u444e4o4z585i5t626c6n6w767l808f8u999oa3aiaxbcbrc6cld0dfdue9eof3fifxgcgrh6hlhui3ifioixj9jijrk3kdknkxl7lhlsm1mbmmmvn5ngnpnzoeotp8pnq2qhqwrbrqs5sksztettu8un","1W":"2k2t343e3m3w464g4r505a5l5u646f6o6y7d7s878m919g9vaaapb4bjbycdcsd7dme1egevfafpg4gjgyhdhlhti7ifinj1j9jhjvk5kfkpkzl9lkltm3memnmxn8nhnro6olp0pfpuq9qor3rirxscsrt6tlu0uf","1H":"2t383m414g4v5a5p646j6y7d7s878m919g9vaaapb4bfbmc1cgcvdadkdse4eeeoewf8fifqg2gcgmgwh6hghqi0iaikiuj4jejojyk8kiksl2lclmlwm6mgmpmzn7nknto1odonowpappq4qjqyrdrss7smt1tgtvua","0H":"2m303g3u494o535i5x6c6r767l808f8u999oa5aiazbcbucccncxd7dhdre1ebelevf5fffpfzg9gjgth3hdhnhxi7ihirj1jbjljvk5keknkwl2lhlqlwmbmkmqmyn5nknzoeotp8pnq2qhqwrbrqs5sksztettu8un"},{"1H":"2r363j3y4d4s575m616g6v7a7p848j8y9d9sa7amb1bcbjbycdcsd7dhdpe1ebeletf5fffnfzg9gjgth3hdhnhxi7ihirj1jbjljvk5kfkpkzl9ljltm3mdmmmwn4nhnqnyoaokotp7pmq1qgqvrarps4sjsytdtsu7","0H":"2o333i3x4c4r565l606f6u797o838i8x9c9ra8alb2bfbxcfcrd1dbdldve5efepezf9fjftg3gdgngxh7hhhri1ibilivj5jfjpjzk9khkqkzl5lkltlzmemnmtn1n8nno2ohowpbpqq5qkqzrerts8snt2thtwubuq","1W":"2i2r323b3j3t434d4o4x575i5r616c6l6v7a7p848j8y9d9sa7amb1bgbvcacpd4djdyedesf7fmg1gggvhahihri4iciliyj6jfjsk2kckmkwl6lhlqm0mbmkmun5nenoo3oioxpcprq6qlr0rfrus9sot3titxuc","0W":"2i2s343e3o3x474h4r525b5l5w656f6q6z797o838i8x9c9ra6alb0bfbuc9cod3didxecerf6flg0gfguh9hohxi5iiirizjcjljtk6kgkql0lalklvm4mempmyn8njnso2ohowpbpqq5qkqzrerts8snt2thtwubuq"},{"1H":"2o333g3v4a4p545j5y6d6s777m818g8v9a9pa4ajayb9bgbvcacpd4dedmdye8eieqf2fcfkfwg6gggqh0hahkhui4ieioiyj8jijsk2kckmkwl6lglqm0mamjmtn1nennnvo7ohoqp4pjpyqdqsr7rms1sgsvtatpu4","0W":"2l2v373h3r404a4k4u555e5o5z686i6t727c7r868l909f9ua9aob3bibxcccrd6dle0efeuf9fog3gigxhchri0i8iliuj2jfjojwk9kjktl3ldlnlym7mhmsn1nbnmnvo5okozpeptq8qnr2rhrwsbsqt5tktzueut","0H":"2r363l404f4u595o636i6x7c7r868l909f9uabaob5bic0cicvd5dfdpdze9ejetf3fdfnfxg7ghgrh1hbhlhvi5ifipizj9jjjtk3kdkkktl2l8lnlwm2mhmqmwn4nbnqo5okozpeptq8qnr2rhrwsbsqt5tktzueut","1W":"2n2y383g3q404a4l4u545f5o5y696i6s777m818g8v9a9pa4ajaybdbsc7cmd1dgdveaepf4fjfygdgsh7hfhni1i9ihivj3jbjpjzk9kjktl3lelnlxm8mhmrn2nbnlo0ofoup9poq3qiqxrcrrs6slt0tftuu9"},{"1W":"2k2v353d3n3x474i4r515c5l5v666f6p747j7y8d8s979ma1agavbabpc4cjcydddse7emf1fgfvgagph4hchkhyi6ieisj0j8jmjwk6kgkql0lblklum5memomzn8ninxocorp6plq0qfqur9ros3sisxtctru6","1H":"2l303d3s474m515g5v6a6p747j7y8d8s979ma1agavb6bdbsc7cmd1dbdjdve5efenezf9fhftg3gdgngxh7hhhri1ibilivj5jfjpjzk9kjktl3ldlnlxm7mgmqmynbnknso4oeonp1pgpvqaqpr4rjrysdsst7tmu1","0W":"2n2x393j3t424c4m4w575g5q616a6k6v747e7t888n929h9wabaqb5bkbzcectd8dne2ehewfbfqg5gkgzhehti2iainiwj4jhjqjykbklkvl5lflpm0m9mjmun3ndnonxo7omp1pgpvqaqpr4rjrysdsst7tmu1uguv","0H":"2t383n424h4w5b5q656k6z7e7t888n929h9wadaqb7bkc2ckcxd7dhdre1ebelevf5fffpfzg9gjgth3hdhnhxi7ihirj1jbjljvk5kfkmkvl4lalplym4mjmsmyn6ndnso7omp1pgpvqaqpr4rjrysdsst7tmu1uguv"},{"1H":"2i2x3a3p444j4y5d5s676m717g7v8a8p949j9yadasb3b9boc3cicxd7dfdre1ebejevf5fdfpfzg9gjgth3hdhnhxi7ihirj1jbjljvk5kfkpkzl9ljltm3mcmmmvn7ngnpo0oaokoypdpsq7qmr1rgrvsaspt4tjty","0H":"2i2w3b3q454k4z5e5t686n727h7w8b8q959k9zagatbabnc5cnd0dadkdue4eeeoeyf8fifsg2gcgmgwh6hghqi0iaikiuj4jejojyk8kikpkyl7ldlsm1m7mmmvn1n9ngnvoaopp4pjpyqdqsr7rms1sgsvtatpu4ujuy","1W":"2i2s323a3k3u444f4o4y595i5s636c6m717g7v8a8p949j9yadasb7bmc1cgcvdadpe4ejeyfdfsg7gmh1h9hhhvi3ibipixj5jjjtk3kdknkxl8lhlrm2mbmlmwn5nfnuo9oop3pipxqcqrr6rls0sfsut9tou3","0W":"2i2q303c3m3w454f4p4z5a5j5t646d6n6y777h7w8b8q959k9zaeatb8bnc2chcwdbdqe5ekezfeftg8gnh2hhhwi5idiqizj7jkjtk1kekokyl8lilsm3mcmmmxn6ngnro0oaopp4pjpyqdqsr7rms1sgsvtatpu4ujuy"},{"1H":"2v383n424h4w5b5q656k6z7e7t888n929h9wabaqb1b7bmc1cgcvd5dddpdze9ehetf3fbfnfxg7ghgrh1hbhlhvi5ifipizj9jjjtk3kdknkxl7lhlrm1mamkmtn5nennnyo8oiowpbpqq5qkqzrerts8snt2thtw","0W":"2j2r313d3n3x464g4q505b5k5u656e6o6z787i7x8c8r969la0afaub9boc3cicxdcdre6elf0fffug9goh3hihxi6ifirj0j9jljuk3kfkpkzl9ljltm4mdmnmyn7nhnso1oboqp5pkpzqeqtr8rns2shswtbtqu5ukuz","1W":"2q30383i3s424d4m4w575g5q616a6k6z7e7t888n929h9wabaqb5bkbzcectd8dne2ehewfbfqg5gkgzh7hfhti1i9inivj3jhjrk1kbklkvl6lflpm0m9mjmun3ndnso7omp1pgpvqaqpr4rjrysdsst7tmu1","0H":"2j2y3c3s464l505f5u696o737i7x8c8r969la0ahaubbboc6cod1dbdldve5efepezf9fjftg3gdgngxh7hhhri1ibilivj5jfjpjzk9kjkqkzl8leltm2m8mnmwn2nanhnwoboqp5pkpzqeqtr8rns2shswtbtqu5ukuz"},{"0W":"2m2u343g3q40494j4t535e5n5x686h6r727b7l808f8u999oa3aiaxbcbrc6cld0dfdue9eof3fifxgcgrh6hli0i9iiiuj3jcjojxk6kiksl2lclmlwm7mgmqn1nanknvo4oeotp8pnq2qhqwrbrqs5sksztettu8unv2","0H":"2m313f3v494o535i5x6c6r767l808f8u999oa3akaxbebrc9crd4dedodye8eiesf2fcfmfwg6gggqh0hahkhui4ieioiyj8jijsk2kckmktl2lblhlwm5mbmqmzn5ndnknzoeotp8pnq2qhqwrbrqs5sksztettu8unv2","1W":"2o2x353f3p3z4a4j4t545d5n5y676h6w7b7q858k8z9e9ta8anb2bhbwcbcqd5dkdzeeetf8fng2ghgwh4hdhqhyi7ikisj1jejojyk8kiksl3lclmlxm6mgmrn0nanpo4ojoypdpsq7qmr1rgrvsaspt4tjty","1H":"2s353k3z4e4t585n626h6w7b7q858k8z9e9ta8anayb4bjbycdcsd2dadmdwe6eeeqf0f8fkfug4gegogyh8hihsi2icimiwj6jgjqk0kakkkul4lelolym8mimqn2ncnknwo6ofotp8pnq2qhqwrbrqs5sksztett"},{"0H":"2p343i3y4c4r565l606f6u797o838i8x9c9ra6anb0bhbucccud7dhdre1ebelevf5fffpfzg9gjgth3hdhnhxi7ihirj1jbjljvk5kfkpkwl5lelklzm8memtn2n8ngnno2ohowpbpqq5qkqzrerts8snt2thtwubuqv5","1H":"2p323h3w4b4q555k5z6e6t787n828h8w9b9qa5akavb1bgbvcacpczd7djdte3ebenexf5fhfrg1gbglgvh5hfhphzi9ijitj3jdjnjxk7khkrl1lblllvm5mfmnmzn9nhnto3ocoqp5pkpzqeqtr8rns2shswtbtq","0W":"2p2x373j3t434c4m4w565h5q606b6k6u757e7o838i8x9c9ra6alb0bfbuc9cod3didxecerf6flg0gfguh9hoi3icilixj6jfjrk0k9klkvl5lflplzmamjmtn4ndnnnyo7ohowpbpqq5qkqzrerts8snt2thtwubuqv5","1W":"2l2u323c3m3w474g4q515a5k5v646e6t787n828h8w9b9qa5akazbebtc8cnd2dhdwebeqf5fkfzgegth1hahnhvi4ihipiyjbjljvk5kfkpl0l9ljlum3mdmomxn7nmo1ogovpappq4qjqyrdrss7smt1tgtv"},{"1H":"2m2z3e3t484n525h5w6b6q757k7z8e8t989na2ahasaybdbsc7cmcwd4dgdqe0e8ekeuf2fefofyg8gigsh2hchmhwi6igiqj0jajkjuk4kekokyl8lilsm2mcmkmwn6nenqo0o9onp2phpwqbqqr5rkrzsestt8tn","0W":"2s303a3m3w464f4p4z595k5t636e6n6x787h7r868l909f9ua9aob3bibxcccrd6dle0efeuf9fog3gigxhchri6ifioj0j9jijuk3kckokyl8lilsm2mdmmmwn7ngnqo1oaokozpeptq8qnr2rhrwsbsqt5tktzueutv8","1W":"2i2r2z393j3t444d4n4y575h5s616b6q757k7z8e8t989na2ahawbbbqc5ckczdedte8enf2fhfwgbgqgyh6hkhsi0ieimiuj8jijsk2kckmkxl6lglrm0mamlmun4njnyodosp7pmq1qgqvrarps4sjsytdts","0H":"2s373l414f4u595o636i6x7c7r868l909f9ua9aqb3bkbxcfcxdadkdue4eeeoeyf8fifsg2gcgmgwh6hghqi0iaikiuj4jejojyk8kikskzl8lhlnm2mbmhmwn5nbnjnqo5okozpeptq8qnr2rhrwsbsqt5tktzueutv8"},{"0W":"2v333d3p3z494i4s525c5n5w666h6q707b7k7u898o939i9xacarb6blc0cfcud9doe3eiexfcfrg6glh0hfhui9iiirj3jcjljxk6kfkrl1lblllvm5mgmpmznanjnto4odonp2phpwqbqqr5rkrzsestt8tnu2uhuwvb","1W":"2p2x373h3r424b4l4w555f5q5z696o737i7x8c8r969la0afaub9boc3cicxdcdre6elf0fffug9gogwh4hihqhyicikisj6jgjqk0kakkkvl4lelplym8mjmsn2nhnwoboqp5pkpzqeqtr8rns2shswtbtq","1H":"2k2x3c3r464l505f5u696o737i7x8c8r969la0afaqawbbbqc5ckcud2dedodye6eiesf0fcfmfwg6gggqh0hahkhui4ieioiyj8jijsk2kckmkwl6lglqm0mamimun4ncnonyo7olp0pfpuq9qor3rirxscsrt6tl","0H":"2v3a3o444i4x5c5r666l707f7u898o939i9xacatb6bnc0cid0dddndxe7eherf1fbflfvg5gfgpgzh9hjhti3idinixj7jhjrk1kbklkvl2lblklqm5memkmzn8nenmnto8onp2phpwqbqqr5rkrzsestt8tnu2uhuwvb"},{"1W":"2n2v353f3p40494j4u535d5o5x676m717g7v8a8p949j9yadasb7bmc1cgcvdadpe4ejeyfdfsg7gmguh2hghohwiaiiiqj4jejojyk8kiktl2lclnlwm6mhmqn0nfnuo9oop3pipxqcqrr6rls0sfsut9to","1H":"2i2v3a3p444j4y5d5s676m717g7v8a8p949j9yadaoatb8bnc2chcrczdbdldve3efepexf9fjftg3gdgngxh7hhhri1ibilivj5jfjpjzk9kjktl3ldlnlxm7mgmrn1nanlnvo5ojoypdpsq7qmr1rgrvsaspt4tj","0W":"2y363g3s424c4l4v555f5r5z696l6t737f7n7x8c8r969la0afaub9boc3cicxdcdre6elf0fffug9goh3hihxiciliuj6jfjok0k9kikul4lelolym8mkmsn2nenmnwo8ogoqp5pkpzqeqtr8rns2shswtbtqu5ukuzve","0H":"2i2y3c3r464l505f5u696o737i7x8c8r969la0afawb9bqc3cld3dgdqe0eaekeuf4fefofyg8gigsh2hchmhwi6igiqj0jajkjuk4kekokyl5lelnltm8mhmnn2nbnhnpnwoboqp5pkpzqeqtr8rns2shswtbtqu5ukuzve"},{"1H":"2s373m414g4v5a5p646j6y7d7s878m919g9vaaalaqb5bkbzcecocwd8didse0ecemeuf6fgfqg0gagkguh4hehohyi8iiisj2jcjmjwk6kgkql0lalklum4mdmomyn7ninso2ogovpappq4qjqyrdrss7smt1tg","0W":"30383i3u444e4n4x575h5t616b6n6v757h7p7z8e8t989na2ahawbbbqc5ckczdedte8enf2fhfwgbgqh5hkhzieiniwj8jhjqk2kbkkkwl6lglqm0mammmun4ngnonyoaoiosp7pmq1qgqvrarps4sjsytdtsu7umv1vg","1W":"2k2s323c3m3w464g4q505a5k5u646j6y7d7s878m919g9vaaapb4bjbycdcsd7dme1egevfafpg4gjgrgyhdhlhsi7ifimj1jbjljvk5kfkpkzl9ljltm3mdmnmxncnro6olp0pfpuq9qor3rirxscsrt6tl","0H":"2k303e3t484n525h5w6b6q757k7z8e8t989na2ahaybbbsc5cnd5didse2ecemewf6fgfqg0gagkguh4hehohyi8iiisj2jcjmjwk6kgkql0l7lglplvmamjmpn4ndnjnrnyodosp7pmq1qgqvrarps4sjsytdtsu7umv1vg"},{"1W":"2i2q303a3k3u444e4o4y585i5s626h6w7b7q858k8z9e9ta8anb2bhbwcbcqd5dkdzeeetf8fng2ghgpgwhbhjhqi5idikizj9jjjtk3kdknkxl7lhlrm1mbmlmvnanpo4ojoypdpsq7qmr1rgrvsaspt4tj","0H":"2m323g3v4a4p545j5y6d6s777m818g8v9a9pa4ajb0bdbuc7cpd7dkdue4eeeoeyf8fifsg2gcgmgwh6hghqi0iaikiuj4jejojyk8kiksl2l9lilrlxmcmlmrn6nfnlnto0ofoup9poq3qiqxrcrrs6slt0tftuu9uov3vi","0W":"2i323a3k3w464g4p4z595j5v636d6p6x777j7r818g8v9a9pa4ajaybdbsc7cmd1dgdveaepf4fjfygdgsh7hmi1igipiyjajjjsk4kdkmkyl8lilsm2mcmomwn6ninqo0ocokoup9poq3qiqxrcrrs6slt0tftuu9uov3vi","1H":"2q353k3z4e4t585n626h6w7b7q858k8z9e9ta8ajaob3bibxcccmcud6dgdqdyeaekesf4fefofyg8gigsh2hchmhwi6igiqj0jajkjuk4kekokyl8lilsm2mbmmmwn5ngnqo0oeotp8pnq2qhqwrbrqs5skszte"},{"0W":"2k343c3m3y484i4r515b5l5x656f6r6z797l7t838i8x9c9ra6alb0bfbuc9cod3didxecerf6flg0gfguh9hoi3iiirj0jcjljuk6kfkol0lalklum4memqmyn8nknso2oeomowpbpqq5qkqzrerts8snt2thtwubuqv5vk","1H":"2o333i3x4c4r565l606f6u797o838i8x9c9ra6ahamb1bgbvcackcsd4dedodwe8eieqf2fcfmfwg6gggqh0hahkhui4ieioiyj8jijsk2kckmkwl6lglqm0m9mkmun3nenonyocorp6plq0qfqur9ros3sisxtc","0H":"2o343i3x4c4r565l606f6u797o838i8x9c9ra6alb2bfbwc9crd9dmdwe6egeqf0fafkfug4gegogyh8hihsi2icimiwj6jgjqk0kakkkul4lblkltlzmemnmtn8nhnnnvo2ohowpbpqq5qkqzrerts8snt2thtwubuqv5vk","1W":"2o2y383i3s424c4m4w565g5q606f6u797o838i8x9c9ra6alb0bfbuc9cod3didxecerf6flg0gfgnguh9hhhoi3ibiiixj7jhjrk1kbklkvl5lflplzm9mjmtn8nno2ohowpbpqq5qkqzrerts8snt2th"},{"0W":"2m363e3o404a4k4t535d5n5z676h6t717b7n7v858k8z9e9ta8anb2bhbwcbcqd5dkdzeeetf8fng2ghgwhbhqi5ikitj2jejnjwk8khkql2lclmlwm6mgmsn0nanmnuo4ogoooypdpsq7qmr1rgrvsaspt4tjtyudusv7vm","1H":"2m313g3v4a4p545j5y6d6s777m818g8v9a9pa4afakazbebtc8cicqd2dcdmdue6egeof0fafkfug4gegogyh8hihsi2icimiwj6jgjqk0kakkkul4lelolym7mimsn1ncnmnwoaopp4pjpyqdqsr7rms1sgsvta","1W":"2m2w363g3q404a4k4u545e5o5y6d6s777m818g8v9a9pa4ajaybdbsc7cmd1dgdveaepf4fjfygdglgsh7hfhmi1i9igivj5jfjpjzk9kjktl3ldlnlxm7mhmrn6nlo0ofoup9poq3qiqxrcrrs6slt0tf","0H":"2q363k3z4e4t585n626h6w7b7q858k8z9e9ta8anb4bhbycbctdbdodye8eiesf2fcfmfwg6gggqh0hahkhui4ieioiyj8jijsk2kckmkwl6ldlmlvm1mgmpmvnanjnpnxo4ojoypdpsq7qmr1rgrvsaspt4tjtyudusv7vm"},{"0W":"2o383g3q424c4m4v555f5p626a6j6w747d7q7y878m919g9vaaapb4bjbycdcsd7dme1egevfafpg4gjgyhdhsi7imivj5jgjpjzkakjktl4lelolym8mimvn3ncnpnxo6ojorp0pfpuq9qor3rirxscsrt6tlu0ufuuv9vo","1H":"2k2z3e3t484n525h5w6b6q757k7z8e8t989na2adaiaxbcbrc6cgcod0dadkdse4eeemeyf8fifsg2gcgmgwh6hghqi0iaikiuj4jejojyk8kiksl2lclmlwm5mgmqmznanknuo8onp2phpwqbqqr5rkrzsestt8","1W":"2k2u343e3o3y484i4s525c5m5w6b6q757k7z8e8t989na2ahawbbbqc5ckczdedte8enf2fhfwgbgjgqh5hdhkhzi7ieitj3jdjnjxk7khkrl1lblllvm5mfmpn4njnyodosp7pmq1qgqvrarps4sjsytd","0H":"2s383n414h4v5a5p646j6y7d7s878m919g9vaaapb7bjc1cdcwdedqe0eaekeuf4fefofyg8gigsh2hchmhwi6igiqj0jajkjuk4kekokyl8lflolxm3mimrmxncnlnrnzo6olp0pfpuq9qor3rirxscsrt6tlu0ufuuv9vo"}],"shape":[[120.32305,22.62971],[120.32243,22.629],[120.32234,22.62883],[120.32234,22.62863],[120.32264,22.62783],[120.32326,22.62622],[120.32376,22.6249],[120.32386,22.62468],[120.32397,22.62438],[120.32414,22.6239],[120.32435,22.62334],[120.32484,22.62206],[120.32506,22.6215],[120.32521,22.6211],[120.32541,22.62057],[120.32553,22.62025],[120.3256,22.62006],[120.32607,22.61883],[120.32619,22.61853],[120.32625,22.61837],[120.32631,22.61821],[120.32658,22.61754],[120.32665,22.61736],[120.32691,22.61671],[120.327,22.61649],[120.32711,22.61618],[120.32724,22.61583],[120.32733,22.61554],[120.32737,22.61537],[120.32742,22.61512],[120.32745,22.61489],[120.32748,22.61464],[120.32749,22.61435],[120.32749,22.61415],[120.32747,22.61389],[120.32745,22.61368],[120.32741,22.61339],[120.32736,22.61318],[120.32725,22.61276],[120.32708,22.61222],[120.32686,22.61154],[120.32668,22.61098],[120.32648,22.61028],[120.32641,22.60994],[120.32627,22.60924],[120.32624,22.60908],[120.32616,22.60878],[120.32598,22.60825],[120.32577,22.60761],[120.3257,22.60739],[120.3255,22.60678],[120.32541,22.60656],[120.32526,22.60624],[120.3251,22.60592],[120.32497,22.6056],[120.32491,22.60541],[120.32472,22.60486],[120.32465,22.60467],[120.32452,22.60431],[120.32445,22.60416],[120.32432,22.60394],[120.32411,22.6037],[120.32377,22.60336],[120.32332,22.60294],[120.3232,22.60282],[120.32301,22.60263],[120.32246,22.60211],[120.32233,22.60198],[120.32214,22.60179],[120.32165,22.60133],[120.32112,22.60083],[120.31852,22.59834],[120.3163,22.59621],[120.31592,22.59588],[120.31545,22.59554],[120.31517,22.59536],[120.31475,22.59514],[120.31442,22.59498],[120.31409,22.59484],[120.31341,22.59461],[120.31243,22.59428],[120.31171,22.59404],[120.31077,22.59371],[120.30997,22.59346],[120.30864,22.59301],[120.30806,22.59282],[120.30781,22.59274],[120.30759,22.59269],[120.30741,22.59266],[120.3071,22.59266],[120.3069,22.59268],[120.3067,22.59272],[120.30642,22.59282],[120.30614,22.59295],[120.3059,22.59313],[120.30572,22.5933],[120.30558,22.59348],[120.30548,22.59362],[120.30536,22.59389],[120.30381,22.59786],[120.30362,22.59834],[120.30332,22.59907],[120.30261,22.60099],[120.30105,22.60504],[120.29909,22.6101],[120.29898,22.61027],[120.29882,22.61034],[120.29766,22.60999],[120.29748,22.60994],[120.29716,22.60994],[120.29697,22.60998],[120.29668,22.61009],[120.2959,22.61045],[120.29519,22.61079],[120.29374,22.61145],[120.29317,22.61171],[120.29261,22.61197],[120.29229,22.61217],[120.29213,22.61231],[120.29198,22.61249],[120.29186,22.61267],[120.29177,22.61283],[120.29169,22.61308],[120.29166,22.61328],[120.29166,22.61345],[120.29167,22.61364],[120.2917,22.61381],[120.29189,22.61428],[120.29238,22.61518],[120.29256,22.61556],[120.2927,22.61583],[120.29333,22.617],[120.29341,22.61723],[120.29343,22.61748],[120.29343,22.61777],[120.29332,22.61812],[120.29317,22.61847],[120.29303,22.61868],[120.29289,22.61886],[120.29268,22.61907],[120.2924,22.61927],[120.29215,22.61941],[120.29187,22.61952],[120.29159,22.6196],[120.29135,22.61964],[120.2911,22.61966],[120.29082,22.61964],[120.29058,22.61961],[120.28965,22.61935],[120.28915,22.61923],[120.28885,22.61911],[120.28864,22.6189],[120.28838,22.61848],[120.28823,22.61831],[120.28798,22.61807],[120.2878,22.61794],[120.28763,22.61785],[120.28737,22.61773],[120.28715,22.61767],[120.28691,22.61763],[120.28665,22.61761],[120.28639,22.61762],[120.28612,22.61768],[120.2859,22.61774],[120.28569,22.61783],[120.28306,22.61906],[120.28231,22.61941],[120.28124,22.61991],[120.2808,22.62007],[120.28019,22.62033],[120.27946,22.62068],[120.27917,22.62066],[120.27869,22.61985],[120.27853,22.61975],[120.27832,22.61976],[120.2758,22.62087],[120.27566,22.62107],[120.27576,22.62144],[120.27584,22.62161],[120.2763,22.62267],[120.27643,22.62294],[120.27665,22.62334],[120.27706,22.62405],[120.27781,22.62518],[120.27839,22.62612],[120.27863,22.62649],[120.27917,22.62728],[120.28261,22.63237],[120.28286,22.63283],[120.28294,22.63299],[120.28301,22.63318],[120.28306,22.63341],[120.28311,22.63375],[120.28311,22.63395],[120.28307,22.63431],[120.28304,22.63448],[120.28298,22.63475],[120.28285,22.63516],[120.28261,22.63596],[120.28247,22.63648],[120.2823,22.63702],[120.28214,22.63759],[120.28207,22.63788],[120.28204,22.63805],[120.28199,22.63849],[120.28197,22.63867],[120.28167,22.6396],[120.2814,22.64049],[120.28128,22.64092],[120.2812,22.64127],[120.28116,22.64149],[120.28113,22.64166],[120.28106,22.64233],[120.28104,22.64281],[120.28105,22.64338],[120.28109,22.64394],[120.28116,22.64486],[120.28117,22.64513],[120.28118,22.64532],[120.28121,22.64561],[120.28125,22.64583],[120.28134,22.64619],[120.28139,22.64643],[120.28142,22.64671],[120.28143,22.64696],[120.28147,22.64764],[120.2815,22.64802],[120.28151,22.64834],[120.28157,22.64925],[120.28163,22.65021],[120.28165,22.65056],[120.28169,22.65126],[120.28172,22.65173],[120.28174,22.65201],[120.28178,22.65281],[120.28186,22.65409],[120.28189,22.65446],[120.28191,22.65465],[120.28203,22.65483],[120.2822,22.65494],[120.28244,22.65498],[120.28291,22.65499],[120.28403,22.65501],[120.28547,22.65503],[120.28686,22.65504],[120.28778,22.65503],[120.28799,22.65498],[120.2882,22.65492],[120.28853,22.65489],[120.28953,22.65485],[120.2904,22.65482],[120.29076,22.65481],[120.29147,22.65477],[120.29181,22.65474],[120.29208,22.65473],[120.29247,22.65468],[120.29272,22.65466],[120.29401,22.65461],[120.29422,22.65459],[120.29473,22.65452],[120.2955,22.65442],[120.29581,22.65442],[120.29603,22.65444],[120.29639,22.65454],[120.29724,22.65475],[120.29822,22.65498],[120.2995,22.65527],[120.30051,22.65551],[120.30169,22.65579],[120.30279,22.65605],[120.30315,22.65613],[120.30413,22.65637],[120.30505,22.65657],[120.30549,22.65668],[120.3059,22.65678],[120.30616,22.65683],[120.30646,22.65687],[120.30685,22.65689],[120.30724,22.65687],[120.30743,22.65685],[120.30784,22.65678],[120.3085,22.65667],[120.30913,22.65656],[120.30982,22.65644],[120.31068,22.6563],[120.31116,22.65622],[120.31241,22.65601],[120.31359,22.65582],[120.31408,22.65574],[120.31471,22.65563],[120.31515,22.65555],[120.31572,22.65538],[120.31615,22.65523],[120.31638,22.65514],[120.31664,22.65502],[120.31694,22.65488],[120.31737,22.65463],[120.31811,22.65411],[120.31911,22.6534],[120.32061,22.65233],[120.32096,22.65209],[120.3222,22.65119],[120.32253,22.65095],[120.32331,22.6504],[120.32396,22.64994],[120.32439,22.6496],[120.32453,22.64949],[120.32466,22.64937],[120.32483,22.64919],[120.32501,22.64892],[120.32512,22.64872],[120.32523,22.64847],[120.3253,22.64828],[120.32535,22.64804],[120.32538,22.64783],[120.32544,22.64702],[120.32554,22.64635],[120.32558,22.64614],[120.32562,22.64595],[120.32582,22.64532],[120.32616,22.64437],[120.32663,22.64305],[120.32698,22.64209],[120.32732,22.64115],[120.32765,22.64024],[120.32793,22.63947],[120.32798,22.63921],[120.32797,22.63901],[120.32761,22.63807],[120.32729,22.63724],[120.32705,22.63665],[120.32685,22.63608],[120.32619,22.63419],[120.3258,22.63304],[120.32569,22.63283],[120.32558,22.63268],[120.32512,22.63213],[120.32448,22.6314],[120.3242,22.63108],[120.32343,22.63018],[120.32305,22.62971],[120.32305,22.62971]],"xfer":[["C3","R6"],["C14","O1"],["C24","R13"]]};
 
 const LINES = ["R","O"];
-const LINE_NAME = {R:"紅線", O:"橘線"};
+const LINE_NAME = {R:"紅線", O:"橘線", C:"輕軌"};
+const ALL_LINES = ["R", "O", "C"];
 const XFER_ID = {R:"R10", O:"O5"};
 const DAY_SHORT = ["平日","假日前一天","假日","週日"];
 const DAY_SUB = ["週一至週四","週五","週六、國定假日","週日"];
@@ -828,6 +836,47 @@ for (const L of LINES) for (const [id, name] of DATA.lines[L]) {
   if (!byName[name]) { byName[name] = {name, ids: [], lines: []}; stations.push(byName[name]); }
   byName[name].ids.push(id); byName[name].lines.push(L);
 }
+// 輕軌車站併進同一份車站表（哈瑪星和橘線 O1 同名，會合成一個轉乘站）
+DATA.lines.C = LRT.st.map(s_ => [s_[0], s_[1]]);
+const lrtIdx = {}, lrtPos = [];
+LRT.st.forEach(([id, name, lat, lon, pos], i) => {
+  COORDS[id] = [lat, lon]; lrtIdx[id] = i; lrtPos.push(pos);
+  nameOf[id] = name; lineOf[id] = "C";
+  if (!byName[name]) { byName[name] = {name, ids: [], lines: []}; stations.push(byName[name]); }
+  byName[name].ids.push(id); byName[name].lines.push("C");
+});
+const lrtTT = LRT.tt.map(o_ => Object.fromEntries(Object.entries(o_).map(([k, v]) => {
+  const a = []; for (let i = 0; i < v.length; i += 2) a.push(parseInt(v.slice(i, i + 2), 36) + 300); return [k, a];
+})));
+const lrtKey = day => day <= 1 ? "W" : "H";   // 輕軌只有平日、假日兩種時刻
+const LRT_HEAD = ["順時針", "逆時針"];         // 順時針：籬仔內→前鎮之星→哈瑪星→愛河之心…
+const headTxt = t => t.L === "C" ? t.head : "往" + t.head;
+function lrtTravel(dir, ia, ib) { // 秒；列車從籬仔內發車、回到籬仔內結束
+  const P = lrtPos, loop = LRT.loop;
+  if (dir === 0) return ia === 0 ? P[ib] : ib === 0 ? loop - P[ia] : P[ib] - P[ia];
+  return ia === 0 ? loop - P[ib] : ib === 0 ? P[ia] : P[ia] - P[ib];
+}
+const lrtCache = new Map();
+function lrtLegs(day, aId, bId) {
+  const ck = day + aId + ">" + bId; if (lrtCache.has(ck)) return lrtCache.get(ck);
+  const ia = lrtIdx[aId], ib = lrtIdx[bId], n = LRT.st.length, out = [];
+  const dirs = ia === 0 || ib === 0 ? [0, 1] : [ia < ib ? 0 : 1];
+  for (const dir of dirs) {
+    const sec = lrtTravel(dir, ia, ib); if (sec <= 0) continue;
+    const deps = lrtTT[ia][dir + lrtKey(day)] || [], atB = lrtTT[ib][dir + lrtKey(day)] || [];
+    const seq = []; for (let k = ia; ; k = dir === 0 ? (k + 1) % n : (k - 1 + n) % n) { seq.push(k); if (k === ib) break; }
+    const stops = seq.map(k => LRT.st[k][0]), idx = Object.fromEntries(stops.map((x, i) => [x, i]));
+    for (const dep of deps) {
+      const target = dep + sec / 60;
+      let arr = atB.find(t => Math.abs(t - target) <= 2); const est = arr === undefined;
+      if (est) arr = Math.round(target);
+      if (arr <= dep) continue;
+      const times = seq.map((k, x) => x === 0 ? dep : x === seq.length - 1 ? arr : dep + Math.round(lrtTravel(dir, ia, k) / 60));
+      out.push({trip: {L: "C", stops, times, idx, head: LRT_HEAD[dir], dir}, i: 0, j: stops.length - 1, dep, arr, est});
+    }
+  }
+  out.sort((a, b) => a.dep - b.dep); lrtCache.set(ck, out); return out;
+}
 const A36 = "0123456789abcdefghijklmnopqrstuvwxyz";
 const tripsBy = {};
 for (const [day, li, dir, p0, t0, pi] of DATA.trips) {
@@ -841,6 +890,7 @@ for (const [day, li, dir, p0, t0, pi] of DATA.trips) {
   ((tripsBy[day] ||= {})[L] ||= []).push({L, stops, times, idx, head: nameOf[stops[stops.length - 1]]});
 }
 function legs(day, fromId, toId) {
+  if (lineOf[fromId] === "C" || lineOf[toId] === "C") return lineOf[fromId] === lineOf[toId] ? lrtLegs(day, fromId, toId) : [];
   const out = [];
   for (const t of (tripsBy[day]?.[lineOf[fromId]] || [])) {
     const i = t.idx[fromId], j = t.idx[toId];
@@ -850,7 +900,85 @@ function legs(day, fromId, toId) {
   return out.sort((a, b) => a.dep - b.dep);
 }
 const isTransfer = (o, d) => !byName[o].lines.some(L => byName[d].lines.includes(L));
+// 捷運↔輕軌轉乘站（座標相距 150 公尺內）
+const LRT_X = LRT.xfer.map(([c, m]) => ({c, m, walk: Math.max(1, Math.round(haversine(COORDS[c], COORDS[m]) * 1.3 / 70))}));
+const asRes = l => ({legs: [l], dep: l.dep, arr: l.arr, est: l.est, joins: []});
+// 輕軌站到站：直接搭，或經過籬仔內（每圈列車在籬仔內起訖，同方向接下一圈）
+function lrtRes(day, a, b) {
+  const out = lrtLegs(day, a, b).map(asRes), c1 = LRT.st[0][0];
+  if (a !== c1 && b !== c1) {
+    const dir = lrtIdx[a] < lrtIdx[b] ? 1 : 0; // 反方向會經過籬仔內
+    const A = lrtLegs(day, a, c1).filter(l => l.trip.dir === dir).map(asRes), B = lrtLegs(day, c1, b).filter(l => l.trip.dir === dir).map(asRes);
+    out.push(...joinRes(A, B, 0, {at: "籬仔內", label: "籬仔內接續", how: "同方向繼續搭（列車若在籬仔內結束，就換下一班）"}));
+  }
+  return out;
+}
+function joinRes(A, B, T, j) { // A 的每一班接 B 最早接得上的一班；同一班 B 只留最晚出發的 A
+  const best = new Map();
+  for (const a of A) {
+    const b = B.find(x => x.dep >= a.arr + T); if (!b) continue;
+    const cur = best.get(b);
+    if (!cur || cur.dep < a.dep) best.set(b, {legs: [...a.legs, ...b.legs], dep: a.dep, arr: b.arr, est: b.est, pre: a.pre, post: b.post,
+      joins: [...(a.joins || []), {...j, wait: b.dep - a.arr}, ...(b.joins || [])]});
+  }
+  return [...best.values()];
+}
+function lrtCombos(o, d, day, xfer) {
+  const O = byName[o], D = byName[d], out = [];
+  const oC = O.ids.find(i => lineOf[i] === "C"), dC = D.ids.find(i => lineOf[i] === "C");
+  const oM = O.lines.some(L => L !== "C"), dM = D.lines.some(L => L !== "C");
+  for (const x of LRT_X) {
+    const cN = nameOf[x.c], mN = nameOf[x.m], T = xfer + x.walk, same = cN === mN;
+    const j = {at: cN, label: same ? `${cN}轉乘` : `${cN}↔${mN}`, how: same ? `走到另一個月台（約 ${x.walk} 分）` : `步行到${mN}站（約 ${x.walk} 分）`};
+    const legPart = (a, b) => (a === b ? null : lrtRes(day, a, b));
+    const mrtPart = (a, b) => (a === b ? null : searchMRT(a, b, day, xfer));
+    const walkPre = (rs, from, to) => rs.map(r => ({...r, dep: r.dep - x.walk, pre: {from, to, mins: x.walk}}));
+    const walkPost = (rs, from, to) => rs.map(r => ({...r, arr: r.arr + x.walk, est: true, post: {from, to, mins: x.walk}}));
+    if (oC && dM) { // 輕軌 → 捷運
+      const A = legPart(oC, x.c), B = mrtPart(mN, d);
+      if (A && B) out.push(...joinRes(A, B, T, j));
+      else if (!A && B && o !== mN) out.push(...walkPre(B, cN, mN));
+      else if (A && !B && d !== cN) out.push(...walkPost(A, cN, mN));
+    }
+    if (oM && dC) { // 捷運 → 輕軌
+      const A = mrtPart(o, mN), B = legPart(x.c, dC);
+      if (A && B) out.push(...joinRes(A, B, T, j));
+      else if (!A && B && o !== cN) out.push(...walkPre(B, mN, cN));
+      else if (A && !B && d !== mN) out.push(...walkPost(A, mN, cN));
+    }
+  }
+  return out;
+}
+function prune(res) { // 拿掉「比較晚到又比較早出發」或「同時到但轉比較多次」的選項
+  res.sort((a, b) => a.dep - b.dep || a.arr - b.arr || a.legs.length - b.legs.length);
+  const out = [];
+  for (const r of res) {
+    if (res.some(q => q !== r && q.dep >= r.dep && q.arr <= r.arr && (q.dep > r.dep || q.arr < r.arr || q.legs.length < r.legs.length))) continue;
+    if (out.some(q => q.dep === r.dep && q.arr === r.arr)) continue;
+    out.push(r);
+  }
+  return out;
+}
+const searchCache = new Map();
 function search(o, d, day, xfer) {
+  const ck = [o, d, day, xfer].join("|"); if (searchCache.has(ck)) return searchCache.get(ck);
+  const lo = byName[o].lines, ld = byName[d].lines;
+  let res;
+  if (!lo.includes("C") && !ld.includes("C")) res = searchMRT(o, d, day, xfer);
+  else {
+    res = [];
+    for (const oid of byName[o].ids) for (const did of byName[d].ids)
+      if (lineOf[oid] === lineOf[did]) res.push(...(lineOf[oid] === "C" ? lrtRes(day, oid, did) : legs(day, oid, did).map(asRes)));
+    if (!lo.some(L => ld.includes(L))) {
+      if (lo.some(L => L !== "C") && ld.some(L => L !== "C")) res.push(...searchMRT(o, d, day, xfer));
+      res.push(...lrtCombos(o, d, day, xfer));
+    }
+    res = prune(res);
+  }
+  if (searchCache.size > 400) searchCache.clear();
+  searchCache.set(ck, res); return res;
+}
+function searchMRT(o, d, day, xfer) {
   const O = byName[o], D = byName[d], res = [];
   if (!isTransfer(o, d)) {
     for (const oid of O.ids) for (const did of D.ids)
@@ -862,7 +990,8 @@ function search(o, d, day, xfer) {
       const l2 = l2s.find(x => x.dep >= l1.arr + xfer);
       if (!l2) continue;
       const cur = best.get(l2);
-      if (!cur || cur.dep < l1.dep) best.set(l2, {legs: [l1, l2], dep: l1.dep, arr: l2.arr, est: l2.est, wait: l2.dep - l1.arr});
+      if (!cur || cur.dep < l1.dep) best.set(l2, {legs: [l1, l2], dep: l1.dep, arr: l2.arr, est: l2.est, wait: l2.dep - l1.arr,
+        joins: [{at: "美麗島", label: "美麗島轉乘", how: "走到另一線月台", wait: l2.dep - l1.arr}]});
     }
     res.push(...best.values());
   }
@@ -911,11 +1040,16 @@ const routeKey = () => state.from + "|" + state.to;
 
 // ---------- 介面元件 ----------
 const els = {from: $("from"), to: $("to"), tFrom: $("tFrom"), tTo: $("tTo")};
-for (const sel of [els.from, els.to, $("fvFrom"), $("fvTo")]) for (const L of LINES) {
+for (const sel of [els.from, els.to, $("fvFrom"), $("fvTo")]) for (const L of ALL_LINES) {
+  if (L === "C") { // 同名站（哈瑪星）已經在橘線出現過，避免重複
+    const g = document.createElement("optgroup"); g.label = LINE_NAME[L];
+    for (const [id, name] of DATA.lines[L]) if (byName[name].ids[0] === id) { const o_ = document.createElement("option"); o_.value = name; o_.textContent = `${id} ${name}`; g.appendChild(o_); }
+    sel.appendChild(g); continue;
+  }
   const g = document.createElement("optgroup"); g.label = LINE_NAME[L];
   for (const [id, name] of DATA.lines[L]) {
     const o = document.createElement("option"); o.value = name;
-    o.textContent = `${id} ${name}${byName[name].ids.length > 1 ? "（紅橘轉乘）" : ""}`;
+    o.textContent = `${id} ${name}${byName[name].ids.length > 1 ? "（轉乘站）" : ""}`;
     g.appendChild(o);
   }
   sel.appendChild(g);
@@ -945,10 +1079,13 @@ $("srcText").textContent = "資料來源：" + DATA.src + "。";
 $("footer").textContent = "資料：" + DATA.src;
 
 // ---------- 主要畫面 ----------
+const joinsOf = r => r.joins || (r.legs.length > 1 ? [{at: "美麗島", label: "美麗島轉乘", how: "走到另一線月台", wait: r.wait}] : []);
 function lchips(r, onBoard) {
-  return r.legs.map((l, k) =>
-    (k ? `<span class="lchip x">美麗島轉乘・等 ${r.wait} 分</span>` : "") +
-    `<span class="lchip"><i class="${l.trip.L}">${l.trip.L}</i>往${l.trip.head}</span>`).join("");
+  const J = joinsOf(r);
+  return (r.pre ? `<span class="lchip x">步行到${esc(r.pre.to)}站・${r.pre.mins} 分</span>` : "")
+    + r.legs.map((l, k) => (k ? `<span class="lchip x">${esc(J[k - 1].label)}・等 ${J[k - 1].wait} 分</span>` : "")
+      + `<span class="lchip"><i class="${l.trip.L}">${l.trip.L}</i>${headTxt(l.trip)}</span>`).join("")
+    + (r.post ? `<span class="lchip x">下車後步行到${esc(r.post.to)}站・${r.post.mins} 分</span>` : "");
 }
 function legDetail(l) {
   const t = l.trip, items = [];
@@ -956,7 +1093,7 @@ function legDetail(l) {
     const est = k === t.stops.length - 1;
     items.push(`<li class="${k === l.i || k === l.j ? "end" : ""}"><b>${est ? '<span class="est">約</span>' : ""}${fmt(t.times[k])}</b><span class="pt"></span><span>${nameOf[t.stops[k]]}<span style="opacity:.6"> ${t.stops[k]}</span></span></li>`);
   }
-  return `<div class="leg ${t.L}"><h4><span class="badge ${t.L}" style="height:20px;min-width:0;font-size:12px;padding:0 6px">${LINE_NAME[t.L]}</span>往${t.head}・${l.j - l.i} 站・${l.arr - l.dep} 分</h4><ol class="stops">${items.join("")}</ol></div>`;
+  return `<div class="leg ${t.L}"><h4><span class="badge ${t.L}" style="height:20px;min-width:0;font-size:12px;padding:0 6px">${LINE_NAME[t.L]}</span>${headTxt(t)}・${l.j - l.i} 站・${l.arr - l.dep} 分</h4><ol class="stops">${items.join("")}</ol></div>`;
 }
 let lastBoardKey = "", lastListSig = "";
 function render() {
@@ -990,6 +1127,7 @@ function render() {
   const next = wmB != null ? (inRange.find(r => r.dep - now >= wmB) || firstUp) : firstUp;
   const fastest = inRange.length ? Math.min(...inRange.map(r => r.arr - r.dep)) : null;
   const xf = isTransfer(o, d);
+  const xfText = r => { const J = joinsOf(r); return J.length ? `${J.map(j_ => j_.label).join("、")}・預留 ${state.xfer} 分` : r.pre || r.post ? "含步行轉乘" : "直達免轉乘"; };
 
   // 看板
   if (!next) {
@@ -1007,12 +1145,12 @@ function render() {
     board.innerHTML = `<div class="b-head"><span>${live ? "下一班" : "第一班"}・${esc(o)} → ${esc(d)}</span><b>${DAY_SHORT[day]}</b></div>
       <div class="b-main">
         <div class="b-count ${live && w > 0 && w < 100 ? "" : "small"} ${key !== lastBoardKey ? "tick" : ""}">${countHTML}</div>
-        <div class="b-times"><div><small>上車</small><b>${fmt(next.dep)}</b></div><span class="arr">→</span><div><small>抵達</small><b>${next.est ? '<span style="font-size:.5em;color:#9fb0c8">約</span>' : ""}${fmt(next.arr)}</b></div></div>
+        <div class="b-times"><div><small>${next.pre ? "出發" : "上車"}</small><b>${fmt(next.dep)}</b></div><span class="arr">→</span><div><small>抵達</small><b>${next.est ? '<span style="font-size:.5em;color:#9fb0c8">約</span>' : ""}${fmt(next.arr)}</b></div></div>
       </div>
       <div class="b-route">${lchips(next)}</div>
       ${boardMore(res, next, now, live)}
       ${live ? walkLine(res, next, now, firstUp) : ""}
-      <div class="b-stats"><span><b>${inRange.length}</b>班可搭</span><span><b>${fastest}</b>分 最短車程</span><span>${xf ? `美麗島轉乘・預留 ${state.xfer} 分` : "直達免轉乘"}</span></div>`;
+      <div class="b-stats"><span><b>${inRange.length}</b>班可搭</span><span><b>${fastest}</b>分 最短車程</span><span>${xfText(next)}</span></div>`;
     lastBoardKey = key;
   }
 
@@ -1027,14 +1165,17 @@ function render() {
   list.innerHTML = inRange.map(r => {
     const w = r.dep - now, past = live && w < 0, isNext = r === next && live;
     const key = r.legs.map(l => l.trip.L + l.trip.times[0] + l.trip.stops[0]).join("_");
-    const segs = r.legs.length === 1
-      ? `<i class="${r.legs[0].trip.L}" style="flex:${r.arr - r.dep}"></i>`
-      : `<i class="${r.legs[0].trip.L}" style="flex:${r.legs[0].arr - r.legs[0].dep}"></i><i class="w" style="flex:${r.wait}"></i><i class="${r.legs[1].trip.L}" style="flex:${r.legs[1].arr - r.legs[1].dep}"></i>`;
-    const meta = r.legs.map((l, k) => `${k ? "→ " : ""}${LINE_NAME[l.trip.L]}往${l.trip.head}`).join(" ")
+    const J = joinsOf(r);
+    const segs = (r.pre ? `<i class="w" style="flex:${r.pre.mins}"></i>` : "")
+      + r.legs.map((l, k) => (k ? `<i class="w" style="flex:${J[k - 1].wait}"></i>` : "") + `<i class="${l.trip.L}" style="flex:${l.arr - l.dep}"></i>`).join("")
+      + (r.post ? `<i class="w" style="flex:${r.post.mins}"></i>` : "");
+    const meta = (r.pre ? `步行到${esc(r.pre.to)} → ` : "") + r.legs.map((l, k) => `${k ? "→ " : ""}${LINE_NAME[l.trip.L]}${headTxt(l.trip)}`).join(" ") + (r.post ? ` → 步行到${esc(r.post.to)}` : "")
       + (nt?.car1 ? `<span class="less">・少人：${CARS[nt.car1][0]}${xf && nt.car2 ? "／" + CARS[nt.car2][0] : ""}</span>` : (xf && nt?.car2 ? `<span class="less">・轉乘後少人：${CARS[nt.car2][0]}</span>` : ""));
     const wm = live ? walkNow() : null, late = wm != null && !past && w < wm;
     const wtxt = !live ? "" : past ? "已開走" : late ? "走不到" : w === 0 ? "現在" : w <= 90 ? `${w} 分後` : "";
-    const detail = r.legs.map((l, k) => (k ? `<div class="xline">美麗島換車：${fmt(r.legs[0].arr)} 下車，走到另一線月台，${fmt(l.dep)} 上車（等 ${r.wait} 分）</div>` : "") + legDetail(l)).join("");
+    const detail = (r.pre ? `<div class="xline">從${esc(r.pre.from)}站步行到${esc(r.pre.to)}站，約 ${r.pre.mins} 分</div>` : "")
+      + r.legs.map((l, k) => (k ? `<div class="xline">${esc(J[k - 1].at)}換車：${fmt(r.legs[k - 1].arr)} 下車，${J[k - 1].how}，${fmt(l.dep)} 上車（等 ${J[k - 1].wait} 分）</div>` : "") + legDetail(l)).join("")
+      + (r.post ? `<div class="xline">在${esc(r.post.from)}站下車後，步行到${esc(r.post.to)}站，約 ${r.post.mins} 分</div>` : "");
     return `<details class="row${past ? " past" : ""}${late ? " late" : ""}${isNext ? " next" : ""}" data-key="${key}"${openKeys.has(key) ? " open" : ""}>
       <summary>
         <div class="r-time"><b>${fmt(r.dep)}</b><small>${wtxt}</small></div>
@@ -1137,7 +1278,7 @@ function renderFavs() {
   } else {
     box.innerHTML = favs.map((f, i) => `<button type="button" class="favcard${f.o === state.from && f.d === state.to ? " on" : ""}" data-i="${i}">
         <span class="fc-top"><span class="fc-name">${esc(favLabel(f))}</span>${f.def ? "<em>預設</em>" : ""}</span>
-        <span class="fc-route">${f.name ? `${esc(f.o)} → ${esc(f.d)}` : (isTransfer(f.o, f.d) ? "美麗島轉乘" : "直達")}</span>
+        <span class="fc-route">${f.name ? `${esc(f.o)} → ${esc(f.d)}` : (isTransfer(f.o, f.d) ? "需轉乘" : "直達")}</span>
         ${nextHTML(favNext(f), "fc-next")}</button>`).join("")
       + `<button type="button" class="favcard add" id="favAddCard"><span><b>＋</b>新增</span></button>`;
     box.querySelectorAll(".favcard[data-i]").forEach(b => b.onclick = () => goFav(favs[+b.dataset.i]));
@@ -1207,7 +1348,7 @@ function renderFavView() {
       <button type="button" class="fv-main" data-act="go" data-i="${i}">
         <span class="fv-name">${esc(favLabel(f))}${f.def ? "<em>預設</em>" : ""}</span>
         ${nextHTML(favNext(f), "fv-next")}
-        <span class="fv-route"><span class="badges" style="flex-direction:row">${badgeHTML(f.o)}</span>${esc(f.o)} → <span class="badges" style="flex-direction:row">${badgeHTML(f.d)}</span>${esc(f.d)}${isTransfer(f.o, f.d) ? "・美麗島轉乘" : ""}</span>
+        <span class="fv-route"><span class="badges" style="flex-direction:row">${badgeHTML(f.o)}</span>${esc(f.o)} → <span class="badges" style="flex-direction:row">${badgeHTML(f.d)}</span>${esc(f.d)}${isTransfer(f.o, f.d) ? "・需轉乘" : ""}</span>
       </button>
       <div class="fv-acts">
         <button type="button" data-act="up" data-i="${i}" aria-label="往上移"${i === 0 ? " disabled" : ""}>↑</button>
@@ -1252,7 +1393,7 @@ function renderNote(force) {
   if (noteEditing) {
     box.innerHTML = `<h3>車廂備註・${esc(o)} → ${esc(d)}</h3><div class="nedit">
       <div class="field"><label for="nCar1">在${esc(o)}上車，哪節比較少人</label>${carSelect("nCar1", n?.car1)}</div>
-      ${xf ? `<div class="field"><label for="nCar2">美麗島轉乘後，哪節比較少人</label>${carSelect("nCar2", n?.car2)}</div>` : ""}
+      ${xf ? `<div class="field"><label for="nCar2">轉乘後，哪節比較少人</label>${carSelect("nCar2", n?.car2)}</div>` : ""}
       <div class="field"><label for="nText">補充（例如：早上車尾比較空、靠電扶梯的門很擠）</label><textarea id="nText" maxlength="300">${esc(n?.text || "")}</textarea></div>
       <p class="hint">車頭是列車行進方向的最前面一節。高捷每列車有 3 節車廂。</p>
       <div class="row-actions"><button type="button" class="btn primary" id="nSave">儲存</button><button type="button" class="btn" id="nCancel">取消</button>${n ? `<button type="button" class="btn danger" id="nDel">刪除</button>` : ""}</div></div>`;
@@ -1271,7 +1412,7 @@ function renderNote(force) {
     const line = (label, c) => c ? `<div class="ncar">${carIcon(c)}<span>${label}：<b>${CARS[c][0]}</b>（${CARS[c][1]}）比較少人</span></div>` : "";
     const t = new Date(n.t);
     box.innerHTML = `<h3><span>車廂備註</span><button type="button" class="linkbtn" id="nAdd">編輯</button></h3>
-      ${line(`在${esc(o)}上車`, n.car1)}${xf ? line("美麗島轉乘後", n.car2) : ""}${n.text ? `<p class="ntext">${esc(n.text)}</p>` : ""}
+      ${line(`在${esc(o)}上車`, n.car1)}${xf ? line("轉乘後", n.car2) : ""}${n.text ? `<p class="ntext">${esc(n.text)}</p>` : ""}
       <p class="hint">記於 ${t.getMonth() + 1}/${t.getDate()}</p>`;
   }
   $("nAdd").onclick = () => { noteEditing = true; renderNote(true); };
@@ -1291,7 +1432,7 @@ function loadMapLib() {
   });
 }
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const lineColor = L_ => cssVar(L_ === "R" ? "--red" : "--orange");
+const lineColor = L_ => cssVar(L_ === "R" ? "--red" : L_ === "C" ? "--lrt" : "--orange");
 const darkMQ = matchMedia("(prefers-color-scheme: dark)");
 const isDark = () => { const t = document.documentElement.dataset.theme; return t ? t === "dark" : darkMQ.matches; };
 const styleURL = () => `https://tiles.openfreemap.org/styles/${isDark() ? "dark" : "positron"}`;
@@ -1304,6 +1445,10 @@ let map = null, styleReady = false, pins = [], meMarker = null, popup = null;
 
 function nextDeps(name, count = 2) {
   const st = byName[name], now = nowSvc(), live = state.day === todayDay, groups = {};
+  for (const id of st.ids) if (lineOf[id] === "C") for (const dir of [0, 1]) {
+    const i = lrtIdx[id];
+    for (const dep of lrtTT[i][dir + lrtKey(state.day)] || []) { if (live && dep < now) continue; (groups["C|" + LRT_HEAD[dir]] ||= []).push(dep); }
+  }
   for (const id of st.ids) for (const t of (tripsBy[state.day]?.[lineOf[id]] || [])) {
     const i = t.idx[id];
     if (i === undefined || i === t.stops.length - 1) continue;
@@ -1315,11 +1460,16 @@ function nextDeps(name, count = 2) {
     .sort((a, b) => (a.L + a.head).localeCompare(b.L + b.head));
 }
 const stationActs = (name, id) => `<div class="acts"><button type="button" data-act="from" data-name="${name}">設為起站</button><button type="button" data-act="to" data-name="${name}">設為終站</button><a class="gmap" href="${gmapLink(id)}" target="_blank" rel="noopener">導航過去</a></div>`;
+function lrtNear(name) { // 不同名的捷運／輕軌轉乘
+  const id = byName[name].ids[0], x = LRT_X.find(q => q.c === id || q.m === id); if (!x) return "";
+  const other = x.c === id ? x.m : x.c;
+  return nameOf[other] === name ? "" : `可步行轉乘${LINE_NAME[lineOf[other]]}${nameOf[other]}站`;
+}
 function popupHTML(name) {
   const st = byName[name], now = nowSvc(), live = state.day === todayDay, deps = nextDeps(name);
-  const rows = deps.length ? deps.map(g => `<div class="dep"><i class="${g.L}"></i><span>往${g.head}</span><span>${g.deps.length ? g.deps.map((d, k) => `<b>${fmt(d)}${k === 0 && live ? `<small>${d - now <= 0 ? "現在" : (d - now) + "分"}</small>` : ""}</b>`).join("　") : '<span class="none">今天已無班次</span>'}</span></div>`).join("")
+  const rows = deps.length ? deps.map(g => `<div class="dep"><i class="${g.L}"></i><span>${g.L === "C" ? g.head : "往" + g.head}</span><span>${g.deps.length ? g.deps.map((d, k) => `<b>${fmt(d)}${k === 0 && live ? `<small>${d - now <= 0 ? "現在" : (d - now) + "分"}</small>` : ""}</b>`).join("　") : '<span class="none">今天已無班次</span>'}</span></div>`).join("")
     : '<div class="dep"><span class="none">今天已無班次</span></div>';
-  return `<div class="pop"><div class="pop-h"><span class="badges${st.ids.length > 1 ? " two" : ""}">${badgeHTML(name)}</span><div><h4>${name}</h4><p>${st.ids.length > 1 ? "紅橘轉乘站・" : ""}${live ? "接下來的班次" : DAY_SHORT[state.day] + "時刻表的頭兩班"}</p></div></div>
+  return `<div class="pop"><div class="pop-h"><span class="badges${st.ids.length > 1 ? " two" : ""}">${badgeHTML(name)}</span><div><h4>${name}</h4><p>${st.ids.length > 1 ? st.lines.map(L_ => LINE_NAME[L_]).join("、") + "轉乘站・" : lrtNear(name) ? lrtNear(name) + "・" : ""}${live ? "接下來的班次" : DAY_SHORT[state.day] + "時刻表的頭兩班"}</p></div></div>
     <div class="deps">${rows}</div>${stationActs(name, st.ids[0])}</div>`;
 }
 function pathIds(o, d) {
@@ -1329,9 +1479,17 @@ function pathIds(o, d) {
   }
   return [...pathIds(o, "美麗島"), ...pathIds("美麗島", d)];
 }
-const linesFC = () => fc(LINES.map(Ln => ({type: "Feature", properties: {line: Ln}, geometry: {type: "LineString", coordinates: DATA.lines[Ln].map(([id]) => LL(id))}})));
+const linesFC = () => fc([...LINES.map(Ln => ({type: "Feature", properties: {line: Ln}, geometry: {type: "LineString", coordinates: DATA.lines[Ln].map(([id]) => LL(id))}})),
+  {type: "Feature", properties: {line: "C"}, geometry: {type: "LineString", coordinates: LRT.shape}}]);
+function routeSegs() { // 地图上畫「最近一班」實際搭的路段
+  const o = state.from, d = state.to; if (o === d) return [];
+  const res = search(o, d, state.day, state.xfer), now = nowSvc();
+  const r = (state.day === todayDay && res.find(x => x.dep >= now)) || res[0];
+  if (r) return r.legs.map(l => l.trip.stops.slice(l.i, l.j + 1));
+  return [];
+}
 const stationsFC = () => fc(stations.map(st => ({type: "Feature", properties: {name: st.name, line: lineOf[st.ids[0]], xf: st.ids.length > 1 ? 1 : 0}, geometry: {type: "Point", coordinates: LL(st.ids[0])}})));
-const routeFC = () => state.from === state.to ? fc([]) : fc(pathIds(state.from, state.to).map(seg => ({type: "Feature", properties: {line: lineOf[seg[0]]}, geometry: {type: "LineString", coordinates: seg.map(LL)}})));
+const routeFC = () => fc(routeSegs().map(seg => ({type: "Feature", properties: {line: lineOf[seg[0]]}, geometry: {type: "LineString", coordinates: seg.map(LL)}})));
 
 function setupLayers() {
   const style = map.getStyle();
@@ -1341,7 +1499,7 @@ function setupLayers() {
   }
   const fontStack = JSON.stringify(style.layers.map(l => l.layout?.["text-font"]).filter(Boolean)).includes("Noto Sans Bold") ? ["Noto Sans Bold"] : ["Noto Sans Regular"];
   const surf = cssVar("--surface"), ink = cssVar("--ink");
-  const colorExpr = ["match", ["get", "line"], "R", lineColor("R"), lineColor("O")];
+  const colorExpr = ["match", ["get", "line"], "R", lineColor("R"), "C", lineColor("C"), lineColor("O")];
   const w = (a, b, c) => ["interpolate", ["exponential", 1.4], ["zoom"], 10, a, 13, b, 17, c];
   const round = {"line-join": "round", "line-cap": "round"};
   map.addSource("krtc-lines", {type: "geojson", data: linesFC()});
@@ -1390,7 +1548,7 @@ function setupLayers() {
     layout: {"text-field": ["get", "n"], "text-font": fontStack, "text-size": ["interpolate", ["linear"], ["zoom"], 15.8, 9, 17, 12], "text-allow-overlap": true, "text-ignore-placement": true},
     paint: {"text-color": ink}});
   map.addLayer({id: "stations", type: "circle", source: "krtc-stations",
-    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 10, ["case", ["==", ["get", "xf"], 1], 4.5, 2.5], 13, ["case", ["==", ["get", "xf"], 1], 8, 5], 16, ["case", ["==", ["get", "xf"], 1], 12, 8]],
+    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 10, ["case", ["==", ["get", "xf"], 1], 4.5, ["==", ["get", "line"], "C"], 1.8, 2.5], 13, ["case", ["==", ["get", "xf"], 1], 8, ["==", ["get", "line"], "C"], 4, 5], 16, ["case", ["==", ["get", "xf"], 1], 12, ["==", ["get", "line"], "C"], 7, 8]],
       "circle-color": surf, "circle-stroke-width": ["case", ["==", ["get", "xf"], 1], 3.5, 2.5], "circle-stroke-color": ["case", ["==", ["get", "xf"], 1], ink, colorExpr]}});
   map.addLayer({id: "station-labels", type: "symbol", source: "krtc-stations", minzoom: 11.8,
     layout: {"text-field": ["get", "name"], "text-font": fontStack, "text-size": ["interpolate", ["linear"], ["zoom"], 12, 11.5, 16, 15], "text-variable-anchor": ["left", "right", "top", "bottom"], "text-radial-offset": 1.1, "text-justify": "auto", "text-optional": true, "symbol-sort-key": ["-", 1, ["get", "xf"]]},
@@ -1419,7 +1577,7 @@ function fitTo(list, maxZoom = 15) {
   const b = new maplibregl.LngLatBounds(); list.forEach(c => b.extend(c));
   map.fitBounds(b, {padding: {top: 80, bottom: 70, left: 50, right: 90}, maxZoom, duration: 800});
 }
-const fitRoute = () => fitTo(pathIds(state.from, state.to).flat().map(LL));
+const fitRoute = () => { const pts = routeSegs().flat(); if (pts.length) fitTo(pts.map(LL)); };
 let lastRouteKey = "";
 function drawRoute(fit) {
   if (!map || !styleReady) return;
@@ -2073,13 +2231,14 @@ function pkRender(scroll) {
   document.querySelectorAll(".pk-tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.l === L)));
   const list = $("pkList"); list.className = "pk-list " + L;
   list.innerHTML = seq.map(([id, name], i) => {
-    const xf = byName[name].ids.find(x => lineOf[x] !== L);
+    const xf = byName[name].ids.find(x => lineOf[x] !== L), nx = !xf && LRT_X.find(q => q.c === id || q.m === id);
+    const nxId = nx && (nx.c === id ? nx.m : nx.c);
     const sel = name === cur, oth = name === other;
     const nr = pk.near && pk.near.name === name;
     const tag = sel ? pk.tags[0] : oth ? pk.tags[1] : nr ? `最近・${distText(pk.near.d)}` : "";
     return `<button type="button" role="option" aria-selected="${sel}" class="pk-row${i === 0 ? " first" : ""}${i === seq.length - 1 ? " last" : ""}${sel ? " sel" : ""}${xf ? " xf" : ""}${nr ? " near" : ""}" data-name="${name}">
       <span class="pk-rail"><i></i></span><span class="pk-code">${id}</span>
-      <span class="pk-name">${name}${xf ? `<small>可轉${LINE_NAME[lineOf[xf]]}<span class="badge ${lineOf[xf]}">${xf}</span></small>` : ""}</span>
+      <span class="pk-name">${name}${xf ? `<small>可轉${LINE_NAME[lineOf[xf]]}<span class="badge ${lineOf[xf]}">${xf}</span></small>` : nxId ? `<small>步行轉${LINE_NAME[lineOf[nxId]]}<span class="badge ${lineOf[nxId]}">${nxId}</span>${nameOf[nxId]}</small>` : ""}</span>
       ${tag ? `<span class="pk-tag">${tag}</span>` : "<span></span>"}</button>`;
   }).join("");
   if (scroll) {
@@ -2288,7 +2447,7 @@ addEventListener("online", syncOnline); addEventListener("offline", syncOnline);
 render();
 walkLocate(true);
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v41";
+const APP_VER = "krtc-2026-11-15-v42";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
