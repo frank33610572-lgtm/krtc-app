@@ -243,6 +243,14 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .b-more b{font-family:var(--font-display);font-size:18px;color:var(--board-ink);font-weight:700;margin:0 1px;letter-spacing:.02em}
 .b-more .warn{color:var(--amber);font-weight:700}
 .b-more .warn b{color:var(--amber)}
+.b-walkbtn{display:flex;align-items:center;gap:8px;justify-self:start;border:1px dashed rgba(255,255,255,.25);background:none;color:#c9d4e3;border-radius:12px;padding:8px 12px;font-size:13px;font-weight:700;cursor:pointer;min-height:40px}
+.b-walkbtn svg{width:18px;height:18px;flex:none}
+.b-walk{display:flex;align-items:flex-start;gap:10px;background:rgba(255,255,255,.06);border-radius:12px;padding:9px 8px 9px 12px;font-size:13.5px;color:#c9d4e3;line-height:1.5}
+.b-walk span{flex:1}
+.b-walk b{font-family:var(--font-display);font-size:18px;color:var(--board-ink);font-weight:700;margin:0 1px}
+.b-walk em{font-style:normal;color:var(--amber);font-weight:900}
+.b-walk small{display:block;font-size:12px;color:#9fb0c8}
+.b-walkx{flex:none;border:0;background:rgba(255,255,255,.1);color:#c9d4e3;width:28px;height:28px;border-radius:50%;font-size:16px;line-height:1;cursor:pointer}
 .lchip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px 3px 4px;font-size:13px;font-weight:700;background:rgba(255,255,255,.08)}
 .lchip i{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:10px;color:#fff;font-family:var(--font-display)}
 .lchip i.R{background:var(--red)} .lchip i.O{background:var(--orange)}
@@ -306,6 +314,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .r-meta .less{color:var(--good);font-weight:700}
 .list.calm .jbar{animation:none}
 .row.past{opacity:.45}
+.row.late{opacity:.6}
+.row.late .r-time small{color:var(--muted)}
 .row.next{background:color-mix(in srgb,var(--amber) 9%,transparent)}
 .est{font-size:.6em;color:var(--muted);margin-right:2px;font-family:var(--font-body);font-weight:500}
 .detail{padding:2px 16px 16px 16px;display:grid;gap:12px}
@@ -908,6 +918,7 @@ function render() {
       </div>
       <div class="b-route">${lchips(next)}</div>
       ${boardMore(res, next, now, live)}
+      ${live ? walkLine(res, next, now) : ""}
       <div class="b-stats"><span><b>${inRange.length}</b>班可搭</span><span><b>${fastest}</b>分 最短車程</span><span>${xf ? `美麗島轉乘・預留 ${state.xfer} 分` : "直達免轉乘"}</span></div>`;
     lastBoardKey = key;
   }
@@ -928,9 +939,10 @@ function render() {
       : `<i class="${r.legs[0].trip.L}" style="flex:${r.legs[0].arr - r.legs[0].dep}"></i><i class="w" style="flex:${r.wait}"></i><i class="${r.legs[1].trip.L}" style="flex:${r.legs[1].arr - r.legs[1].dep}"></i>`;
     const meta = r.legs.map((l, k) => `${k ? "→ " : ""}${LINE_NAME[l.trip.L]}往${l.trip.head}`).join(" ")
       + (nt?.car1 ? `<span class="less">・少人：${CARS[nt.car1][0]}${xf && nt.car2 ? "／" + CARS[nt.car2][0] : ""}</span>` : (xf && nt?.car2 ? `<span class="less">・轉乘後少人：${CARS[nt.car2][0]}</span>` : ""));
-    const wtxt = !live ? "" : past ? "已開走" : w === 0 ? "現在" : w <= 90 ? `${w} 分後` : "";
+    const wm = live ? walkNow() : null, late = wm != null && !past && w < wm;
+    const wtxt = !live ? "" : past ? "已開走" : late ? "走不到" : w === 0 ? "現在" : w <= 90 ? `${w} 分後` : "";
     const detail = r.legs.map((l, k) => (k ? `<div class="xline">美麗島換車：${fmt(r.legs[0].arr)} 下車，走到另一線月台，${fmt(l.dep)} 上車（等 ${r.wait} 分）</div>` : "") + legDetail(l)).join("");
-    return `<details class="row${past ? " past" : ""}${isNext ? " next" : ""}" data-key="${key}"${openKeys.has(key) ? " open" : ""}>
+    return `<details class="row${past ? " past" : ""}${late ? " late" : ""}${isNext ? " next" : ""}" data-key="${key}"${openKeys.has(key) ? " open" : ""}>
       <summary>
         <div class="r-time"><b>${fmt(r.dep)}</b><small>${wtxt}</small></div>
         <div class="r-mid"><div class="jbar" style="width:${Math.max(30, (r.arr - r.dep) / maxDur * 100)}%">${segs}</div><div class="r-meta">${meta}</div></div>
@@ -939,6 +951,38 @@ function render() {
       <div class="detail">${detail}</div>
     </details>`;
   }).join("");
+}
+
+// ---------- 走路時間：從目前位置走到起站要多久 ----------
+const walk = {on: store.get("krtc-walk", false), me: null, t: 0, err: ""};
+function walkDist() {
+  if (!walk.me) return null;
+  return Math.min(...byName[state.from].ids.map(id => haversine(walk.me, COORDS[id])));
+}
+function walkNow() { // 回傳走路分鐘；沒開、沒定位或太遠時回傳 null
+  if (!walk.on) return null; const d = walkDist();
+  return d == null || d > 3000 ? null : walkMin(d);
+}
+function walkLocate(force) {
+  if (!walk.on || !navigator.geolocation) return;
+  if (!force && Date.now() - walk.t < 120000) return;
+  walk.t = Date.now();
+  navigator.geolocation.getCurrentPosition(pos => { walk.me = [pos.coords.latitude, pos.coords.longitude]; walk.err = ""; render(); },
+    e => { walk.err = e.code === 1 ? "沒有定位權限，請在設定允許這個 App 使用位置" : "暫時定位不到"; render(); },
+    {enableHighAccuracy: true, timeout: 10000, maximumAge: 90000});
+}
+function walkLine(res, next, now) {
+  if (!walk.on) return `<button type="button" class="b-walkbtn" data-walk="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="m9 21 3-7 3 3v4M7 12l3-4h4l2 4 2 1M10 8l-1 5"/></svg>算進從我這裡走過去的時間</button>`;
+  const off = `<button type="button" class="b-walkx" data-walk="off" aria-label="不算走路時間">×</button>`;
+  if (walk.err) return `<div class="b-walk"><span>${walk.err}</span>${off}</div>`;
+  if (!walk.me) return `<div class="b-walk"><span>定位中…</span>${off}</div>`;
+  const d = walkDist();
+  if (d > 3000) return `<div class="b-walk"><span>你離${esc(state.from)}站 ${distText(d)}，太遠了先不算走路時間</span>${off}</div>`;
+  const wm = walkMin(d), c = res.find(r => r.dep - now >= wm);
+  if (!c) return `<div class="b-walk"><span>走到${esc(state.from)}站約 <b>${wm}</b> 分，今天已經趕不上車了</span>${off}</div>`;
+  const lead = c.dep - now - wm;
+  const go = lead <= 0 ? `<em>現在就出門</em>` : `<em>${lead} 分鐘後出門</em>`;
+  return `<div class="b-walk"><span>走到${esc(state.from)}站約 <b>${wm}</b> 分・搭 <b>${fmt(c.dep)}</b> 那班，${go}${c !== next ? `<small>${fmt(next.dep)} 那班走過去來不及</small>` : ""}</span>${off}</div>`;
 }
 
 // 看板補充：再下一班、末班車提醒
@@ -1956,7 +2000,14 @@ document.querySelectorAll('input[name="rg"]').forEach(r => r.onchange = () => {
 $("days").onchange = e => { state.day = +e.target.value; render(); };
 $("xMinus").onclick = () => { state.xfer = Math.max(1, state.xfer - 1); render(); };
 $("xPlus").onclick = () => { state.xfer = Math.min(15, state.xfer + 1); render(); };
+$("board").addEventListener("click", e => {
+  const b = e.target.closest("[data-walk]"); if (!b) return;
+  walk.on = b.dataset.walk === "on"; store.set("krtc-walk", walk.on);
+  if (walk.on) { walk.err = ""; walkLocate(true); }
+  render();
+});
 const tick = () => {
+  walkLocate(false);
   if (state.autoSpan) setRange(state.autoSpan);        // 「現在起 N 小時」會跟著時間往前滾
   if (autoDay(new Date()) !== todayDay) location.reload(); // 過了營運日換日，重新載入以套用新日別
   render();
@@ -2011,8 +2062,9 @@ if (!standalone) {
 const syncOnline = () => document.body.classList.toggle("is-offline", !navigator.onLine);
 addEventListener("online", syncOnline); addEventListener("offline", syncOnline); syncOnline();
 render();
+walkLocate(true);
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v29";
+const APP_VER = "krtc-2026-11-15-v30";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
