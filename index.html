@@ -644,7 +644,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
           <div class="oh-row" data-for="same"><span>每天</span><input type="time" id="ohA1" value="09:00" aria-label="開門"><i>到</i><input type="time" id="ohB1" value="22:00" aria-label="打烊"></div>
           <div class="oh-row" data-for="split" hidden><span>週一到週五</span><input type="time" id="ohA2" value="09:00" aria-label="平日開門"><i>到</i><input type="time" id="ohB2" value="22:00" aria-label="平日打烊"></div>
           <div class="oh-row" data-for="split" hidden><span>週六、週日</span><input type="time" id="ohA3" value="10:00" aria-label="假日開門"><i>到</i><input type="time" id="ohB3" value="22:00" aria-label="假日打烊"></div>
-          <div class="oh-off"><span>公休日</span><div id="ohDays">${"一二三四五六日".split("").map((d, i) => `<button type="button" data-d="${i}" aria-pressed="false">${d}</button>`).join("")}</div></div>
+          <div class="oh-off"><span>公休日</span><div id="ohDays"><button type="button" data-d="0" aria-pressed="false">一</button><button type="button" data-d="1" aria-pressed="false">二</button><button type="button" data-d="2" aria-pressed="false">三</button><button type="button" data-d="3" aria-pressed="false">四</button><button type="button" data-d="4" aria-pressed="false">五</button><button type="button" data-d="5" aria-pressed="false">六</button><button type="button" data-d="6" aria-pressed="false">日</button></div></div>
           <p class="hint" id="ohPreview"></p>
           <div class="oh-acts"><button type="button" class="go" id="ohSave">儲存</button><button type="button" id="ohClear">清除我填的</button></div>
         </div>
@@ -2286,7 +2286,7 @@ addEventListener("online", syncOnline); addEventListener("offline", syncOnline);
 render();
 walkLocate(true);
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v37";
+const APP_VER = "krtc-2026-11-15-v38";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
