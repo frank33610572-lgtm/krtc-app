@@ -401,17 +401,6 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .poifab{flex-direction:column;gap:0;font-size:9px;font-weight:700;line-height:1;padding-top:2px}
 .poifab svg{width:20px;height:20px}
 .poifab[aria-pressed="true"]{background:#c27c3a;border-color:#c27c3a;color:#fff}
-.poichips{position:absolute;left:12px;right:64px;top:12px;z-index:3;display:flex;gap:6px;flex-wrap:nowrap;align-items:center;overflow-x:auto;scrollbar-width:none;padding:2px 2px 8px;margin:-2px -2px 0;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
-.poichips::-webkit-scrollbar{display:none}
-.poichip{flex:none;white-space:nowrap;padding:5px 13px 5px 5px!important;gap:8px!important;min-height:40px!important;font-size:14px!important}
-.poichip .sg{width:28px;height:28px;font-size:14px;border-radius:7px}
-.poichip b.num{font-size:16px;font-weight:700;color:var(--ink);min-width:1ch;line-height:1}
-.poichip b.num:empty{display:none}
-.poichip[aria-pressed="false"] .sg{background:var(--muted);opacity:.45;box-shadow:none}
-.poichip[aria-pressed="false"] b.num{display:none}
-.poichip.flag{padding:5px 14px!important}
-.poichip.flag[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
-.mapwrap.poi-on .maptoast{top:64px;font-size:12.5px;padding:7px 12px}
 /* 好用地圖：每一類是一塊小招牌（茶／超／咖），地圖點、分類鈕、清單、店家卡都用同一塊招牌 */
 .sg{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;background:var(--c);color:#fff;font-weight:900;font-size:12px;line-height:1;flex:none;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2);transition:background-color .15s,opacity .15s}
 .sg.md{width:34px;height:34px;border-radius:9px;font-size:15px}
@@ -461,21 +450,28 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .pp-acts a.go{background:var(--ink);border-color:var(--ink);color:var(--surface)!important}
 .pp-src{margin:0;font-size:11.5px;color:var(--muted);line-height:1.45}
 .maptoast:empty{display:none}
-.poichoose h4{margin:0 26px 2px 0;font-size:15px;font-weight:900}
-.pc-list{display:grid;max-height:min(46vh,340px);overflow-y:auto;margin:0 -6px}
-.pc-item{display:flex;align-items:center;gap:11px;width:100%;min-height:54px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-align:left;padding:7px 6px;cursor:pointer;border-radius:0}
-.pc-item:last-child{border-bottom:0}
-.pc-item:active{background:var(--soft)}
-.pc-item b{display:block;font-size:15px;font-weight:700;line-height:1.3}
-.pc-item small{display:block;font-size:12px;color:var(--muted)}
-.pc-item small.open{color:var(--good)}
-.pc-item small.closed{color:var(--red)}
-.poichips[hidden]{display:none}
-.poichip-title{font-size:12px;font-weight:900;color:#fff;background:#c27c3a;border-radius:999px;padding:5px 10px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
-.poichip{display:inline-flex;align-items:center;gap:6px;border:1px solid color-mix(in srgb,var(--line) 70%,transparent);background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--muted);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:500;cursor:pointer;min-height:32px;box-shadow:0 4px 14px rgba(0,0,0,.14)}
-.poichip i{width:10px;height:10px;border-radius:50%;opacity:.35}
-.poichip[aria-pressed="true"]{color:var(--ink);font-weight:700}
-.poichip[aria-pressed="true"] i{opacity:1}
+/* 好用地圖分類：放在地圖上方，三顆大按鈕＋一個開關，不會和地圖上的店家搶手指 */
+.poibar{display:grid;gap:8px}
+.poibar[hidden]{display:none}
+.poicats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.poichip{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:9px;align-items:center;text-align:left;min-height:60px;padding:8px 10px;border-radius:16px;border:2px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;touch-action:manipulation;transition:border-color .15s,background-color .15s,opacity .15s}
+.poichip .sg{grid-row:1/3;width:32px;height:32px;font-size:16px;border-radius:9px}
+.poichip .pc-l{font-size:14.5px;font-weight:700;line-height:1.2;white-space:nowrap}
+.poichip b.num{font-family:var(--font-display);font-size:20px;font-weight:700;line-height:1.05;color:var(--ink)}
+.poichip b.num:not(:empty)::after{content:" 間";font-family:var(--font-body);font-size:11px;font-weight:400;color:var(--muted)}
+.poichip[aria-pressed="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 10%,var(--surface))}
+.poichip[aria-pressed="false"]{color:var(--muted)}
+.poichip[aria-pressed="false"] .sg{background:var(--muted);opacity:.45;box-shadow:none}
+.poichip[aria-pressed="false"] b.num{font-size:12px;font-family:var(--font-body);font-weight:400;color:var(--muted)}
+.poichip[aria-pressed="false"] b.num::after{content:"已隱藏"!important;font-size:12px}
+.poichip[aria-pressed="false"] b.num{font-size:0}
+.poihide{display:flex;align-items:center;gap:10px;min-height:46px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:14px;padding:0 14px;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation;text-align:left}
+.poihide .sw{position:relative;width:40px;height:24px;border-radius:12px;background:var(--line);flex:none;transition:background-color .15s}
+.poihide .sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .15s}
+.poihide[aria-pressed="true"] .sw{background:var(--good)}
+.poihide[aria-pressed="true"] .sw::after{transform:translateX(16px)}
+.mapwrap.poi-on #map{height:calc(100dvh - 300px - env(safe-area-inset-bottom));min-height:360px}
+@media (min-width:980px){.mapwrap.poi-on #map{height:calc(100vh - 220px)}}
 .poitag{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:10px;color:#fff;font-weight:900;font-size:15px;flex:none}
 .ohline,.atmline{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:baseline;font-size:13px;border-top:1px solid var(--line);padding-top:9px}
 .ohline b,.atmline b{font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap}
@@ -632,15 +628,17 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
     </section>
 
     <section class="view mapview" data-view="map" hidden>
+      <div class="poibar" id="poiChips" hidden aria-label="好用地圖分類">
+        <div class="poicats">
+          <button type="button" class="poichip" data-cat="tea" aria-pressed="true" style="--c:#c27c3a"><span class="sg">茶</span><span class="pc-l">手搖飲</span><b class="num" data-n="tea"></b></button>
+          <button type="button" class="poichip" data-cat="conv" aria-pressed="true" style="--c:#2f6fd6"><span class="sg">超</span><span class="pc-l">超商</span><b class="num" data-n="conv"></b></button>
+          <button type="button" class="poichip" data-cat="cafe" aria-pressed="true" style="--c:#7c5cc4"><span class="sg">咖</span><span class="pc-l">咖啡廳</span><b class="num" data-n="cafe"></b></button>
+        </div>
+        <button type="button" class="poihide" id="poiHide" aria-pressed="false"><span class="sw" aria-hidden="true"></span>隱藏休息中的店</button>
+      </div>
       <div class="mapwrap">
         <div id="map" role="application" aria-label="高雄捷運路線地圖"></div>
         <div class="maptoast" id="locMsg" role="status">點車站看下一班車，也能設成起站、終站或導航過去</div>
-        <div class="poichips" id="poiChips" hidden aria-label="好用地圖分類">
-          <button type="button" class="poichip" data-cat="tea" aria-pressed="true"><span class="sg" style="--c:#c27c3a">茶</span>手搖飲<b class="num" data-n="tea"></b></button>
-          <button type="button" class="poichip" data-cat="conv" aria-pressed="true"><span class="sg" style="--c:#2f6fd6">超</span>超商<b class="num" data-n="conv"></b></button>
-          <button type="button" class="poichip" data-cat="cafe" aria-pressed="true"><span class="sg" style="--c:#7c5cc4">咖</span>咖啡廳<b class="num" data-n="cafe"></b></button>
-          <button type="button" class="poichip flag" id="poiHide" aria-pressed="false">隱藏休息中</button>
-        </div>
         <div class="mapfabs">
           <button type="button" class="fab poifab" id="poiBtn" aria-pressed="false" aria-label="好用地圖：手搖飲、超商、咖啡廳" title="好用地圖"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"/><path d="M5.5 12v8h13v-8M10 20v-5h4v5"/></svg><span>好用</span></button>
           <button type="button" class="fab" id="ybToggle" aria-pressed="false" aria-label="顯示 YouBike 站" title="顯示 YouBike 站"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9 9h6l3.5 7.5M9 9 7.5 6H5M15 9l-2.5 7.5H5.5M13 6h3"/></svg></button>
@@ -1215,18 +1213,18 @@ function setupLayers() {
       "text-field": ["get", "point_count_abbreviated"], "text-font": fontStack, "text-size": 12.5, "text-allow-overlap": true, "text-ignore-placement": true},
     paint: {"text-color": ink}});
   map.addLayer({id: "poi", type: "circle", source: "poi", filter: notC, maxzoom: 14.6, layout: {...poiVis},
-    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 4.5, 14.6, 7],
+    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 4, 15, 8, 17, 11.5],
       "circle-color": ["match", ["get", "c"], "tea", POI_CATS.tea.color, "conv", POI_CATS.conv.color, POI_CATS.cafe.color],
       "circle-stroke-color": surf, "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 13, 1, 16, 2],
       "circle-opacity": ["case", ["==", ["get", "s"], 0], .4, 1], "circle-stroke-opacity": ["case", ["==", ["get", "s"], 0], .4, 1]}});
   poiSignImages(surf);
   map.addLayer({id: "poi-glyph", type: "symbol", source: "poi", filter: notC, minzoom: 14.6, layout: {...poiVis,
       "icon-image": ["concat", "sg-", ["get", "c"], ["case", ["==", ["get", "s"], 0], "-dim", ""]],
-      "icon-size": ["interpolate", ["linear"], ["zoom"], 14.6, .74, 16, .94, 17.5, 1.12], "icon-allow-overlap": true, "icon-ignore-placement": true,
+      "icon-size": ["interpolate", ["linear"], ["zoom"], 14.6, .62, 16, .8, 17.5, 1], "icon-allow-overlap": true, "icon-ignore-placement": true,
       "symbol-sort-key": ["case", ["==", ["get", "s"], 0], 1, 0]}});
   map.addSource("poi-sel", {type: "geojson", data: fc(poi.sel ? [poiPt(poi.sel)] : [])});
   map.addLayer({id: "poi-sel", type: "circle", source: "poi-sel", layout: {...poiVis},
-    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 10, 14.6, 16, 16, 20, 17.5, 24], "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": ink, "circle-stroke-width": 3}});
+    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 10, 14.6, 13, 16, 17, 17.5, 21], "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": ink, "circle-stroke-width": 3}});
   map.addLayer({id: "stations", type: "circle", source: "krtc-stations",
     paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 10, ["case", ["==", ["get", "xf"], 1], 4.5, 2.5], 13, ["case", ["==", ["get", "xf"], 1], 8, 5], 16, ["case", ["==", ["get", "xf"], 1], 12, 8]],
       "circle-color": surf, "circle-stroke-width": ["case", ["==", ["get", "xf"], 1], 3.5, 2.5], "circle-stroke-color": ["case", ["==", ["get", "xf"], 1], ink, colorExpr]}});
@@ -1280,22 +1278,9 @@ function initMap() {
   map.addControl(new maplibregl.NavigationControl({showCompass: true}), "top-right");
   map.addControl(new maplibregl.AttributionControl({compact: true}), "bottom-left");
   map.on("style.load", setupLayers);
-  // 店家：手指點附近 24px 內都算點到；好幾間擠在一起就跳出清單讓你選
-  map.on("click", e => {
-    if (!poi.on || !styleReady) return;
-    const P = e.point, hit = (r, layers) => map.queryRenderedFeatures([[P.x - r, P.y - r], [P.x + r, P.y + r]], {layers});
-    if (hit(6, ["stations"]).length || hit(2, ["poi-cluster"]).length) return;
-    const seen = new Set(), cands = [];
-    for (const f of hit(24, ["poi", "poi-glyph"])) {
-      const id = f.properties.id; if (seen.has(id)) continue; seen.add(id);
-      const it = poi.items.get(id); if (!it) continue;
-      const q = map.project([it.lon, it.lat]); cands.push({it, d: Math.hypot(q.x - P.x, q.y - P.y)});
-    }
-    if (!cands.length) return;
-    cands.sort((a, b) => a.d - b.d);
-    const close = cands.filter(c => c.d - cands[0].d < 14);
-    if (close.length === 1) return poiOpen(close[0].it);
-    poiChooser(e.lngLat, close.slice(0, 8).map(c => c.it), close.length);
+  for (const lid of ["poi", "poi-glyph"]) map.on("click", lid, e => {
+    if (map.queryRenderedFeatures(e.point, {layers: ["stations"]}).length) return;
+    const it = poi.items.get(e.features[0].properties.id); if (it) poiOpen(it);
   });
   map.on("click", "poi-cluster", e => {
     const f = e.features[0];
@@ -1314,10 +1299,6 @@ function initMap() {
     const st = yb.byUid?.[e.features[0].properties.uid]; if (st) openPopup(e.features[0].geometry.coordinates, ybPopup(st));
   });
   map.getContainer().addEventListener("click", onStationAct);
-  map.getContainer().addEventListener("click", e => {
-    const b = e.target.closest(".pc-item[data-poi]"); if (!b) return;
-    const it = poi.items.get(b.dataset.poi); if (it) poiOpen(it);
-  });
   darkMQ.addEventListener?.("change", () => { if (document.documentElement.dataset.theme) return; styleReady = false; map.setStyle(styleURL(), {diff: false}); });
   return true;
 }
@@ -1623,15 +1604,6 @@ function poiOpen(it) {
   poiSelect(it);
   const mine = popup; popup.on("close", () => { if (popup === mine || !popup || !popup.isOpen()) poiSelect(null); });
 }
-function poiChooser(ll, items, total) {
-  poiSelect(null);
-  const rows = items.map(it => {
-    const cat = POI_CATS[it.c], st = ohStatus(it);
-    const sub = [cat.label, st.known ? (st.open ? "營業中" : "休息中") : ""].filter(Boolean).join("・");
-    return `<button type="button" class="pc-item" data-poi="${esc(it.id)}"><span class="sg md" style="--c:${cat.color}">${cat.glyph}</span><span><b>${esc(poiName(it))}</b><small class="${st.known ? (st.open ? "open" : "closed") : ""}">${esc(sub)}</small></span></button>`;
-  }).join("");
-  openPopup([ll.lng, ll.lat], `<div class="pop poichoose"><h4>這裡有 ${total} 間店，要看哪一間？</h4><div class="pc-list">${rows}</div>${total > items.length ? `<p class="pp-src">再放大地圖可以分得更清楚</p>` : ""}</div>`);
-}
 function poiDraw() {
   if (!map || !styleReady) return;
   map.getSource("poi").setData(poiFC());
@@ -1724,6 +1696,7 @@ function poiSet(on) {
   $("poiGoogle").hidden = !on;
   $("poiPanel").hidden = !on;
   document.querySelector(".mapwrap").classList.toggle("poi-on", on);
+  if (map) requestAnimationFrame(() => map.resize());
   if (on) loadOfficial().then(poiRenderList).catch(() => {});
   else poiSelect(null);
   if (on) {
@@ -2039,7 +2012,7 @@ const syncOnline = () => document.body.classList.toggle("is-offline", !navigator
 addEventListener("online", syncOnline); addEventListener("offline", syncOnline); syncOnline();
 render();
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v28";
+const APP_VER = "krtc-2026-11-15-v29";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
