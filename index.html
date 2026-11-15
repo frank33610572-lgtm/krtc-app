@@ -288,7 +288,7 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .js li.js-wait::after,.js li.js-walk::after{display:none}
 .js li.js-end::after{width:14px;height:14px;margin-left:-7px;top:9px;background:var(--seg,#fff);border-color:var(--board-ink)}
 .js time{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--board-ink);text-align:right;line-height:1.25;font-variant-numeric:tabular-nums;white-space:nowrap}
-.js time small{font-family:var(--font-body);font-size:11px;font-weight:400;color:#8a9bb4;margin-right:2px}
+.js time small{display:inline!important;font-family:var(--font-body);font-size:11px;font-weight:400;color:#8a9bb4;margin-right:2px}
 .js li > span{grid-column:2;padding-left:18px}
 .js em{font-style:normal;font-weight:700;color:var(--board-ink);margin-left:4px}
 .js small{display:block;font-size:11.5px;color:#8a9bb4}
@@ -2611,7 +2611,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-15-v51";
+const APP_VER = "krtc-2026-11-15-v52";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
