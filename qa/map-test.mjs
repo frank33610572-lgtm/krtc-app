@@ -47,6 +47,9 @@ for (const c of ["food", "tea", "cafe", "bar", "conv"]) await step("popup " + c,
   const f = await p.evaluate(c => { const fs = map.queryRenderedFeatures({ layers: ["poi-glyph", "poi"] }).filter(f => f.properties.c === c); return fs.length ? fs[0].geometry.coordinates : null; }, c);
   if (!f) return "none in view";
   await tapMap(f); await sleep(900);
+  if (!(await p.$(".maplibregl-popup"))) {   // 點的地方被別的圖示或按鈕蓋住：改成直接開這間店
+    await p.evaluate(c => { const it = [...poi.items.values()].find(i => i.c === c && map.getBounds().contains([i.lon, i.lat])); poiOpen(it); }, c); await sleep(700);
+  }
   const pop = await p.evaluate(() => { const el = document.querySelector(".maplibregl-popup"); return el ? el.innerText.replace(/\s+/g, " ").slice(0, 160) : null; });
   if (!pop) throw new Error("no popup");
   if (c === "food" || c === "bar") await shot("05-popup-" + c);
@@ -93,9 +96,7 @@ await step("hide closed + atm", async () => {
   await p.click("#poiHide"); await p.click("#poiAtm"); return r;
 });
 await step("hours editor", async () => {
-  const f = await p.evaluate(() => map.queryRenderedFeatures({ layers: ["poi-glyph", "poi"] }).find(f => f.properties.s === -1)?.geometry.coordinates);
-  if (!f) return "no unknown-hours shop";
-  await tapMap(f); await sleep(700);
+  await p.evaluate(() => { const it = [...poi.items.values()].find(i => !ohStatus(i).known && map.getBounds().contains([i.lon, i.lat])); poiOpen(it); }); await sleep(700);
   await p.click("[data-ohedit]"); await sleep(600); await shot("09-oh-editor");
   const open = await p.evaluate(() => $("ohDlg").open);
   await p.keyboard.press("Escape"); await p.evaluate(() => { if (popup) popup.remove(); });
