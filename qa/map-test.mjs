@@ -2,18 +2,20 @@
 import { chromium } from "playwright";
 import fs from "fs";
 const OUT = "qa-out"; fs.mkdirSync(OUT, { recursive: true });
-const log = [], errs = [];
+const log = [], errs = [], seen = new Map();
+const pushErr = m => { const k = m.slice(0, 160); seen.set(k, (seen.get(k) || 0) + 1); if (seen.get(k) === 1 && errs.length < 300) errs.push(m); };
 const note = (k, v) => { log.push([k, v]); console.log(k, JSON.stringify(v)); };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const b = await chromium.launch();
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true,
   geolocation: { latitude: 22.6142, longitude: 120.3041 }, permissions: ["geolocation"], timezoneId: "Asia/Taipei", locale: "zh-TW" });
 const p = await ctx.newPage();
-p.on("pageerror", e => errs.push("pageerror: " + e.message + " @ " + (e.stack || "").split("\n")[1]));
-p.on("console", m => { if (m.type() === "error" || m.type() === "warning") errs.push(m.type() + ": " + m.text().slice(0, 300)); });
-p.on("requestfailed", r => { if (!/google-analytics|fonts/.test(r.url())) errs.push("requestfailed: " + r.url().slice(0, 120) + " " + (r.failure() || {}).errorText); });
+p.on("pageerror", e => pushErr("pageerror: " + e.message + " @ " + (e.stack || "").split("\n")[1]));
+p.on("console", m => { if (m.type() === "error" || m.type() === "warning") pushErr(m.type() + ": " + m.text().slice(0, 300)); });
+p.on("requestfailed", r => { if (!/google-analytics|fonts/.test(r.url())) pushErr("requestfailed: " + r.url().slice(0, 120) + " " + (r.failure() || {}).errorText); });
 const shot = async n => p.screenshot({ path: `${OUT}/${n}.png` });
-const step = async (name, fn) => { try { const r = await fn(); note("OK " + name, r ?? ""); } catch (e) { note("FAIL " + name, e.message.slice(0, 400)); errs.push("step " + name + ": " + e.message.slice(0, 200)); } };
+const save = () => fs.writeFileSync(`${OUT}/report.json`, JSON.stringify({ log, errs, counts: [...seen].sort((a, b) => b[1] - a[1]).slice(0, 15) }, null, 1));
+const step = async (name, fn) => { save(); console.log("STEP", name, "counts", JSON.stringify([...seen].sort((a, b) => b[1] - a[1]).slice(0, 3))); try { const r = await fn(); note("OK " + name, r ?? ""); } catch (e) { note("FAIL " + name, e.message.slice(0, 400)); errs.push("step " + name + ": " + e.message.slice(0, 200)); } };
 const tapMap = async lnglat => {
   const pt = await p.evaluate(ll => { const r = map.getContainer().getBoundingClientRect(), q = map.project(ll); return [r.left + q.x, r.top + q.y]; }, lnglat);
   await p.touchscreen.tap(pt[0], pt[1]);
@@ -125,6 +127,8 @@ await step("settings", async () => {
   await p.locator("nav button", { hasText: "設定" }).click(); await sleep(1000); await shot("14-settings");
   return await p.evaluate(() => document.querySelector("#ttStatus")?.innerText);
 });
-fs.writeFileSync(`${OUT}/report.json`, JSON.stringify({ log, errs }, null, 1));
+const counts = [...seen].sort((a, b) => b[1] - a[1]).slice(0, 15);
+fs.writeFileSync(`${OUT}/report.json`, JSON.stringify({ log, errs, counts }, null, 1));
+console.log("COUNTS", JSON.stringify(counts));
 console.log("ERRORS", errs.length); errs.forEach(e => console.log(" -", e));
 await b.close();
