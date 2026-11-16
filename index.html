@@ -241,14 +241,17 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 .board > *{min-width:0}
 .b-count{display:flex;align-items:baseline;gap:8px;color:var(--amber)}
 .b-count .big{font-family:var(--font-display);font-weight:800;font-size:92px;line-height:.82;font-variant-numeric:tabular-nums}
-.b-count .unit{font-size:16px;font-weight:700}
+.b-count .unit{font-size:16px;font-weight:700;white-space:nowrap}
+.b-count.two .big{font-size:76px}
 .b-count.small .big{font-size:64px}
 .b-times{display:flex;align-items:center;gap:10px}
 .b-times div{display:grid;gap:2px}
 .b-times small{font-size:11px;color:#9fb0c8;letter-spacing:.1em}
-.b-times b{font-family:var(--font-display);font-size:34px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.b-times b{font-family:var(--font-display);font-size:34px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.b-times b .est{font-family:var(--font-body);font-size:.45em;font-weight:700;color:#9fb0c8;margin-right:2px;vertical-align:.35em}
+.b-times{min-width:0}
 .b-times .arr{color:#6f819b;font-size:18px;align-self:end;padding-bottom:4px}
-@media (max-width:430px){.b-count .big{font-size:80px}.b-count.small .big{font-size:56px}.b-count .unit{font-size:14px}.b-times{gap:6px}.b-times b{font-size:29px}.b-times .arr{font-size:15px}.b-main{gap:10px;flex-wrap:nowrap}}
+@media (max-width:430px){.b-count .big{font-size:80px}.b-count.two .big{font-size:64px}.b-count.small .big{font-size:56px}.b-count .unit{font-size:14px}.b-times{gap:6px}.b-times b{font-size:min(29px,7.2vw)}.b-count.two .big{font-size:min(64px,15vw)}.b-times .arr{font-size:15px}.b-main{gap:10px;flex-wrap:nowrap}}
 .b-route{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .b-foot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12.5px;color:#9fb0c8;padding-top:2px;border-top:1px solid rgba(255,255,255,.07);padding-top:14px}
 .b-foot > span{display:inline-flex;align-items:baseline;gap:6px;background:rgba(255,255,255,.06);border-radius:999px;padding:5px 12px}
@@ -283,12 +286,12 @@ dialog.picker::backdrop{background:rgba(5,8,13,.5);backdrop-filter:blur(2px);-we
 @media (prefers-reduced-motion:reduce){.jr-seg,.jr-seg.wait,.jr.draw .jr-seg,.jr.draw .js,.jr.draw .jr-route,.jr.draw .jr-ends,.jr-train{animation:none!important;transition:none!important}}
 /* 轉乘行程 */
 .js{list-style:none;margin:16px 0 0;padding:0}
-.js li{position:relative;display:grid;grid-template-columns:50px 26px 1fr;align-items:start;min-height:40px}
+.js li{position:relative;display:grid;grid-template-columns:60px 26px 1fr;align-items:start;min-height:40px}
 .js li > div{grid-column:3;padding:1px 0 10px}
 .js time{grid-column:1;font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--board-ink);text-align:right;line-height:1.15;font-variant-numeric:tabular-nums;white-space:nowrap}
 .js time small{font-family:var(--font-body);font-size:10.5px;font-weight:400;color:#8a9bb4;margin-right:2px}
-.js li::before{content:"";position:absolute;left:63px;top:0;bottom:0;width:3px;margin-left:-1.5px;background:var(--seg,rgba(255,255,255,.18))}
-.js li::after{content:"";position:absolute;left:63px;top:5px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--board);border:3px solid var(--seg,#fff);box-sizing:border-box}
+.js li::before{content:"";position:absolute;left:73px;top:0;bottom:0;width:3px;margin-left:-1.5px;background:var(--seg,rgba(255,255,255,.18))}
+.js li::after{content:"";position:absolute;left:73px;top:5px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--board);border:3px solid var(--seg,#fff);box-sizing:border-box}
 .js li:first-child::before{top:10px}
 .js li:last-child::before{bottom:calc(100% - 10px)}
 .js li.R{--seg:var(--red)} .js li.O{--seg:var(--orange)} .js li.C{--seg:var(--lrt)}
@@ -1255,8 +1258,8 @@ function render() {
     const key = routeKey() + next.dep + w, drawKey = routeKey() + next.dep + day;
     board.innerHTML = `<div class="b-head"><span>${live ? "下一班" : "第一班"}・${esc(o)} → ${esc(d)}</span><b>${DAY_SHORT[day]}</b></div>
       <div class="b-main">
-        <div class="b-count ${live && w > 0 && w < 100 ? "" : "small"} ${key !== lastBoardKey ? "tick" : ""}">${countHTML}</div>
-        <div class="b-times"><div><small>${next.pre ? "出發" : "上車"}</small><b>${fmt(next.dep)}</b></div><span class="arr">→</span><div><small>抵達</small><b>${next.est ? '<span style="font-size:.5em;color:#9fb0c8">約</span>' : ""}${fmt(next.arr)}</b></div></div>
+        <div class="b-count ${live && w > 0 && w < 100 ? (w >= 10 ? "two" : "") : "small"} ${key !== lastBoardKey ? "tick" : ""}">${countHTML}</div>
+        <div class="b-times"><div><small>${next.pre ? "出發" : "上車"}</small><b>${fmt(next.dep)}</b></div><span class="arr">→</span><div><small>抵達</small><b>${next.est ? '<span class="est">約</span>' : ""}${fmt(next.arr)}</b></div></div>
       </div>
       ${journeyBar(next, now, live, drawKey !== lastDrawKey)}
       ${live ? (() => { const pills = boardMore(res, next, now, live), wl = walkLine(res, next, now, firstUp), chip = !walk.on;
@@ -2800,7 +2803,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-16-v59";
+const APP_VER = "krtc-2026-11-16-v60";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;

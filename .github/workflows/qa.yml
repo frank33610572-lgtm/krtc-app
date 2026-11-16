@@ -1,0 +1,20 @@
+name: qa
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  map:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: cd qa && npm init -y >/dev/null && npm i playwright@1.49.1 && npx playwright install --with-deps chromium
+      - run: python3 -m http.server 8000 & sleep 2 && cd qa && node map-test.mjs
+      - name: 存截圖到 qa-shots 分支
+        if: always()
+        run: |
+          cd qa/qa-out && git init -q && git checkout -q -b qa-shots && git add . && \
+          git -c user.name=bot -c user.email=bot@users.noreply.github.com commit -qm "qa ${{ github.run_id }}" && \
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" qa-shots
