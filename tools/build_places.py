@@ -27,7 +27,7 @@ off = lambda lat, lon: [round(lat * 1e5) - 2200000, round(lon * 1e5) - 12000000]
 # 類別：0 手搖飲、1 咖啡廳、2 酒吧、3 餐廳
 CAT = {"tea": 0, "cafe": 1, "bar": 2, "food": 3}
 # 「飲酒店」登記裡有不少是視聽歌唱、會館、茶室類，不是一般人要找的酒吧
-NOT_BAR = __import__("re").compile(r"會館|視聽|小吃部|小吃店|卡拉|KTV|好樂迪|錢櫃|娛樂|茶室|冷飲|飲料|美食|俱樂部|聯誼", __import__("re").I)
+NOT_BAR = __import__("re").compile(r"會館|視聽|小吃部|小吃店|卡拉|KTV|好樂迪|錢櫃|娛樂|茶室|冷飲|飲料|美食|俱樂部|聯誼|食品", __import__("re").I)
 shops, miss, dropped = [], 0, 0
 for (uid, name, addr, cat), e in zip(need["shops"], ents[:n_shop]):
     if not e:

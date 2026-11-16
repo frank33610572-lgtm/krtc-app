@@ -135,17 +135,24 @@ by_addr = {}
 for k, r in enumerate(shops):
     key = akey(r[1])
     if key: by_addr.setdefault(key, []).append(k)
-amatch = 0
+amatch, aadd, addr_added = 0, 0, []
 for c in [c for c in chains if not c["p"]]:
+    want = 1 if c["k"] == "f" else 0
     ks = [k for k in by_addr.get(c["akey"], []) if k not in used]
     if not ks: continue
-    k = ks[0]; used.add(k); oh_of[k] = c["oh"]; disp_of[k] = c["name"]; src_of[k] = "c"; amatch += 1
-print("chain stores matched by address:", amatch, "/", sum(1 for c in chains if not c["p"]))
+    same = [k for k in ks if shops[k][2] == want]
+    if same:   # 同地址有同類的登記店家：就是這間
+        k = same[0]; used.add(k); oh_of[k] = c["oh"]; disp_of[k] = c["name"]; src_of[k] = "c"; amatch += 1
+    else:      # 同地址只有別類的店（例如百貨美食街）：不要蓋掉那間，借它的座標另外加一間
+        r0 = shops[ks[0]]
+        addr_added.append([c["name"], c["addr"].replace("高雄市", ""), want, r0[3], r0[4], c["oh"], "", "C"]); aadd += 1
+print("chain stores matched by address:", amatch, " added at same address:", aadd, "/", sum(1 for c in chains if not c["p"]))
 src = [dict(o, src="osm") for o in osm if o["k"] in "tfbr" and o["oh"]] + [dict(c, src="sb" if c.get("tag") == "SB" else "ch") for c in chains if c["oh"] and c["p"]]
 added = []
 for o in src:
     want = {"t": 0, "f": 1, "b": 2, "r": 3}.get(o["k"], 0)
     name = o["name"] or o.get("brand") or ""
+    if want == 0 and re.search(r"咖啡|coffee|café|cafe|珈琲", name, re.I): want = 1   # 店名有咖啡就算咖啡廳
     if o["src"] == "osm" and o.get("branch") and o["branch"] not in name: name = f"{name} {o['branch']}"
     GENERIC = set("咖啡茶飲料店坊館屋冷紅綠奶鮮手搖工作室企業社商行小吃部高雄門市分餐廳飯麵食堂酒吧")
     words = set(re.findall(r"[\u4e00-\u9fff]", name + (o.get("brand") or ""))) - GENERIC
@@ -154,19 +161,22 @@ for o in src:
         if len(words & set(reg)) >= 2: return d <= 40          # 名字對得上
         if re.search(r"公司|股份", reg): return d <= 30          # 登記的是公司名，看不出店名
         return d <= 6                                            # 名字對不上，只接受幾乎同一點
-    cands = [(d, k) for d, k in G.near(o["p"], 40) if k not in used and ok(d, k)]
-    same = [(d, k) for d, k in cands if shops[k][2] == want]
-    pick = (same or cands or [None])[0]
-    if not pick and G.near(o["p"], 8): continue   # 旁邊已有別間店、又對不上，寧可不加以免重複
+    near = [(d, k) for d, k in G.near(o["p"], 40) if k not in used]
+    same = [(d, k) for d, k in near if shops[k][2] == want and ok(d, k)]
+    # 別類的登記店家只有在店名對得上時才算同一間（避免星巴克蓋掉同棟美食街的餐廳）
+    other = [(d, k) for d, k in near if shops[k][2] != want and len(words & set(shops[k][0])) >= 2]
+    pick = (same or other or [None])[0]
+    if not pick and any(shops[k][2] == want for d, k in G.near(o["p"], 8)): continue   # 旁邊已有同類的店又對不上，寧可不加以免重複
     if pick:
         k = pick[1]; used.add(k); oh_of[k] = o["oh"]; src_of[k] = {"sb": "s", "ch": "c"}.get(o["src"], "o")
         if name: disp_of[k] = name
+        if want != 3: shops[k][2] = want   # 連鎖品牌、OSM 標成手搖飲／咖啡／酒吧的，以它為準
     else:
         a, b = off(*o["p"])
         added.append([name or ["手搖飲", "咖啡廳", "酒吧", "餐廳"][want], o.get("addr", ""), want, a, b, o["oh"], "", {"sb": "S", "ch": "C"}.get(o["src"], "O")])
 for k, r in enumerate(shops):
     r += [oh_of.get(k, ""), disp_of.get(k, "") if disp_of.get(k, "") != r[0] else "", src_of.get(k, "")]
-S["shop"] = shops + added
+S["shop"] = shops + added + addr_added
 print("registry shops given hours:", len(oh_of), " new shops added:", len(added),
       " total shops with hours:", sum(1 for r in S["shop"] if r[5]), "/", len(S["shop"]))
 for r in S["shop"]:                     # 去掉尾端空欄位，檔案小一點

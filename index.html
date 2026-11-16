@@ -2004,6 +2004,7 @@ function loadOfficial() {
         addr, src: isNew ? ({S: "星巴克官網", C: "品牌官網"}[hs] || "OpenStreetMap") : "財政部營業登記", off: 1, gov: isNew ? 0 : 1, newSrc: isNew});
     });
     poi.official = true;
+    poiRekey();
     poi.hasShops = !!(d.shop && d.shop.length);
     for (const [k, it] of poi.items) if (!it.off) { const keep = poiAbsorb(it); if (!keep) poi.items.delete(k); }
   }).catch(e => { officialP = null; throw e; });
@@ -2052,6 +2053,8 @@ function atmOf(it) {
 function poiClassify(t) {
   const nm = [t.brand, t.name, t["brand:zh"], t["brand:en"]].filter(Boolean).join(" ");
   if (t.shop === "convenience") return /蝦皮/.test(nm) ? null : "conv";
+  const coffee = /咖啡|coffee|café|cafe|珈琲/i.test(nm);   // 店名有咖啡就算咖啡廳，即使 OSM 也標了珍奶
+  if (coffee && (t.amenity === "cafe" || /bubble_tea|coffee/.test(t.cuisine || ""))) return "cafe";
   if (/bubble_tea/.test(t.cuisine || "") || t.shop === "beverages" || (t.amenity === "cafe" && TEA_RE.test(nm))) return "tea";
   if (t.amenity === "cafe") return "cafe";
   if (/^(bar|pub|biergarten)$/.test(t.amenity || "")) return "bar";
@@ -2091,6 +2094,20 @@ function parseOH(s) {
 }
 // 使用者自己補的營業時間（存在這支手機）：用類別＋座標當鍵，店家資料重建後也對得上
 const userOH = store.get("krtc-oh-user", {});
+// 店家改了分類（例如手搖飲 → 咖啡廳）時，把收藏和自己填的營業時間跟著搬過去（鍵是「類別|座標」）
+function poiRekey() {
+  const at = new Map();
+  for (const it of poi.items.values()) { const ll = `${it.lat.toFixed(4)},${it.lon.toFixed(4)}`; if (!at.has(ll)) at.set(ll, new Set()); at.get(ll).add(it.c); }
+  for (const [obj, sk] of [[poiFav, "krtc-poi-fav"], [userOH, "krtc-oh-user"]]) {
+    let moved = false;
+    for (const k of Object.keys(obj)) {
+      const [c, ll] = k.split("|"), cs = at.get(ll);
+      if (!cs || cs.has(c) || cs.size !== 1) continue;
+      const nk = `${[...cs][0]}|${ll}`; if (obj[nk] === undefined) { obj[nk] = obj[k]; delete obj[k]; moved = true; }
+    }
+    if (moved) store.set(sk, obj);
+  }
+}
 const ohKey = it => `${it.c}|${it.lat.toFixed(4)},${it.lon.toFixed(4)}`;
 const ohOf = it => userOH[ohKey(it)] || it.oh;
 // 「到 22:00」「明天 10:00 開」這種提示
@@ -2808,7 +2825,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-16-v61";
+const APP_VER = "krtc-2026-11-16-v62";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
