@@ -34,7 +34,7 @@ await step("poi on", async () => {
   return await p.evaluate(() => ({ items: poi.items.size, chips: [...document.querySelectorAll(".poichip")].map(b => b.innerText.replace(/\s+/g, " ")), msg: $("locMsg").textContent }));
 });
 await step("pie clusters", async () => {
-  await p.evaluate(() => map.jumpTo({ center: [120.3075, 22.6237], zoom: 13 })); await sleep(3000); await shot("04-pies");
+  await p.evaluate(() => { map.jumpTo({ center: [120.3075, 22.6237], zoom: 13 }); }); await sleep(3000); await shot("04-pies");
   return await p.evaluate(() => ({ pies: map.listImages().filter(i => i.startsWith("pie")).length, feats: map.queryRenderedFeatures({ layers: ["poi-pie"] }).length }));
 });
 await step("tap cluster", async () => {
@@ -51,7 +51,7 @@ for (const c of ["food", "tea", "cafe", "bar", "conv"]) await step("popup " + c,
   if (!pop) throw new Error("no popup");
   if (c === "food" || c === "bar") await shot("05-popup-" + c);
   if (/NaN|undefined|null/.test(pop)) throw new Error("bad text: " + pop);
-  await p.evaluate(() => popup && popup.remove());
+  await p.evaluate(() => { if (popup) popup.remove(); });
   return pop;
 });
 await step("fav star", async () => {
@@ -59,7 +59,7 @@ await step("fav star", async () => {
   await tapMap(f); await sleep(700);
   await p.click(".pp-star"); await sleep(500);
   const n = await p.evaluate(() => Object.keys(poiFav).length);
-  await p.evaluate(() => popup && popup.remove());
+  await p.evaluate(() => { if (popup) popup.remove(); });
   return { favs: n };
 });
 await step("list rows", async () => {
@@ -98,18 +98,18 @@ await step("hours editor", async () => {
   await tapMap(f); await sleep(700);
   await p.click("[data-ohedit]"); await sleep(600); await shot("09-oh-editor");
   const open = await p.evaluate(() => $("ohDlg").open);
-  await p.keyboard.press("Escape"); await p.evaluate(() => popup && popup.remove());
+  await p.keyboard.press("Escape"); await p.evaluate(() => { if (popup) popup.remove(); });
   return { open };
 });
 await step("theme dark/light", async () => {
   for (const t of ["dark", "light"]) {
-    await p.evaluate(t => applyTheme(t), t);
+    await p.evaluate(t => { applyTheme(t); }, t);
     await p.waitForFunction(() => styleReady, null, { timeout: 20000 }); await sleep(2500);
-    await p.evaluate(() => map.jumpTo({ center: [120.3075, 22.6237], zoom: 13 })); await sleep(2000);
+    await p.evaluate(() => { map.jumpTo({ center: [120.3075, 22.6237], zoom: 13 }); }); await sleep(2000);
     await shot("10-theme-" + t);
   }
   const r = await p.evaluate(() => ({ layers: ["poi-pie", "poi-glyph", "poi-cluster"].map(l => !!map.getLayer(l)), feats: map.queryRenderedFeatures({ layers: ["poi-pie"] }).length }));
-  await p.evaluate(() => applyTheme("auto")); await p.waitForFunction(() => styleReady); return r;
+  await p.evaluate(() => { applyTheme("auto"); }); await p.waitForFunction(() => styleReady); return r;
 });
 await step("youbike", async () => {
   await p.click("#ybToggle"); await sleep(6000); await shot("11-youbike");
