@@ -1125,6 +1125,10 @@ const nowSvc = () => { const n = new Date(); return toSvc(n.getHours() * 60 + n.
 // ---------- 狀態 ----------
 const saved = store.get("krtc-q", {});
 const todayDay = autoDay(new Date());
+// 改過名的車站：舊的儲存資料自動換成新站名
+const RENAMED = {"西子灣": "哈瑪星"};
+const renamed = n => RENAMED[n] || n;
+saved.from = renamed(saved.from); saved.to = renamed(saved.to);
 const state = {
   from: byName[saved.from] ? saved.from : "左營",
   to: byName[saved.to] ? saved.to : "鳳山",
@@ -1136,6 +1140,7 @@ const state = {
 };
 // 我的最愛：{o 起站, d 終站, name 名稱, def 預設}；舊版存成 [起站, 終站] 的也一併轉換
 let favs = store.get("krtc-fav", []).map(f => Array.isArray(f) ? {o: f[0], d: f[1], name: "", def: false} : f)
+  .map(f => f && {...f, o: renamed(f.o), d: renamed(f.d)})
   .filter(f => f && byName[f.o] && byName[f.d] && f.o !== f.d);
 const saveFavs = () => store.set("krtc-fav", favs);
 saveFavs();
@@ -2803,7 +2808,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-16-v60";
+const APP_VER = "krtc-2026-11-16-v61";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
