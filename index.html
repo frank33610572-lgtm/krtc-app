@@ -684,7 +684,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .mapwrap .hud{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .4s ease}
 .mapwrap.hud-on .hud{opacity:1}
 .hud::before{content:"";position:absolute;inset:0;
-  background-image:linear-gradient(to right,color-mix(in srgb,var(--focus) 9%,transparent) 1px,transparent 1px),linear-gradient(to bottom,color-mix(in srgb,var(--focus) 9%,transparent) 1px,transparent 1px);
+  background-image:linear-gradient(to right,color-mix(in srgb,var(--focus) 13%,transparent) 1px,transparent 1px),linear-gradient(to bottom,color-mix(in srgb,var(--focus) 13%,transparent) 1px,transparent 1px);
   background-size:44px 44px;-webkit-mask-image:radial-gradient(ellipse at center,#000 30%,transparent 78%);mask-image:radial-gradient(ellipse at center,#000 30%,transparent 78%)}
 .hud .hc{position:absolute;width:18px;height:18px;border:0 solid var(--focus);opacity:.75}
 .hud .tl{top:10px;left:10px;border-top-width:2px;border-left-width:2px;border-top-left-radius:6px}
@@ -1793,8 +1793,8 @@ function setupLayers() {
       "circle-opacity": ["case", ["==", ["get", "s"], 0], .4, 1], "circle-stroke-opacity": ["case", ["==", ["get", "s"], 0], .4, 1]}});
   // 招牌底下的光暈（營業中、或時間不明的店）
   map.addLayer({id: "poi-glow", type: "circle", source: "poi", filter: ["all", notC, ["!=", ["get", "s"], 0]], minzoom: 14.6, layout: {...poiVis},
-    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 14.6, 9, 16, 14, 17.5, 19], "circle-blur": 1,
-      "circle-color": ["match", ["get", "c"], ...POI_KEYS.flatMap(k => [k, POI_CATS[k].color]), "#888"], "circle-opacity": isDark() ? .55 : .3}});
+    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 14.6, 11, 16, 17, 17.5, 23], "circle-blur": 1,
+      "circle-color": ["match", ["get", "c"], ...POI_KEYS.flatMap(k => [k, POI_CATS[k].color]), "#888"], "circle-opacity": isDark() ? .62 : .45}});
   poiSignImages(surf);
   map.addLayer({id: "poi-glyph", type: "symbol", source: "poi", filter: notC, minzoom: 14.6, layout: {...poiVis,
       "icon-image": ["concat", "sg-", ["get", "c"], ["case", ["==", ["get", "s"], 0], "-dim", ""]],
