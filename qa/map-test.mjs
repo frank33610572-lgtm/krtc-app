@@ -33,6 +33,9 @@ await step("poi on", async () => {
   await sleep(4000); await shot("03-poi");
   return await p.evaluate(() => ({ items: poi.items.size, chips: [...document.querySelectorAll(".poichip")].map(b => b.innerText.replace(/\s+/g, " ")), msg: $("locMsg").textContent }));
 });
+await step("closeup", async () => {
+  await p.evaluate(() => { map.jumpTo({ center: [120.3045, 22.6215], zoom: 16.6 }); }); await sleep(2500); await shot("03b-closeup");
+});
 await step("pie clusters", async () => {
   await p.evaluate(() => { map.jumpTo({ center: [120.3075, 22.6237], zoom: 13 }); }); await sleep(3000); await shot("04-pies");
   return await p.evaluate(() => ({ pies: map.listImages().filter(i => i.startsWith("pie")).length, feats: map.queryRenderedFeatures({ layers: ["poi-pie"] }).length }));
@@ -108,6 +111,7 @@ await step("theme dark/light", async () => {
     await p.waitForFunction(() => styleReady, null, { timeout: 20000 }); await sleep(2500);
     await p.evaluate(() => { map.jumpTo({ center: [120.3075, 22.6237], zoom: 13 }); }); await sleep(2000);
     await shot("10-theme-" + t);
+    await p.evaluate(() => { map.jumpTo({ center: [120.3045, 22.6215], zoom: 16.6 }); }); await sleep(2200); await shot("10b-close-" + t);
   }
   const r = await p.evaluate(() => ({ layers: ["poi-pie", "poi-glyph", "poi-cluster"].map(l => !!map.getLayer(l)), feats: map.queryRenderedFeatures({ layers: ["poi-pie"] }).length }));
   await p.evaluate(() => { applyTheme("auto"); }); await p.waitForFunction(() => styleReady); return r;
