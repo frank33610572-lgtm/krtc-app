@@ -677,6 +677,77 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .view[hidden]{display:none!important}
 .footer{font-size:11px;color:var(--muted);padding:0 4px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ===== 好用地圖・控制台風格 =====
+   概念：捷運行控中心的螢幕。底圖調暗、細線框和四角刻度、數字用窄體讀數，
+   顏色只在「有訊號」的地方亮起（分類亮條、營業中指示燈、店家光暈）。 */
+.mapwrap .hud{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .4s ease}
+.mapwrap.hud-on .hud{opacity:1}
+.hud::before{content:"";position:absolute;inset:0;
+  background-image:linear-gradient(to right,color-mix(in srgb,var(--focus) 9%,transparent) 1px,transparent 1px),linear-gradient(to bottom,color-mix(in srgb,var(--focus) 9%,transparent) 1px,transparent 1px);
+  background-size:44px 44px;-webkit-mask-image:radial-gradient(ellipse at center,#000 30%,transparent 78%);mask-image:radial-gradient(ellipse at center,#000 30%,transparent 78%)}
+.hud .hc{position:absolute;width:18px;height:18px;border:0 solid var(--focus);opacity:.75}
+.hud .tl{top:10px;left:10px;border-top-width:2px;border-left-width:2px;border-top-left-radius:6px}
+.hud .tr{top:10px;right:10px;border-top-width:2px;border-right-width:2px;border-top-right-radius:6px}
+.hud .bl{bottom:10px;left:10px;border-bottom-width:2px;border-left-width:2px;border-bottom-left-radius:6px}
+.hud .br{bottom:10px;right:10px;border-bottom-width:2px;border-right-width:2px;border-bottom-right-radius:6px}
+.hud-read{position:absolute;left:14px;bottom:28px;display:grid;gap:1px;padding:5px 9px 5px 10px;border-radius:8px;
+  background:color-mix(in srgb,var(--surface) 78%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1px solid color-mix(in srgb,var(--focus) 30%,transparent);border-left:2px solid var(--focus);
+  font-size:10.5px;line-height:1.3;color:var(--muted);font-variant-numeric:tabular-nums}
+.hud-read em{font-style:normal;font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--ink);letter-spacing:.02em}
+.hud-read #hudLL{font-family:var(--font-display);font-size:11.5px;letter-spacing:.04em;white-space:pre}
+.mapwrap.hud-on{border-color:color-mix(in srgb,var(--focus) 35%,var(--line));box-shadow:0 0 0 1px color-mix(in srgb,var(--focus) 10%,transparent),0 12px 34px color-mix(in srgb,var(--focus) 14%,transparent)}
+.mapwrap.hud-on .maplibregl-ctrl-bottom-left{opacity:.7}
+
+/* 分類鈕：讀數面板。亮著的分類底部有一條會發光的訊號條 */
+.poichip{position:relative;overflow:hidden;border-radius:14px;border:1px solid color-mix(in srgb,var(--ink) 12%,transparent);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 100%,transparent),color-mix(in srgb,var(--soft) 80%,var(--surface)));transition:background-color .2s,border-color .2s,box-shadow .2s}
+.poichip::after{content:"";position:absolute;left:14%;right:14%;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--c);opacity:0;transition:opacity .2s}
+.poichip[aria-pressed="true"]{border-color:color-mix(in srgb,var(--c) 45%,transparent);background:linear-gradient(180deg,color-mix(in srgb,var(--c) 10%,var(--surface)),var(--surface));
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 12%,transparent),0 6px 18px color-mix(in srgb,var(--c) 18%,transparent)}
+.poichip[aria-pressed="true"]::after{opacity:1;box-shadow:0 0 10px 1px var(--c)}
+.poichip .sg{box-shadow:0 0 0 1px color-mix(in srgb,#fff 30%,transparent) inset}
+.poichip[aria-pressed="true"] .sg{box-shadow:0 0 0 1px color-mix(in srgb,#fff 30%,transparent) inset,0 0 12px color-mix(in srgb,var(--c) 55%,transparent)}
+.poichip b.num{font-size:17px;letter-spacing:.02em}
+.poichip[aria-pressed="false"]{background:var(--soft);border-style:dashed}
+
+/* 開關：指示燈 */
+.poihide{border-radius:12px;border-color:color-mix(in srgb,var(--ink) 12%,transparent)}
+.poihide .sw{width:36px;height:20px;border-radius:10px;background:color-mix(in srgb,var(--ink) 14%,transparent)}
+.poihide .sw::after{top:3px;left:3px;width:14px;height:14px;background:var(--surface);box-shadow:0 0 0 1px color-mix(in srgb,var(--ink) 18%,transparent)}
+.poihide[aria-pressed="true"]{border-color:color-mix(in srgb,var(--good) 45%,transparent)}
+.poihide[aria-pressed="true"] .sw{background:color-mix(in srgb,var(--good) 25%,transparent);box-shadow:inset 0 0 0 1px var(--good)}
+.poihide[aria-pressed="true"] .sw::after{background:var(--good);box-shadow:0 0 8px 1px var(--good)}
+
+/* 清單範圍分頁 */
+.poisrc button{border-radius:11px;border-color:color-mix(in srgb,var(--ink) 12%,transparent);position:relative;overflow:hidden}
+.poisrc button[aria-selected="true"]{border-color:var(--focus);background:color-mix(in srgb,var(--focus) 8%,var(--surface));box-shadow:inset 0 -2px 0 var(--focus)}
+.poisrc button[aria-selected="true"] small{color:var(--focus)}
+
+/* 清單：距離讀數、營業中指示燈 */
+.poisheet{border-color:color-mix(in srgb,var(--ink) 12%,transparent)}
+.poires-row{border-bottom-color:color-mix(in srgb,var(--ink) 9%,transparent)}
+.poires-row .sg{box-shadow:0 0 0 1px color-mix(in srgb,#fff 28%,transparent) inset,0 0 10px color-mix(in srgb,var(--c) 35%,transparent)}
+.poires-row small.open::before,.poirow .ohs.open::before,.pp-st.open .pill::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 6px 1px currentColor;margin-right:6px;vertical-align:.12em}
+.poires-row small.closed::before,.poirow .ohs.closed::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;border:1.5px solid currentColor;margin-right:5px;vertical-align:.08em;box-sizing:border-box}
+.poires-row .d b{font-size:24px;letter-spacing:.01em}
+
+/* 店家資訊卡：玻璃面板 */
+.maplibregl-popup-content{background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);
+  border:1px solid color-mix(in srgb,var(--ink) 10%,transparent)}
+.poipop .sg.lg{box-shadow:0 0 0 1px color-mix(in srgb,#fff 30%,transparent) inset,0 0 18px color-mix(in srgb,var(--c) 50%,transparent)}
+.poipop{position:relative}
+.poipop::before{content:"";position:absolute;left:-16px;right:-16px;top:-14px;height:3px;border-radius:18px 18px 0 0;background:linear-gradient(90deg,var(--c),color-mix(in srgb,var(--c) 0%,transparent))}
+
+/* 我的位置：雷達掃描 */
+.me::before{display:none}
+.me::after{content:"";position:absolute;left:50%;top:50%;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;pointer-events:none;
+  background:conic-gradient(from 0deg,color-mix(in srgb,var(--focus) 0%,transparent) 0deg,color-mix(in srgb,var(--focus) 0%,transparent) 280deg,color-mix(in srgb,var(--focus) 38%,transparent) 360deg);
+  -webkit-mask-image:radial-gradient(circle,#000 0 58px,transparent 59px);mask-image:radial-gradient(circle,#000 0 58px,transparent 59px);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--focus) 30%,transparent) inset;animation:radar 3.2s linear infinite}
+@keyframes radar{to{transform:rotate(1turn)}}
+@media (prefers-reduced-motion:reduce){.me::after{animation:none}.mapwrap .hud{transition:none}}
 </style>
 </head>
 <body>
@@ -832,6 +903,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
       </div>
       <div class="mapwrap">
         <div id="map" role="application" aria-label="高雄捷運與輕軌路線地圖"></div>
+        <div class="hud" aria-hidden="true"><i class="hc tl"></i><i class="hc tr"></i><i class="hc bl"></i><i class="hc br"></i>
+          <div class="hud-read"><span><em id="hudN">0</em> 間在畫面內</span><span id="hudLL"></span></div></div>
         <div class="maptoast" id="locMsg" role="status"></div>
         <div class="mapfabs">
           <button type="button" class="fab poifab" id="poiBtn" aria-pressed="false" aria-label="好用地圖：餐廳、手搖飲、咖啡廳、酒吧、超商" title="好用地圖"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"/><path d="M5.5 12v8h13v-8M10 20v-5h4v5"/></svg><span>好用</span></button>
@@ -1696,10 +1769,15 @@ function setupLayers() {
       "circle-stroke-color": surf, "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 12, .8, 16, 2]}});
   const poiVis = {visibility: poi.on ? "visible" : "none"}, isC = ["has", "point_count"], notC = ["!", ["has", "point_count"]];
   const cnt = c => ["+", ["case", ["==", ["get", "c"], c], 1, 0]];
+  // 好用地圖開著時把底圖調暗一層，路線和店家會浮出來（像控制台螢幕）
+  map.addSource("poi-dim", {type: "geojson", data: fc([{type: "Feature", properties: {}, geometry: {type: "Polygon", coordinates: [[[-180, -85], [180, -85], [180, 85], [-180, 85], [-180, -85]]]}}])});
+  map.addLayer({id: "poi-dim", type: "fill", source: "poi-dim", layout: {...poiVis}, paint: {"fill-color": surf, "fill-opacity": isDark() ? .5 : .42}}, "lines-casing");
   map.addSource("poi", {type: "geojson", data: poiFC(), cluster: true, clusterMaxZoom: 14, clusterRadius: 46,
     clusterProperties: Object.fromEntries(POI_KEYS.map(k => [k, cnt(k)]))});
   // 圓圈外框畫成小圓餅：各類別在這一區佔多少（有一間也會看到一小段）
   const clR = ["step", ["get", "point_count"], 15, 25, 18, 100, 22, 400, 27];
+  map.addLayer({id: "poi-halo", type: "circle", source: "poi", filter: isC, layout: {...poiVis},
+    paint: {"circle-radius": ["+", clR, 5], "circle-color": "rgba(0,0,0,0)", "circle-stroke-width": 1, "circle-stroke-color": ink, "circle-stroke-opacity": .16}});
   map.addLayer({id: "poi-cluster", type: "circle", source: "poi", filter: isC, layout: {...poiVis},
     paint: {"circle-color": surf, "circle-opacity": .94, "circle-radius": clR}});
   map.addLayer({id: "poi-pie", type: "symbol", source: "poi", filter: isC, layout: {...poiVis,
@@ -1713,6 +1791,10 @@ function setupLayers() {
       "circle-color": ["match", ["get", "c"], ...POI_KEYS.flatMap(k => [k, POI_CATS[k].color]), "#888"],
       "circle-stroke-color": surf, "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 13, 1, 16, 2],
       "circle-opacity": ["case", ["==", ["get", "s"], 0], .4, 1], "circle-stroke-opacity": ["case", ["==", ["get", "s"], 0], .4, 1]}});
+  // 招牌底下的光暈（營業中、或時間不明的店）
+  map.addLayer({id: "poi-glow", type: "circle", source: "poi", filter: ["all", notC, ["!=", ["get", "s"], 0]], minzoom: 14.6, layout: {...poiVis},
+    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 14.6, 9, 16, 14, 17.5, 19], "circle-blur": 1,
+      "circle-color": ["match", ["get", "c"], ...POI_KEYS.flatMap(k => [k, POI_CATS[k].color]), "#888"], "circle-opacity": isDark() ? .55 : .3}});
   poiSignImages(surf);
   map.addLayer({id: "poi-glyph", type: "symbol", source: "poi", filter: notC, minzoom: 14.6, layout: {...poiVis,
       "icon-image": ["concat", "sg-", ["get", "c"], ["case", ["==", ["get", "s"], 0], "-dim", ""]],
@@ -1721,8 +1803,8 @@ function setupLayers() {
   map.addLayer({id: "poi-favring", type: "circle", source: "poi", filter: ["all", notC, ["==", ["get", "f"], 1]], minzoom: 12.5, layout: {...poiVis},
     paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 12.5, 7, 14.6, 11, 16, 15, 17.5, 19], "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#e8a317", "circle-stroke-width": 2.5}});
   map.addSource("poi-ring", {type: "geojson", data: fc([])});
-  map.addLayer({id: "poi-ring-fill", type: "fill", source: "poi-ring", paint: {"fill-color": "#e8a317", "fill-opacity": .06}}, "lines-casing");
-  map.addLayer({id: "poi-ring", type: "line", source: "poi-ring", paint: {"line-color": "#e8a317", "line-width": 2, "line-dasharray": [2, 2], "line-opacity": .8}}, "lines-casing");
+  map.addLayer({id: "poi-ring-fill", type: "fill", source: "poi-ring", paint: {"fill-color": cssVar("--focus"), "fill-opacity": .07}}, "lines-casing");
+  map.addLayer({id: "poi-ring", type: "line", source: "poi-ring", paint: {"line-color": cssVar("--focus"), "line-width": 1.5, "line-dasharray": [1, 2.5], "line-opacity": .9}}, "lines-casing");
   setTimeout(poiRing, 0);
   map.addSource("poi-sel", {type: "geojson", data: fc(poi.sel ? [poiPt(poi.sel)] : [])});
   map.addLayer({id: "poi-sel", type: "circle", source: "poi-sel", layout: {...poiVis},
@@ -1802,6 +1884,8 @@ function initMap() {
       .then(z => map.easeTo({center: f.geometry.coordinates, zoom: Math.min(z + .4, 17), duration: 500})).catch(() => {});
   });
   let poiTimer = null;
+  let hudRaf = 0;
+  map.on("move", () => { if (!poi.on || hudRaf) return; hudRaf = requestAnimationFrame(() => { hudRaf = 0; hudLL(); }); });
   map.on("moveend", () => { if (!poi.on) return; clearTimeout(poiTimer); poiTimer = setTimeout(() => { poiLoadView(); poiRenderList(); }, 350); });
   for (const id of ["stations", "yb", "poi", "poi-glyph", "poi-cluster", "exits"]) {
     map.on("mouseenter", id, () => { map.getCanvas().style.cursor = "pointer"; });
@@ -2197,6 +2281,10 @@ function poiSignImages(edge) {
     g.globalAlpha = dim ? .42 : 1;
     rr(P - 1.5, P - 1.5, S + 3, S + 3, 9.5); g.fillStyle = edge; g.fill();
     rr(P, P, S, S, 8); g.fillStyle = cat.color; g.fill();
+    // 上亮下暗的漸層和一圈細亮邊，像發光的玻璃按鍵
+    const gr = g.createLinearGradient(0, P, 0, P + S); gr.addColorStop(0, "rgba(255,255,255,.22)"); gr.addColorStop(.55, "rgba(255,255,255,0)"); gr.addColorStop(1, "rgba(0,0,0,.12)");
+    rr(P, P, S, S, 8); g.fillStyle = gr; g.fill();
+    rr(P + .75, P + .75, S - 1.5, S - 1.5, 7.3); g.strokeStyle = "rgba(255,255,255,.38)"; g.lineWidth = 1; g.stroke();
     g.fillStyle = POI_INK; g.font = `900 16px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif`; g.textAlign = "center"; g.textBaseline = "middle";
     g.fillText(cat.glyph, P + S / 2, P + S / 2 - 1);
     map.addImage(id, g.getImageData(0, 0, W, W), {pixelRatio: dpr});
@@ -2214,7 +2302,8 @@ function poiDraw(force) {
   if (!map || !styleReady) return;
   const sig = [poi.on, POI_KEYS.map(k => +!!poi.cats[k]).join(""), +!!poi.hideClosed, +!!poi.atm, poi.items.size, Object.keys(poiFav).length, poi.rev, Math.floor(Date.now() / 6e4)].join("|");
   if (force || sig !== poi.drawn) { poi.drawn = sig; map.getSource("poi").setData(poiFC()); }
-  for (const id of ["poi", "poi-glyph", "poi-cluster", "poi-pie", "poi-count", "poi-sel", "poi-favring"]) map.setLayoutProperty(id, "visibility", poi.on ? "visible" : "none");
+  for (const id of ["poi-dim", "poi", "poi-glow", "poi-glyph", "poi-halo", "poi-cluster", "poi-pie", "poi-count", "poi-sel", "poi-favring"]) map.setLayoutProperty(id, "visibility", poi.on ? "visible" : "none");
+  document.querySelector(".mapwrap").classList.toggle("hud-on", poi.on);
   poiRing();
 }
 function poiPersist() {
@@ -2272,6 +2361,14 @@ function cellsAround(lat, lon, r = 1) {
 function poiChipCounts() {
   if (!map) return; const n = poiCounts();
   document.querySelectorAll(".poichip [data-n]").forEach(b => { b.textContent = n[b.dataset.n] > 999 ? "999+" : n[b.dataset.n]; });
+  const tot = POI_KEYS.reduce((a, k) => a + (poi.cats[k] ? n[k] : 0), 0);
+  $("hudN").textContent = tot.toLocaleString("en-US");
+  hudLL();
+}
+// 地圖右下角的座標讀數（跟著地圖移動）
+function hudLL() {
+  if (!map || !poi.on) return; const c = map.getCenter();
+  $("hudLL").textContent = `${c.lat.toFixed(4)}°N  ${c.lng.toFixed(4)}°E  Z${map.getZoom().toFixed(1)}`;
 }
 function poiCounts() {
   const b = map.getBounds(), n = Object.fromEntries(POI_KEYS.map(k => [k, 0]));
@@ -2837,7 +2934,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-18-v63";
+const APP_VER = "krtc-2026-11-18-v64";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;

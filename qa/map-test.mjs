@@ -71,6 +71,10 @@ await step("fav star", async () => {
 await step("list rows", async () => {
   return await p.evaluate(() => [...document.querySelectorAll("#poiRes > *")].slice(0, 6).map(r => r.innerText.replace(/\s+/g, " ").slice(0, 70)));
 });
+await step("sheet-list", async () => {
+  await p.evaluate(() => document.getElementById("poiPanel").scrollIntoView({ block: "start" })); await sleep(600); await shot("06b-sheet");
+  await p.evaluate(() => window.scrollTo(0, 0)); await sleep(300);
+});
 await step("search", async () => {
   await p.fill("#poiQ", "星巴克"); await p.press("#poiQ", "Enter"); await sleep(800); await shot("06-search");
   const r = await p.evaluate(() => [...document.querySelectorAll("#poiRes > *")].slice(0, 4).map(r => r.innerText.replace(/\s+/g, " ").slice(0, 70)));
