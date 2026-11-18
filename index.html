@@ -44,7 +44,7 @@
   --good:#128556;
   --focus:#2f6fd6;
   /* 好用地圖的五個分類：同一個亮度、低彩度，彼此分得出來但不搶路線的紅、橘、綠 */
-  --c-food:#317f81;--c-tea:#9c622f;--c-cafe:#7865a2;--c-bar:#a35474;--c-conv:#4773ab;--sg-ink:#fff;
+  --c-food:#589194;--c-tea:#a86935;--c-cafe:#7f6aab;--c-bar:#ab587a;--c-conv:#4b79b4;--sg-ink:#fff;
   --font-display:"Big Shoulders Display","Barlow Condensed","Arial Narrow",sans-serif;
   --font-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
   --radius:16px;
@@ -1949,11 +1949,11 @@ async function ybNearest(me) {
 
 // ---------- 好用地圖（OpenStreetMap / Overpass） ----------
 const POI_CATS = {
-  food: {label: "餐廳", glyph: "餐", color: "#317f81"},
-  tea: {label: "手搖飲", glyph: "茶", color: "#9c622f"},
-  cafe: {label: "咖啡廳", glyph: "咖", color: "#7865a2"},
-  bar: {label: "酒吧", glyph: "酒", color: "#a35474"},
-  conv: {label: "超商", glyph: "超", color: "#4773ab"}
+  food: {label: "餐廳", glyph: "餐", color: "#589194"},
+  tea: {label: "手搖飲", glyph: "茶", color: "#a86935"},
+  cafe: {label: "咖啡廳", glyph: "咖", color: "#7f6aab"},
+  bar: {label: "酒吧", glyph: "酒", color: "#ab587a"},
+  conv: {label: "超商", glyph: "超", color: "#4b79b4"}
 };
 const SHOP_CAT = ["tea", "cafe", "bar", "food"];
 // 地圖圖層讀不到 CSS 變數：換主題、重建圖層時從 CSS 取目前的分類顏色
