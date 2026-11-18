@@ -684,8 +684,10 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .mapwrap .hud{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .4s ease}
 .mapwrap.hud-on .hud{opacity:1}
 .hud::before{content:"";position:absolute;inset:0;
-  background-image:linear-gradient(to right,color-mix(in srgb,var(--focus) 13%,transparent) 1px,transparent 1px),linear-gradient(to bottom,color-mix(in srgb,var(--focus) 13%,transparent) 1px,transparent 1px);
-  background-size:44px 44px;-webkit-mask-image:radial-gradient(ellipse at center,#000 30%,transparent 78%);mask-image:radial-gradient(ellipse at center,#000 30%,transparent 78%)}
+  /* 細點陣，只出現在地圖四周，中間看店家的地方保持乾淨 */
+  background-image:radial-gradient(circle,color-mix(in srgb,var(--focus) 55%,transparent) 0 .9px,transparent 1.3px);
+  background-size:16px 16px;background-position:8px 8px;opacity:.55;
+  -webkit-mask-image:radial-gradient(ellipse 75% 70% at center,transparent 55%,#000 100%);mask-image:radial-gradient(ellipse 75% 70% at center,transparent 55%,#000 100%)}
 .hud .hc{position:absolute;width:18px;height:18px;border:0 solid var(--focus);opacity:.75}
 .hud .tl{top:10px;left:10px;border-top-width:2px;border-left-width:2px;border-top-left-radius:6px}
 .hud .tr{top:10px;right:10px;border-top-width:2px;border-right-width:2px;border-top-right-radius:6px}
@@ -2934,7 +2936,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-18-v64";
+const APP_VER = "krtc-2026-11-18-v65";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
