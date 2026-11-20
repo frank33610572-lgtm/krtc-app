@@ -750,6 +750,25 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
   box-shadow:0 0 0 1px color-mix(in srgb,var(--focus) 30%,transparent) inset;animation:radar 3.2s linear infinite}
 @keyframes radar{to{transform:rotate(1turn)}}
 @media (prefers-reduced-motion:reduce){.me::after{animation:none}.mapwrap .hud{transition:none}}
+
+/* 餐廳類型列：可以左右滑的小膠囊 */
+.poisub{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:8px -2px 0;padding:2px 2px 4px;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.poisub::-webkit-scrollbar{display:none}
+.poisub[hidden]{display:none}
+.poisub button{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px 0 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--ink) 12%,transparent);
+  background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.poisub button[data-sub=""]{padding-left:13px}
+.poisub .g{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;background:color-mix(in srgb,var(--c-food) 16%,transparent);color:var(--c-food);font-size:12.5px;font-weight:900}
+.poisub i{font-style:normal;font-family:var(--font-display);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.poisub button[aria-pressed="true"]{background:var(--c-food);border-color:var(--c-food);color:var(--sg-ink);box-shadow:0 0 14px color-mix(in srgb,var(--c-food) 40%,transparent)}
+.poisub button[aria-pressed="true"] .g{background:color-mix(in srgb,var(--sg-ink) 22%,transparent);color:var(--sg-ink)}
+.poisub button[aria-pressed="true"] i{color:color-mix(in srgb,var(--sg-ink) 75%,transparent)}
+/* 快速搜尋 */
+.poiquick{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:-2px 0 10px;padding-bottom:2px}
+.poiquick::-webkit-scrollbar{display:none}
+.poiquick button{flex:none;min-height:32px;padding:0 12px;border-radius:999px;border:1px dashed color-mix(in srgb,var(--ink) 20%,transparent);background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer}
+.poiquick button:active{background:var(--soft)}
+.poisearch:has(input:not(:placeholder-shown)) + .poiquick{display:none}
 </style>
 </head>
 <body>
@@ -898,6 +917,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
           <button type="button" class="poichip" data-cat="bar" aria-pressed="true" style="--c:var(--c-bar)"><span class="sg">酒</span><span class="pc-l">酒吧</span><b class="num" data-n="bar"></b></button>
           <button type="button" class="poichip" data-cat="conv" aria-pressed="true" style="--c:var(--c-conv)"><span class="sg">超</span><span class="pc-l">超商</span><b class="num" data-n="conv"></b></button>
         </div>
+        <div class="poisub" id="poiSub" role="group" aria-label="餐廳類型"></div>
         <div class="poitoggles">
           <button type="button" class="poihide" id="poiHide" aria-pressed="false"><span class="sw" aria-hidden="true"></span>隱藏休息中</button>
           <button type="button" class="poihide" id="poiAtm" aria-pressed="false"><span class="sw" aria-hidden="true"></span>超商只看有 ATM</button>
@@ -925,6 +945,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
         <label class="poisearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
           <input id="poiQ" type="search" placeholder="搜尋店名、品牌或路名" enterkeyhint="search" autocomplete="off" aria-label="搜尋好用地圖店家">
           <button type="button" id="poiQx" hidden aria-label="清除搜尋">×</button></label>
+        <div class="poiquick" id="poiQuick" aria-label="快速搜尋">
+          <button type="button">拉麵</button><button type="button">火鍋</button><button type="button">牛肉麵</button><button type="button">早午餐</button><button type="button">燒肉</button><button type="button">素食</button><button type="button">咖哩</button><button type="button">鍋燒</button>
+        </div>
         <div class="poihead" id="poiResTitle">地圖中心附近</div>
         <div class="poires" id="poiRes"></div>
         <div class="poigoogle" id="poiGoogle">
@@ -1799,7 +1822,7 @@ function setupLayers() {
       "circle-color": ["match", ["get", "c"], ...POI_KEYS.flatMap(k => [k, POI_CATS[k].color]), "#888"], "circle-opacity": isDark() ? .62 : .45}});
   poiSignImages(surf);
   map.addLayer({id: "poi-glyph", type: "symbol", source: "poi", filter: notC, minzoom: 14.6, layout: {...poiVis,
-      "icon-image": ["concat", "sg-", ["get", "c"], ["case", ["==", ["get", "s"], 0], "-dim", ""]],
+      "icon-image": ["concat", "sg-", ["get", "k"], ["case", ["==", ["get", "s"], 0], "-dim", ""]],
       "icon-size": ["interpolate", ["linear"], ["zoom"], 14.6, .56, 16, .72, 17.5, .92], "icon-allow-overlap": true, "icon-ignore-placement": true,
       "symbol-sort-key": ["case", ["==", ["get", "s"], 0], 1, 0]}});
   map.addLayer({id: "poi-favring", type: "circle", source: "poi", filter: ["all", notC, ["==", ["get", "f"], 1]], minzoom: 12.5, layout: {...poiVis},
@@ -2041,7 +2064,14 @@ const POI_CATS = {
   bar: {label: "酒吧", glyph: "酒", color: "#ab587a"},
   conv: {label: "超商", glyph: "超", color: "#4b79b4"}
 };
-const SHOP_CAT = ["tea", "cafe", "bar", "food"];
+const SHOP_CAT = ["tea", "cafe", "bar", "food", "food", "food", "food", "food", "food"];
+// 餐廳細類（稅籍行業代號）：0 餐廳 1 早餐 2 便當自助餐 3 麵店小吃 4 速食 5 小吃攤
+const FOOD_SUB = [
+  {label: "餐廳", short: "餐廳", glyph: "餐"}, {label: "早餐店", short: "早餐", glyph: "早"}, {label: "便當・自助餐", short: "便當", glyph: "便"},
+  {label: "麵店・小吃", short: "麵・小吃", glyph: "麵"}, {label: "速食", short: "速食", glyph: "速"}, {label: "小吃攤", short: "小吃攤", glyph: "攤"}];
+const SUB_ORDER = [1, 3, 2, 0, 4, 5];   // 細類按鈕的順序
+const foodSub = it => it.c === "food" ? (it.sub || 0) : -1;
+const poiKind = it => it.c === "food" && it.sub ? "food" + it.sub : it.c;   // 地圖招牌用哪一張圖
 // 地圖圖層讀不到 CSS 變數：換主題、重建圖層時從 CSS 取目前的分類顏色
 let POI_INK = "#fff";
 function poiColors() {
@@ -2063,7 +2093,7 @@ const poiFav = store.get("krtc-poi-fav", {});            // 收藏的店家 {類
 const isFav = it => !!poiFav[`${it.c}|${it.lat.toFixed(4)},${it.lon.toFixed(4)}`];
 const hasATM = it => { const t = atmOf(it); return !!t && !/沒有|未查到|不確定/.test(t); };
 const CELL = 0.02;
-const poi = {src: "here", atm: store.get("krtc-poi-atm", false), on: false, cats: Object.assign({food: true, tea: true, cafe: true, bar: true, conv: true}, store.get("krtc-poi-cats", {})), cells: store.get("krtc-poi2", {}), loading: new Set(), items: new Map(), absorbed: new Set(), rev: 0, drawn: ""};
+const poi = {src: "here", atm: store.get("krtc-poi-atm", false), on: false, cats: Object.assign({food: true, tea: true, cafe: true, bar: true, conv: true}, store.get("krtc-poi-cats", {})), cells: store.get("krtc-poi2", {}), loading: new Set(), items: new Map(), absorbed: new Set(), rev: 0, drawn: "", sub: store.get("krtc-poi-sub", null)};
 try { localStorage.removeItem("krtc-poi"); } catch (e) {}   // 舊版快取（沒有餐廳、酒吧）
 for (const [k, v] of Object.entries(poi.cells)) { if (!v || Date.now() - v.t > 7 * 864e5) delete poi.cells[k]; else v.items.forEach(it => poi.items.set(it.id, it)); }
 const cellKey = (i, j) => i + "," + j;
@@ -2099,7 +2129,7 @@ function loadOfficial() {
     // 餐廳、手搖飲、咖啡廳、酒吧：財政部營業稅籍登記（行業代碼）＋高雄市門牌座標
     (d.shop || []).forEach(([n, addr, cat, a, o, oh, disp, hs], i) => {
       const [lat, lon] = ll(a, o), isNew = hs === "O" || hs === "S" || hs === "C";
-      poi.items.set("oS" + i, {id: "oS" + i, c: SHOP_CAT[cat] || "tea", lat, lon, n: disp || (isNew ? n : cleanReg(n)), reg: isNew ? "" : n, b: "", oh: oh || "", ohs: (hs || "").toLowerCase(),
+      poi.items.set("oS" + i, {id: "oS" + i, c: SHOP_CAT[cat] || "tea", sub: cat >= 3 ? cat - 3 : 0, lat, lon, n: disp || (isNew ? n : cleanReg(n)), reg: isNew ? "" : n, b: "", oh: oh || "", ohs: (hs || "").toLowerCase(),
         addr, src: isNew ? ({S: "星巴克官網", C: "品牌官網"}[hs] || "OpenStreetMap") : "財政部營業登記", off: 1, gov: isNew ? 0 : 1, newSrc: isNew});
     });
     poi.official = true;
@@ -2243,6 +2273,7 @@ function ohStatus(it) {
 }
 function poiPass(it, st) { // 分類、休息中、ATM 篩選
   if (!poi.cats[it.c]) return false;
+  if (poi.sub != null && it.c === "food" && (it.sub || 0) !== poi.sub) return false;
   if (poi.hideClosed && st.known && !st.open) return false;
   if (poi.atm && it.c === "conv" && !hasATM(it)) return false;
   return true;
@@ -2252,7 +2283,7 @@ function poiFC() {
   for (const it of poi.items.values()) {
     const st = ohStatus(it);
     if (!poiPass(it, st)) continue;
-    f.push({type: "Feature", properties: {id: it.id, c: it.c, g: POI_CATS[it.c].glyph, s: st.known ? (st.open ? 1 : 0) : -1, f: isFav(it) ? 1 : 0}, geometry: {type: "Point", coordinates: [it.lon, it.lat]}});
+    f.push({type: "Feature", properties: {id: it.id, c: it.c, k: poiKind(it), s: st.known ? (st.open ? 1 : 0) : -1, f: isFav(it) ? 1 : 0}, geometry: {type: "Point", coordinates: [it.lon, it.lat]}});
   }
   return fc(f);
 }
@@ -2276,7 +2307,9 @@ function pieImage(id) {
 // 地圖上的店家招牌（畫成圖示，和分類鈕、清單用同一個樣子）
 function poiSignImages(edge) {
   const dpr = 2, S = 30, P = 3, W = (S + P * 2) * dpr;
-  for (const [c, cat] of Object.entries(POI_CATS)) for (const dim of [false, true]) {
+  const kinds = [...Object.entries(POI_CATS).map(([c, cat]) => [c, cat.color, cat.glyph]), ...FOOD_SUB.slice(1).map((f, i) => ["food" + (i + 1), POI_CATS.food.color, f.glyph])];
+  for (const [c, color, glyph] of kinds) for (const dim of [false, true]) {
+    const cat = {color, glyph};
     const id = "sg-" + c + (dim ? "-dim" : ""); if (map.hasImage(id)) map.removeImage(id);
     const cv = document.createElement("canvas"); cv.width = cv.height = W; const g = cv.getContext("2d"); g.scale(dpr, dpr);
     const rr = (x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
@@ -2302,7 +2335,7 @@ function poiOpen(it) {
 // 只有篩選、店家、收藏或營業狀態（每分鐘）有變才重畫，移動地圖時不用整批重送兩萬多間店
 function poiDraw(force) {
   if (!map || !styleReady) return;
-  const sig = [poi.on, POI_KEYS.map(k => +!!poi.cats[k]).join(""), +!!poi.hideClosed, +!!poi.atm, poi.items.size, Object.keys(poiFav).length, poi.rev, Math.floor(Date.now() / 6e4)].join("|");
+  const sig = [poi.on, poi.sub, POI_KEYS.map(k => +!!poi.cats[k]).join(""), +!!poi.hideClosed, +!!poi.atm, poi.items.size, Object.keys(poiFav).length, poi.rev, Math.floor(Date.now() / 6e4)].join("|");
   if (force || sig !== poi.drawn) { poi.drawn = sig; map.getSource("poi").setData(poiFC()); }
   for (const id of ["poi-dim", "poi", "poi-glow", "poi-glyph", "poi-halo", "poi-cluster", "poi-pie", "poi-count", "poi-sel", "poi-favring"]) map.setLayoutProperty(id, "visibility", poi.on ? "visible" : "none");
   document.querySelector(".mapwrap").classList.toggle("hud-on", poi.on);
@@ -2343,7 +2376,7 @@ async function poiEnsure(cells) {
       const lat = e.lat ?? e.center?.lat, lon = e.lon ?? e.center?.lon; if (lat == null) continue;
       const bucket = fresh.get(cellKey(Math.floor(lat / CELL), Math.floor(lon / CELL))); if (!bucket) continue;
       const chain = c === "conv" ? CONV.find(x => x.re.test([t.brand, t.name, t["brand:en"], t.alt_name].filter(Boolean).join(" "))) : null;
-      bucket.push({id: e.type[0] + e.id, c, lat: +lat.toFixed(6), lon: +lon.toFixed(6),
+      bucket.push({id: e.type[0] + e.id, c, sub: c === "food" && t.amenity === "fast_food" ? 4 : 0, lat: +lat.toFixed(6), lon: +lon.toFixed(6),
         n: t.name || t.brand || (chain && chain.name) || POI_CATS[c].label, b: chain ? chain.name : (t.brand || ""),
         oh: t.opening_hours || "", atm: t.atm || "", br: t.branch || "",
         addr: [t["addr:district"], t["addr:street"], t["addr:housenumber"] && t["addr:housenumber"] + "號"].filter(Boolean).join("")});
@@ -2363,6 +2396,8 @@ function cellsAround(lat, lon, r = 1) {
 function poiChipCounts() {
   if (!map) return; const n = poiCounts();
   document.querySelectorAll(".poichip [data-n]").forEach(b => { b.textContent = n[b.dataset.n] > 999 ? "999+" : n[b.dataset.n]; });
+  const ns = n.sub || [];
+  document.querySelectorAll("#poiSub [data-sub]").forEach(b => { const v = b.dataset.sub === "" ? n.food : (ns[+b.dataset.sub] || 0); b.querySelector("i").textContent = v > 999 ? "999+" : v; });
   const tot = POI_KEYS.reduce((a, k) => a + (poi.cats[k] ? n[k] : 0), 0);
   $("hudN").textContent = tot.toLocaleString("en-US");
   hudLL();
@@ -2374,7 +2409,8 @@ function hudLL() {
 }
 function poiCounts() {
   const b = map.getBounds(), n = Object.fromEntries(POI_KEYS.map(k => [k, 0]));
-  for (const it of poi.items.values()) if (b.contains([it.lon, it.lat])) n[it.c]++;
+  n.sub = [0, 0, 0, 0, 0, 0];
+  for (const it of poi.items.values()) if (b.contains([it.lon, it.lat])) { n[it.c]++; if (it.c === "food") n.sub[it.sub || 0]++; }
   return n;
 }
 // 地圖上方的提示：幾秒後自己淡出、點一下就關；「…」結尾的載入訊息會留著直到換掉
@@ -2447,9 +2483,29 @@ document.querySelectorAll("#poiGoogle a[data-gq]").forEach(a => {
   const upd = () => { a.href = gHref(a.dataset.gq); };
   a.addEventListener("pointerdown", upd); a.addEventListener("focus", upd); a.addEventListener("click", upd);
 });
+// 餐廳類型：全部、早餐、麵・小吃…（只在餐廳開著時出現，一次選一種）
+function poiSubPaint() {
+  const el = $("poiSub"); el.hidden = !poi.cats.food;
+  el.innerHTML = [["", "全部"], ...SUB_ORDER.map(i => [String(i), FOOD_SUB[i].short])].map(([v, t]) =>
+    `<button type="button" data-sub="${v}" aria-pressed="${String(v === "" ? poi.sub == null : poi.sub === +v)}">${v === "" ? "" : `<span class="g">${FOOD_SUB[+v].glyph}</span>`}${t}<i></i></button>`).join("");
+  if (map) poiChipCounts();
+}
+$("poiSub").addEventListener("click", e => {
+  const b = e.target.closest("[data-sub]"); if (!b) return;
+  poi.sub = b.dataset.sub === "" ? null : +b.dataset.sub;
+  store.set("krtc-poi-sub", poi.sub); poiSubPaint(); poiDraw(); poiRenderList();
+  if (poi.sub != null) $("locMsg").textContent = `只看${FOOD_SUB[poi.sub].label}，其他分類照常顯示`;
+});
+poiSubPaint();
+// 快速搜尋：點了就填進搜尋框
+$("poiQuick").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  $("poiQ").value = b.textContent; $("poiQx").hidden = false; poiRenderList();
+});
 // 分類鈕：點一下顯示／隱藏；長按「只看這一類」，只剩這一類時長按恢復全部
 function poiCatsApply(msg) {
   document.querySelectorAll(".poichip[data-cat]").forEach(b => b.setAttribute("aria-pressed", String(!!poi.cats[b.dataset.cat])));
+  poiSubPaint();
   store.set("krtc-poi-cats", poi.cats); poiDraw(); poiRenderList();
   if (msg) $("locMsg").textContent = msg;
 }
@@ -2557,9 +2613,9 @@ function poiRenderList() {
   box.innerHTML = list.map(({it, st, d}) => {
     const cat = POI_CATS[it.c], atmT = atmOf(it);
     const hint = ohHint(it, st), from = A.st && exitOf(A.name, it) ? `從 ${exitOf(A.name, it).e[0]} 號出口` : "";
-    const sub = [st.known ? (st.open ? "營業中" : "休息中") + (hint ? " " + hint : "") : "", atmT && !/沒有|不確定|未查到/.test(atmT) ? "ATM " + atmT.replace(/（.*?）/, "") : "", from || it.addr || ""].filter(Boolean).join("・") || cat.label;
+    const sub = [it.c === "food" ? FOOD_SUB[it.sub || 0].short : "", st.known ? (st.open ? "營業中" : "休息中") + (hint ? " " + hint : "") : "", atmT && !/沒有|不確定|未查到/.test(atmT) ? "ATM " + atmT.replace(/（.*?）/, "") : "", from || it.addr || ""].filter(Boolean).join("・") || cat.label;
     const dd = A.st ? [walkMin(d), "分鐘"] : d < 1000 ? [Math.round(d), "公尺"] : [(d / 1000).toFixed(1), "公里"];
-    return `<button type="button" class="poires-row" data-id="${esc(it.id)}"><span class="sg md" style="--c:var(--c-${it.c})">${cat.glyph}</span><span class="t"><b>${isFav(it) ? '<i class="fav">★</i>' : ""}${esc(poiName(it))}</b><small class="${st.known ? (st.open ? "open" : "closed") : ""}">${esc(sub)}</small></span><span class="d"><b>${dd[0]}</b>${dd[1]}</span></button>`;
+    return `<button type="button" class="poires-row" data-id="${esc(it.id)}"><span class="sg md" style="--c:var(--c-${it.c})">${it.c === "food" ? FOOD_SUB[it.sub || 0].glyph : cat.glyph}</span><span class="t"><b>${isFav(it) ? '<i class="fav">★</i>' : ""}${esc(poiName(it))}</b><small class="${st.known ? (st.open ? "open" : "closed") : ""}">${esc(sub)}</small></span><span class="d"><b>${dd[0]}</b>${dd[1]}</span></button>`;
   }).join("") + note;
 }
 $("poiRes").addEventListener("click", e => {
@@ -2588,11 +2644,11 @@ function poiPopup(it) {
   const ohSrc = it.ohs === "s" ? "星巴克官網" : it.ohs === "c" ? "品牌官網" : "OpenStreetMap";
   const srcNote = it.newSrc ? `資料：${it.src}` : it.gov ? `位置：財政部營業登記＋高雄市門牌座標${it.oh ? `；營業時間：${ohSrc}` : ""}`
     : it.off ? `資料：${it.src}${it.atmSrc ? "；ATM 銀行：財金公司開放資料" : ""}` : "資料：OpenStreetMap，營業時間與 ATM 以現場為準";
-  const sub = [cat.label, it.b && !name.startsWith(it.b) ? it.b : ""].filter(Boolean).join("・");
+  const sub = [it.c === "food" && it.sub ? FOOD_SUB[it.sub].label : cat.label, it.b && !name.startsWith(it.b) ? it.b : ""].filter(Boolean).join("・");
   const reg = it.gov && it.reg !== it.n ? `<small>登記名稱：${esc(it.reg)}</small>` : "";
   const cls = st.known ? (st.open ? "open" : "closed") : "";
   return `<div class="pop poipop" style="--c:var(--c-${it.c})">
-    <div class="pp-h"><span class="sg lg">${cat.glyph}</span><div><h4>${esc(name)}</h4><p>${esc(sub)}</p></div></div>
+    <div class="pp-h"><span class="sg lg">${it.c === "food" ? FOOD_SUB[it.sub || 0].glyph : cat.glyph}</span><div><h4>${esc(name)}</h4><p>${esc(sub)}</p></div></div>
     <div class="pp-st ${cls}"><span class="pill">${st.known ? (st.open ? "營業中" : "休息中") : "營業時間"}</span><span>${esc(st.text)}${st.known && !st.open && ohHint(it, st) ? `<small class="pp-hint">${esc(ohHint(it, st))}</small>` : ""}${mine ? `<small class="pp-mine">你自己填的</small>` : ""}</span>
       <button type="button" class="pp-edit" data-ohedit="${esc(it.id)}">${st.known || mine ? "修改" : "補上營業時間"}</button></div>
     ${atm ? `<div class="pp-row"><b>ATM</b><span>${esc(atm)}</span></div>` : ""}
@@ -2936,7 +2992,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-18-v65";
+const APP_VER = "krtc-2026-11-20-v66";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;

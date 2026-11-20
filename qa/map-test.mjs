@@ -97,6 +97,19 @@ await step("long press solo", async () => {
   await el.dispatchEvent("pointerdown"); await sleep(650); await el.dispatchEvent("pointerup"); await el.dispatchEvent("click"); await sleep(500);
   return { st, after: await p.evaluate(() => ({ ...poi.cats })) };
 });
+await step("food subtype", async () => {
+  await p.evaluate(() => { map.jumpTo({ center: [120.3045, 22.6215], zoom: 16.4 }); }); await sleep(1500);
+  await p.click('#poiSub [data-sub="1"]'); await sleep(1500); await shot("08b-breakfast");
+  const r = await p.evaluate(() => ({ sub: poi.sub, pills: [...document.querySelectorAll("#poiSub button")].map(b => b.innerText.replace(/\s+/g, "")).join(" "),
+    kinds: [...new Set(map.queryRenderedFeatures({ layers: ["poi-glyph"] }).map(f => f.properties.k))].join(","), rows: [...document.querySelectorAll("#poiRes > *")].slice(0, 3).map(r => r.innerText.replace(/\s+/g, " ").slice(0, 60)) }));
+  await p.click('#poiSub [data-sub=""]'); await sleep(800); await shot("08c-allkinds");
+  return r;
+});
+await step("quick search", async () => {
+  await p.locator("#poiQuick button", { hasText: "拉麵" }).click(); await sleep(800);
+  const r = await p.evaluate(() => [...document.querySelectorAll("#poiRes > *")].slice(0, 3).map(r => r.innerText.replace(/\s+/g, " ").slice(0, 60)));
+  await p.click("#poiQx"); return r;
+});
 await step("hide closed + atm", async () => {
   await p.click("#poiHide"); await sleep(600); await p.click("#poiAtm"); await sleep(600);
   const r = await p.evaluate(() => ({ hide: poi.hideClosed, atm: poi.atm }));
