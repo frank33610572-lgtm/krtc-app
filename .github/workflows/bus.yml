@@ -1,0 +1,17 @@
+name: bus
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: python tools/fetch_bus.py
+      - name: 存到 bus-data 分支（不放進網站）
+        run: |
+          cd bus && git init -q && git checkout -q -b bus-data && git add . && \
+          git -c user.name=bot -c user.email=bot@users.noreply.github.com commit -qm "高雄公車資料 $(date -u +%F)" && \
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" bus-data
