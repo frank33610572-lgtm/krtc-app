@@ -858,6 +858,30 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .bus-sidehd .t{display:grid;gap:1px;min-width:0}
 .bus-sidehd b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bus-sidehd small{font-size:11.5px;color:var(--muted)}
+.bus-back{display:flex;align-items:center;gap:4px;width:100%;border:0;background:color-mix(in srgb,var(--bus) 10%,transparent);color:var(--ink);border-radius:12px;padding:0 12px;min-height:42px;margin:0 0 10px;font:inherit;font-size:13.5px;font-weight:700;text-align:left;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bus-sidetabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:10px -14px 0;padding:2px 14px}
+.bus-sidetabs::-webkit-scrollbar{display:none}
+.bus-sidetabs button{flex:none;display:flex;align-items:center;gap:8px;min-height:48px;padding:5px 13px 5px 8px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.bus-sidetabs button:first-child{padding-left:13px}
+.bus-sidetabs b{display:block;font-size:13.5px;white-space:nowrap;max-width:9.5em;overflow:hidden;text-overflow:ellipsis}
+.bus-sidetabs small{display:block;font-size:11px;color:var(--muted);white-space:nowrap}
+.bus-sidetabs .tag{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--bus);color:#fff;font-family:var(--font-display);font-size:15px;font-weight:700;flex:none}
+.bus-sidetabs button[aria-selected="false"] .tag{background:color-mix(in srgb,var(--bus) 40%,var(--muted))}
+.bus-sidetabs button[aria-selected="true"]{border-color:var(--bus);background:color-mix(in srgb,var(--bus) 12%,var(--surface));box-shadow:inset 0 0 0 1px var(--bus)}
+.stag{font-style:normal;display:inline-grid;place-items:center;width:18px;height:18px;border-radius:5px;background:color-mix(in srgb,var(--bus) 18%,transparent);color:var(--bus);font-family:var(--font-display);font-size:11.5px;margin-right:6px;vertical-align:.08em}
+.bus-ract{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 8px;padding:0 4px 0 14px;font-size:12px;color:var(--muted)}
+.bus-ract button,.bus-rvlink{flex:none;border:0;border-radius:999px;background:var(--bc);color:#fff;font:inherit;font-size:13px;font-weight:700;padding:0 14px;min-height:36px;cursor:pointer}
+.bus-rvlink{min-height:28px;padding:0 10px;font-size:12px;margin-left:4px}
+.bus-rf{border:0;background:none;color:var(--bus);font:inherit;font-size:12px;font-weight:700;padding:0 6px;margin-left:4px;min-height:30px;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.bus-setend button[aria-pressed="true"]{background:var(--soft);color:var(--muted)}
+.bus-seq.live .n{flex:1;min-width:0}
+.bus-seq .n em{font-style:normal;margin-left:8px;font-size:11px;padding:1px 6px;border-radius:6px;background:color-mix(in srgb,var(--bus) 16%,transparent);color:var(--bus);font-weight:700;white-space:nowrap}
+.bus-seq .eta{flex:none;font-size:14px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink)}
+.bus-seq .eta.now{color:var(--red)}
+.bus-seq .eta.soon{color:#d9480f}
+.bus-seq .eta.wait,.bus-seq .eta.off,.bus-seq .eta.none{color:var(--muted);font-weight:500;font-size:12.5px}
+.bus-seq li.here>button{background:color-mix(in srgb,var(--bus) 9%,transparent);border-radius:10px;font-weight:700}
+.bus-seq li.bus i{background:var(--bc);box-shadow:0 0 0 4px color-mix(in srgb,var(--bc) 30%,transparent)}
 .bus-key{margin:10px 0 6px;padding:12px 13px;border-radius:14px;border:1px solid color-mix(in srgb,#e0a200 45%,var(--line));background:color-mix(in srgb,#e0a200 10%,var(--surface));display:grid;gap:8px}
 .bus-key b{font-size:14.5px}
 .bus-key p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.55}
@@ -2935,7 +2959,8 @@ const hasTdxKey = () => { const k = store.get("krtc-tdx-key", null); return !!(k
 
 const BUS_API = "https://tdx.transportdata.tw/api/basic/v2/Bus/";
 const bus = {data: null, loading: null, map: null, ready: false, sel: null, route: null, rdir: 0, eta: null, etaFor: null, etaAt: 0, err: "",
-  timer: 0, shapes: null, veh: [], q: "", me: null, side: null, favs: store.get("krtc-bus-fav", []), open: false, lastFetch: 0};
+  timer: 0, shapes: null, veh: [], q: "", me: null, side: null, favs: store.get("krtc-bus-fav", []), open: false, lastFetch: 0,
+  show: null, back: null, reta: null, retaFor: null, retaAt: 0, recent: store.get("krtc-bus-recent", [])};   // show：trip 方案／stop 站牌／route 整條路線
 // 路線號碼徽章：紅33 → 紅系、100百貨幹線 → 100 + 百貨幹線
 const BUS_FAM = {"紅": "--red", "橘": "--orange", "綠": "#2e9b5f", "黃": "#c99a06", "藍": "#2f6fd6"};
 function busBadge(name) {
@@ -3102,17 +3127,21 @@ function busShape(L) {
 // ---------- 即時到站 ----------
 // 自動更新：沒有金鑰時，8 分鐘沒碰公車頁就先停（省免費額度），一碰就恢復
 bus.act = Date.now();
+// 現在畫面要抓哪一種即時資料：整條路線，或一個站
+function busTarget() { return bus.show === "route" ? (bus.route != null ? "r" + bus.route : null) : bus.sel != null ? "s" + bus.sel : null; }
+function busCurAt() { return bus.show === "route" ? (bus.retaFor === bus.route ? bus.retaAt : 0) : (bus.etaFor === bus.sel ? bus.etaAt : 0); }
 function busSched(ms) {
   clearTimeout(bus.timer);
-  if (!bus.open || bus.sel == null) return;
+  if (!bus.open || !busTarget()) return;
   if (!hasTdxKey() && Date.now() - bus.act > 8 * 60e3) { bus.idle = true; return; }
   bus.timer = setTimeout(() => busFetchETA(), ms);
 }
 ["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, () => {
   bus.act = Date.now();
-  if (bus.idle && bus.open && bus.sel != null) { bus.idle = false; busFetchETA(true); }
+  if (bus.idle && bus.open && busTarget()) { bus.idle = false; busFetchETA(true); }
 }, {passive: true}));
 async function busFetchETA(force) {
+  if (bus.show === "route") return busFetchRouteETA(force);
   const g = bus.sel != null ? busG(bus.sel) : null; if (!g) return;
   const key = hasTdxKey(), gap = key ? 25e3 : 55e3;
   if (!force && bus.etaFor === g.i && Date.now() - bus.lastFetch < gap) return busSched(gap - (Date.now() - bus.lastFetch));
@@ -3125,7 +3154,7 @@ async function busFetchETA(force) {
       const f = ids.slice(k, k + 45).map(id => `StopUID eq 'KHH${id}'`).join(" or ");
       rows.push(...await tdxJSON(`${BUS_API}EstimatedTimeOfArrival/City/Kaohsiung?${sel}&$filter=${encodeURIComponent(f)}&$format=JSON`));
     }
-    if (bus.sel !== want) return;
+    if (bus.sel !== want || bus.show === "route") return;
     const eta = new Map();   // 鍵：路線方向|站位
     for (const r of rows) {
       const L = bus.data.byKey.get(String(r.SubRouteUID).replace("KHH", "") + "|" + r.Direction); if (!L) continue;
@@ -3136,12 +3165,37 @@ async function busFetchETA(force) {
     }
     bus.eta = eta; bus.etaFor = want; bus.etaAt = Date.now(); bus.err = "";
   } catch (e) {
-    if (bus.sel !== want) return;
+    if (bus.sel !== want || bus.show === "route") return;
     bus.err = e.code === 429 ? "limit" : e.code === 401 && hasTdxKey() ? "key" : "net";
   }
   const typing = document.activeElement && /^bk/.test(document.activeElement.id || "");
   if (!typing) busRender();
-  if (bus.route != null && !bus.err) busFetchVeh();
+  if (bus.route != null && !bus.err && hasTdxKey()) busFetchVeh();   // 沒金鑰時不重複抓車輛位置，省額度
+  busSched(bus.err === "limit" ? 180e3 : gap);
+}
+// 整條路線：一次抓這條線每一站的預估到站（只算 1 次請求）
+async function busFetchRouteETA(force) {
+  const L = bus.data.lines[bus.route]; if (!L) return;
+  const gap = hasTdxKey() ? 25e3 : 55e3;
+  if (!force && bus.retaFor === L.i && Date.now() - bus.lastFetch < gap) return busSched(gap - (Date.now() - bus.lastFetch));
+  bus.lastFetch = Date.now();
+  try {
+    const f = `SubRouteUID eq 'KHH${L.sub}' and Direction eq ${L.dir}`;
+    const rows = await tdxJSON(`${BUS_API}EstimatedTimeOfArrival/City/Kaohsiung?$select=StopUID,EstimateTime,StopStatus,NextBusTime&$filter=${encodeURIComponent(f)}&$format=JSON`);
+    if (bus.route !== L.i || bus.show !== "route") return;
+    const m = new Map();
+    for (const r of rows) {
+      const si = bus.data.sidAt.get(String(r.StopUID).replace("KHH", "")); if (si == null) continue;
+      const c = m.get(si); if (!c || (r.EstimateTime ?? 1e9) < (c.t ?? 1e9)) m.set(si, {t: r.EstimateTime, st: r.StopStatus, next: r.NextBusTime});
+    }
+    bus.reta = m; bus.retaFor = L.i; bus.retaAt = Date.now(); bus.err = "";
+  } catch (e) {
+    if (bus.route !== L.i || bus.show !== "route") return;
+    bus.err = e.code === 429 ? "limit" : e.code === 401 && hasTdxKey() ? "key" : "net";
+  }
+  const typing = document.activeElement && /^bk/.test(document.activeElement.id || "");
+  if (!typing) busRender();
+  if (!bus.err) busFetchVeh();
   busSched(bus.err === "limit" ? 180e3 : gap);
 }
 async function busFetchVeh() {
@@ -3164,6 +3218,15 @@ function busETAText(x) {
   if (x.st === 4) return {big: "今日停駛", cls: "off", sec: 4e9};
   return {big: "—", cls: "none", sec: 1e9};
 }
+// 倒數：抓到資料後每 5 秒在手機上自己往下減，不用等下一次更新
+const busLive = (x, at) => x && x.st === 0 && x.t != null && at ? {...x, t: Math.max(0, x.t - (Date.now() - at) / 1000)} : x;
+function busEtaSpan(x, at) {
+  const t = busETAText(busLive(x, at)), live = x && x.st === 0 && x.t != null && at;
+  return `<span class="eta ${t.cls}"${live ? ` data-t="${x.t}" data-at="${at}"` : ""}>${esc(t.big)}</span>`;
+}
+function busTick() {
+  document.querySelectorAll("#busSheet [data-t]").forEach(s => { const t = busETAText({st: 0, t: Math.max(0, +s.dataset.t - (Date.now() - +s.dataset.at) / 1000)}); if (s.textContent !== t.big) s.textContent = t.big; s.className = ("eta " + t.cls).trim(); });
+}
 // ---------- 畫面 ----------
 function busFavHas(g) { return bus.favs.some(f => f.n === g.n && Math.abs(f.a - g.lat) < .002 && Math.abs(f.o - g.lon) < .002); }
 function busFavToggle(g) {
@@ -3181,6 +3244,19 @@ $("busFavs").addEventListener("click", e => {
   let best = null, bd = 1e9; for (const g of bus.data.groups) if (g.n === f.n) { const d = Math.hypot(g.lat - f.a, g.lon - f.o); if (d < bd) { bd = d; best = g; } }
   if (best) busSelect(best.i, {fly: true});
 });
+function busRecentAdd(g) {
+  const same = f => f.n === g.n && Math.abs(f.a - g.lat) < .002 && Math.abs(f.o - g.lon) < .002;
+  bus.recent = [{n: g.n, a: +g.lat.toFixed(5), o: +g.lon.toFixed(5)}, ...bus.recent.filter(f => !same(f))].slice(0, 8);
+  store.set("krtc-bus-recent", bus.recent);
+}
+function busSrow(g, extra, attr = "data-g") {
+  return `<button type="button" class="bus-srow" ${attr}="${g.i}"><span class="bus-dot${g.names.length >= 16 ? " hub" : ""}"></span><span class="t"><b>${esc(g.n)}</b><small>${g.names.length} 條路線・${esc(g.names.slice(0, 5).join("、"))}${g.names.length > 5 ? "…" : ""}</small></span>${extra || ""}</button>`;
+}
+const busMinTag = d => `<span class="d"><b>${Math.max(1, Math.round(d / 80))}</b>分鐘</span>`;
+// 有設好上下車站、但正在看別的畫面：上方一條「回到方案」
+function busBackBar() {
+  return bus.from != null && bus.to != null && bus.show !== "trip" ? `<button type="button" class="bus-back" data-act="totrip">‹ 回到「${esc(busG(bus.from).n)} → ${esc(busG(bus.to).n)}」的方案</button>` : "";
+}
 function busNearList(n) {
   if (!bus.me) return [];
   return bus.data.groups.map(g => [haversine([bus.me.lat, bus.me.lon], [g.lat, g.lon]), g]).sort((a, b) => a[0] - b[0]).slice(0, n);
@@ -3189,10 +3265,11 @@ function busStatusLine() {
   if (bus.err === "limit") return hasTdxKey() ? `<p class="bus-err">即時到站暫時抓不到：你的金鑰額度也滿了，3 分鐘後自動再試。</p>` : busKeyCard();
   if (bus.err === "key") return `<p class="bus-err">金鑰被交通部拒絕，請到「設定」檢查 Client Id、Client Secret 有沒有貼錯。</p>`;
   if (bus.err === "net") return `<p class="bus-err">即時到站抓不到（可能沒有網路），稍後自動再試。</p>`;
-  if (!bus.etaAt || bus.etaFor !== bus.sel) return `<p class="bus-upd">正在抓即時到站…</p>`;
-  const s = Math.round((Date.now() - bus.etaAt) / 1000);
-  if (bus.idle) return `<p class="bus-upd">${Math.round(s / 60)} 分鐘前更新・暫停自動更新（點一下畫面就繼續）</p>`;
-  return `<p class="bus-upd"><i class="led"></i>${s < 10 ? "剛剛更新" : s + " 秒前更新"}・每 ${hasTdxKey() ? 30 : 60} 秒自動更新</p>`;
+  const at = busCurAt();
+  if (!at) return `<p class="bus-upd">正在抓即時到站…</p>`;
+  const s = Math.round((Date.now() - at) / 1000), rf = Date.now() - bus.lastFetch > 15e3 ? `<button type="button" class="bus-rf" data-act="refresh">立即更新</button>` : "";
+  if (bus.idle) return `<p class="bus-upd">${Math.round(s / 60)} 分鐘前更新・已暫停自動更新${rf}</p>`;
+  return `<p class="bus-upd"><i class="led"></i>${s < 10 ? "剛剛更新" : s + " 秒前更新"}・時間會自己倒數${rf}</p>`;
 }
 // 沒有金鑰又被限流時，直接在這裡教怎麼申請、貼上
 function busKeyCard() {
@@ -3216,7 +3293,6 @@ document.addEventListener("click", async e => {
 function busRender() {
   const el = $("busSheet"); if (!bus.data) { el.innerHTML = `<p class="hint">公車站牌資料載入中…</p>`; return; }
   const D = bus.data, q = bus.q.trim();
-  if (!q && bus.from != null && bus.to != null) return busRenderTrip(el);
   if (q) {   // 搜尋：站牌＋路線
     const qs = q.toLowerCase();
     const stops = []; const seen = new Set();
@@ -3229,54 +3305,79 @@ function busRender() {
       ${!rl.length && !stops.length ? `<p class="hint">找不到「${esc(q)}」的站牌或路線。</p>` : ""}`;
     return;
   }
-  if (bus.route != null && bus.sel == null) {   // 只選了路線：看整條線的站
-    const L = D.lines[bus.route], sib = D.lines.filter(x => x.n === L.n);
-    el.innerHTML = `<div class="bus-head">${busBadgeHTML(L.n, true)}<div><h3>${esc(L.n)}</h3><p>往 ${esc(L.dest)}・${L.stops.length} 站</p></div><button type="button" class="bus-x" data-act="close" aria-label="關閉">×</button></div>
-      ${sib.length > 1 ? `<div class="bus-dirs">${sib.map(x => `<button type="button" data-line="${x.i}" aria-pressed="${x.i === L.i}">往 ${esc(x.dest)}</button>`).join("")}</div>` : ""}
-      <ol class="bus-seq" style="--bc:${busBadge(L.n).color}">${L.stops.map(([seq, gi, si]) => `<li><button type="button" data-g="${gi}" data-s="${si}" data-keep="1"><i></i>${esc(busG(gi).n)}</button></li>`).join("")}</ol>`;
-    return;
-  }
-  if (bus.sel == null) {   // 什麼都沒選：附近站牌
-    const near = busNearList(8);
-    el.innerHTML = near.length ? `<h3 class="bus-h">離你最近的站牌</h3><div class="bus-list">${near.map(([d, g]) => `<button type="button" class="bus-srow" data-g="${g.i}"><span class="bus-dot${g.names.length >= 16 ? " hub" : ""}"></span><span class="t"><b>${esc(g.n)}</b><small>${g.names.length} 條路線・${esc(g.names.slice(0, 5).join("、"))}${g.names.length > 5 ? "…" : ""}</small></span><span class="d"><b>${Math.max(1, Math.round(d / 80))}</b>分鐘</span></button>`).join("")}</div>`
+  if (bus.show === "route" && bus.route != null) return busRenderRoute(el);
+  if (bus.show === "trip" && bus.from != null && bus.to != null) return busRenderTrip(el);
+  if (bus.sel == null) {   // 什麼都沒選：附近站牌、最近查過
+    const near = busNearList(6), rec = bus.recent.map(busFindGroup).filter(x => x != null).slice(0, 6);
+    let html = busBackBar();
+    if (near.length) html += `<h3 class="bus-h">離你最近的站牌</h3><div class="bus-list">${near.map(([d, g]) => busSrow(g, busMinTag(d))).join("")}</div>`;
+    if (rec.length) html += `<h3 class="bus-h">最近查過</h3><div class="bus-list">${rec.map(i => busSrow(busG(i))).join("")}</div>`;
+    html += near.length || rec.length ? `<p class="hint bus-tip">也可以直接點地圖上的站牌，或在上面搜尋路線號碼。</p>`
       : `<div class="bus-empty"><b>點地圖上的站牌，就會看到經過的公車和還要等多久</b><p>大站（很多路線經過）一開始就看得到，小站放大地圖才會出現。也可以按「附近」找離你最近的站，或直接搜尋路線號碼。</p><p class="hint">共 ${D.groups.length.toLocaleString()} 個站、${new Set(D.lines.map(l => l.n)).size} 條路線（資料 ${D.v}）</p></div>`;
+    el.innerHTML = html;
     return;
   }
-  // 選了站：依站牌（馬路哪一側／哪個月台）分開列，每條路線往哪、還要等多久
-  const g = busG(bus.sel), fresh = !bus.err || Date.now() - bus.etaAt < 120e3, ETA = bus.etaFor === g.i && fresh ? bus.eta : null, multi = g.st.length > 1;
+  // 選了站：同一站的各個站牌（馬路兩側／月台）用分頁切換；預設「全部」依到站時間排
+  const g = busG(bus.sel), at = busCurAt(), fresh = !bus.err || Date.now() - bus.etaAt < 120e3, ETA = at && fresh ? bus.eta : null;
   const sides = g.st.map((si, k) => {
     const S = D.stations[si];
     const rows = [...new Set(S.e.map(x => x.li))].map(li => {
       const L = D.lines[li], x = ETA && ETA.get(li + "|" + si), t = busETAText(x);
       const last = L.stops.length && L.stops[L.stops.length - 1][2] === si;
-      return {L, x, t, last};
-    }).filter(r => !r.last).sort((a, b) => a.t.sec - b.t.sec || a.L.n.localeCompare(b.L.n, "zh-Hant", {numeric: true}));
+      return {L, x, t, last, tag: busSideTag(k)};
+    }).filter(r => !r.last);
     const d = bus.me ? haversine([bus.me.lat, bus.me.lon], [S.lat, S.lon]) : null;
     return {S, k, rows, d};
   }).filter(x => x.rows.length);
-  if (bus.side == null || !sides.some(x => x.S.i === bus.side)) bus.side = (sides.slice().sort((a, b) => (a.d ?? 0) - (b.d ?? 0))[0] || {S: {i: g.st[0]}}).S.i;
+  const multi = sides.length > 1;
+  if (!multi) bus.side = sides[0] ? sides[0].S.i : -1;
+  else if (bus.side == null || (bus.side >= 0 && !sides.some(x => x.S.i === bus.side))) bus.side = bus.me ? sides.slice().sort((a, b) => a.d - b.d)[0].S.i : -1;
+  const cur = multi ? sides.find(x => x.S.i === bus.side) : null, showTag = multi && !cur;
+  const rows = (cur ? cur.rows : sides.flatMap(x => x.rows)).slice().sort((a, b) => a.t.sec - b.t.sec || a.L.n.localeCompare(b.L.n, "zh-Hant", {numeric: true}));
   const nRoutes = new Set(sides.flatMap(x => x.rows.map(r => r.L.i))).size;
-  const rowHTML = ({L, x, t}) => {
-    const b = busBadge(L.n), more = x && x.st === 0 && x.ests && x.ests.length > 1 ? x.ests.slice(1, 3).map(e => Math.round(e.EstimateTime / 60) + " 分").join("、") : "";
+  const rowHTML = r => {
+    const {L, x, t} = r, b = busBadge(L.n), on = bus.route === L.i;
+    const more = x && x.st === 0 && x.ests && x.ests.length > 1 ? x.ests.slice(1, 3).map(e => Math.round(e.EstimateTime / 60) + " 分").join("、") : "";
     const lastBus = x && x.ests && x.ests[0] && x.ests[0].IsLastBus;
     const sub = [b.rest, t.sub, more ? "下一班 " + more : ""].filter(Boolean).join("・");
-    return `<button type="button" class="bus-erow${bus.route === L.i ? " on" : ""}" data-line="${L.i}" data-keep="1" style="--bc:${b.color}">
-      ${busBadgeHTML(L.n)}<span class="t"><b>往 ${esc(L.dest)}</b><small>${esc(sub)}${lastBus ? '<em class="lastbus">末班</em>' : ""}</small></span>
-      <span class="eta ${t.cls}">${esc(t.big)}</span></button>`;
+    return `<button type="button" class="bus-erow${on ? " on" : ""}" data-line="${L.i}" aria-expanded="${on}" style="--bc:${b.color}">
+      ${busBadgeHTML(L.n)}<span class="t"><b>${showTag ? `<i class="stag">${r.tag}</i>` : ""}往 ${esc(L.dest)}</b><small>${esc(sub)}${lastBus ? '<em class="lastbus">末班</em>' : ""}</small></span>
+      ${busEtaSpan(x, at)}</button>
+      ${on ? `<div class="bus-ract" style="--bc:${b.color}"><span>地圖上畫出了整條路線${bus.veh.length ? `・${bus.veh.length} 輛車在路上` : ""}</span><button type="button" data-rv="${L.i}">每站到站時間 ›</button></div>` : ""}`;
   };
-  el.innerHTML = `<div class="bus-head"><span class="bus-dot big${g.names.length >= 16 ? " hub" : ""}"></span><div><h3>${esc(g.n)}</h3><p>${nRoutes} 條路線${multi ? `・${sides.length} 個站牌` : ""}</p></div>
+  const tabs = multi ? `<div class="bus-sidetabs" role="tablist" aria-label="選擇站牌">
+      <button type="button" role="tab" data-side="-1" aria-selected="${!cur}"><span><b>全部</b><small>${nRoutes} 條路線</small></span></button>
+      ${sides.map(x => `<button type="button" role="tab" data-side="${x.S.i}" aria-selected="${cur === x}"><span class="tag">${busSideTag(x.k)}</span><span><b>往 ${esc(x.S.dests[0] || "—")}</b><small>${x.d != null ? "離你 " + distText(x.d) : x.rows.length + " 條路線"}</small></span></button>`).join("")}
+    </div>` : "";
+  const endBtn = (w, label, done) => `<button type="button" data-end="${w}"${bus[w] === g.i ? ' aria-pressed="true"' : ""}><i class="${w}"></i>${bus[w] === g.i ? done : label}</button>`;
+  el.innerHTML = `${busBackBar()}<div class="bus-head"><span class="bus-dot big${g.names.length >= 16 ? " hub" : ""}"></span><div><h3>${esc(g.n)}</h3><p>${nRoutes} 條路線${multi ? `・${sides.length} 個站牌` : ""}</p></div>
       <button type="button" class="bus-star" data-act="fav" aria-pressed="${busFavHas(g)}" aria-label="收藏這個站">${busFavHas(g) ? "★" : "☆"}</button><button type="button" class="bus-x" data-act="close" aria-label="關閉">×</button></div>
-    <div class="bus-setend"><button type="button" data-end="from"><i class="from"></i>設為上車站</button><button type="button" data-end="to"><i class="to"></i>設為下車站</button></div>
+    <div class="bus-setend">${endBtn("from", "設為上車站", "已是上車站")}${endBtn("to", "設為下車站", "已是下車站")}</div>
+    ${tabs}
     ${busStatusLine()}
-    ${sides.map(({S, k, rows, d}) => `<section class="bus-side${multi && S.i === bus.side ? " on" : ""}">
-      ${multi ? `<button type="button" class="bus-sidehd" data-side="${S.i}"><span class="tag">${busSideTag(k)}</span><span class="t"><b>往 ${esc(S.dests.slice(0, 2).join("、") || "—")} 方向</b><small>${d != null ? `離你 ${distText(d)}・` : ""}點這裡在地圖上看這個站牌的位置</small></span></button>` : ""}
-      <div class="bus-eta">${rows.map(rowHTML).join("")}</div></section>`).join("")}
+    <div class="bus-eta">${rows.map(rowHTML).join("") || `<p class="hint">這裡是終點站，沒有往其他地方的公車。</p>`}</div>
     <a class="bus-gmap" href="${busGmap(g)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span><b>在 Google 地圖看這站的即時班次</b><small>不用登入；這裡抓不到即時資料時可以用</small></span></a>
-    <p class="hint bus-tip">點路線會在地圖上畫出整條路線${hasTdxKey() ? "和公車現在的位置" : ""}，再點一次取消。</p>`;
+    <p class="hint bus-tip">點路線會在地圖上畫出整條路線，再按「每站到站時間」看公車開到哪裡了。</p>`;
+}
+// 整條路線：每一站還要多久、公車快到哪一站
+function busRenderRoute(el) {
+  const D = bus.data, L = D.lines[bus.route], sib = D.lines.filter(x => x.n === L.n), b = busBadge(L.n);
+  const at = busCurAt(), fresh = !bus.err || Date.now() - bus.retaAt < 120e3, R = at && fresh ? bus.reta : null;
+  const here = new Set(bus.sel != null ? busG(bus.sel).st : []);
+  const back = bus.back === "stop" && bus.sel != null ? `回到「${esc(busG(bus.sel).n)}」` : bus.back === "trip" && bus.from != null && bus.to != null ? "回到上下車方案" : "";
+  el.innerHTML = `${back ? `<button type="button" class="bus-back" data-act="back">‹ ${back}</button>` : busBackBar()}
+    <div class="bus-head">${busBadgeHTML(L.n, true)}<div><h3>${esc(L.n)}</h3><p>往 ${esc(L.dest)}・${L.stops.length} 站${bus.veh.length ? `・${bus.veh.length} 輛車在路上` : ""}</p></div><button type="button" class="bus-x" data-act="close" aria-label="關閉">×</button></div>
+    ${sib.length > 1 ? `<div class="bus-dirs">${sib.map(x => `<button type="button" data-line="${x.i}" aria-pressed="${x.i === L.i}">往 ${esc(x.dest)}</button>`).join("")}</div>` : ""}
+    ${busStatusLine()}
+    <ol class="bus-seq live" style="--bc:${b.color}">${L.stops.map(([, gi, si]) => {
+      const x = R && R.get(si), near = x && x.st === 0 && x.t != null && x.t < 90, me = here.has(si);
+      return `<li class="${near ? "bus" : ""}${me ? " here" : ""}"><button type="button" data-g="${gi}" data-s="${si}" data-keep="1"><i></i><span class="n">${esc(busG(gi).n)}${me ? "<em>你選的站</em>" : ""}</span>${R ? busEtaSpan(x, at) : ""}</button></li>`;
+    }).join("")}</ol>
+    <p class="hint bus-tip">右邊是公車還要多久到那一站，實心圓點是公車快到的站。點站名可以看那一站的所有公車。</p>`;
 }
 // Google 地圖：用站牌座標搜尋「站名 公車站」，打開後點站牌就有即將到站的班次
 function busGmap(g) {
-  const S = bus.side != null ? bus.data.stations[bus.side] : g;
+  const S = bus.side != null && bus.side >= 0 ? bus.data.stations[bus.side] : g;
   return `https://www.google.com/maps/search/${encodeURIComponent(g.n.replace(/\(.*?\)/g, "") + " 公車站")}/@${S.lat.toFixed(6)},${S.lon.toFixed(6)},18z`;
 }
 $("busSheet").addEventListener("click", e => {
@@ -3284,21 +3385,52 @@ $("busSheet").addEventListener("click", e => {
   const en = e.target.closest("[data-end]"); if (en) return busSetEnd(en.dataset.end, bus.sel);
   const tp = e.target.closest("[data-trip]"); if (tp) { bus.trip = tp.dataset.trip; bus.tripManual = true; busPaintMap(); busRender(); return; }
   const act = e.target.closest("[data-act]");
-  if (act && act.dataset.act === "cleartrip") { bus.from = bus.to = null; bus.trip = null; bus.tripRes = null; busTripSave(); busTripPaint(); bus.sel = null; busPaintMap(); busRender(); return; }
-  if (act) { if (act.dataset.act === "close") { bus.sel = null; bus.route = null; bus.veh = []; busPaintMap(); busRender(); } else if (act.dataset.act === "fav") busFavToggle(busG(bus.sel)); return; }
+  if (act && act.dataset.act === "cleartrip") { bus.from = bus.to = null; bus.trip = null; bus.tripRes = null; busTripSave(); busTripPaint(); bus.sel = null; bus.show = null; busPaintMap(); busRender(); return; }
+  if (act) {
+    const a = act.dataset.act, trip = bus.from != null && bus.to != null;
+    if (a === "fav") busFavToggle(busG(bus.sel));
+    else if (a === "refresh") { bus.idle = false; busFetchETA(true); }
+    else if (a === "totrip") { bus.show = "trip"; bus.back = null; bus.sel = bus.from; bus.route = null; bus.veh = []; busPaintMap(); busRender(); busFetchETA(); busFitTrip(); }
+    else if (a === "back") {
+      const b = bus.back; bus.back = null; bus.route = null; bus.veh = [];
+      bus.show = b === "trip" && trip ? "trip" : b === "stop" && bus.sel != null ? "stop" : null;
+      if (bus.show === "trip") bus.sel = bus.from;
+      busPaintMap(); busRender(); busFetchETA();
+    } else if (a === "close") {
+      bus.route = null; bus.veh = []; bus.back = null;
+      if (trip) { bus.show = "trip"; bus.sel = bus.from; } else { bus.show = null; bus.sel = null; }
+      busPaintMap(); busRender(); busFetchETA();
+    }
+    return;
+  }
+  const rv = e.target.closest("[data-rv]"); if (rv) return busOpenRoute(+rv.dataset.rv, bus.show === "route" ? bus.back : bus.show);
   const sd = e.target.closest("[data-side]"); if (sd) {
-    bus.side = +sd.dataset.side; const S = bus.data.stations[bus.side];
-    if (bus.map) bus.map.flyTo({center: [S.lon, S.lat], zoom: Math.max(bus.map.getZoom(), 17.2), duration: 600});
+    bus.side = +sd.dataset.side;
+    if (bus.side >= 0 && bus.map) { const S = bus.data.stations[bus.side]; bus.map.flyTo({center: [S.lon, S.lat], zoom: Math.max(bus.map.getZoom(), 17.2), duration: 600}); }
     busPaintMap(); busRender(); return;
   }
   const kf = e.target.closest("[data-keyform]"); if (kf) return;
   const gl = e.target.closest("[data-g]"); if (gl) { if (!gl.dataset.keep) { bus.q = ""; $("busQ").value = ""; $("busQx").hidden = true; } busSelect(+gl.dataset.g, {fly: true, keepRoute: !!gl.dataset.keep, side: gl.dataset.s != null ? +gl.dataset.s : undefined}); return; }
   const ln = e.target.closest("[data-line]"); if (ln) {
     const li = +ln.dataset.line;
-    if (bus.q) { bus.q = ""; $("busQ").value = ""; $("busQx").hidden = true; bus.sel = null; }
-    busPickRoute(bus.route === li && bus.sel != null ? null : li);
+    if (bus.q) { bus.q = ""; $("busQ").value = ""; $("busQx").hidden = true; return busOpenRoute(li, bus.show === "route" ? bus.back : bus.show); }
+    if (bus.show === "route") return busOpenRoute(li, bus.back);   // 切換方向
+    busPickRoute(bus.route === li ? null : li);   // 站牌看板：在地圖上畫出／取消這條路線
   }
 });
+function busOpenRoute(li, back) {
+  bus.back = back || null; bus.show = "route"; bus.route = li; bus.veh = []; bus.err = "";
+  if (bus.retaFor !== li) { bus.reta = null; bus.retaFor = null; }
+  busPaintMap(); busRender();
+  const L = bus.data.lines[li];
+  if (bus.map && typeof maplibregl !== "undefined") { const b = new maplibregl.LngLatBounds(); for (const [, , si] of L.stops) b.extend([bus.data.stations[si].lon, bus.data.stations[si].lat]); if (!b.isEmpty()) bus.map.fitBounds(b, {padding: 50, duration: 600, maxZoom: 15}); }
+  busFetchETA(true);
+  if (matchMedia("(max-width: 979px)").matches) setTimeout(() => $("busSheet").scrollIntoView({behavior: "smooth", block: "start"}), 120);
+}
+function busFitTrip() {
+  if (!bus.map || bus.from == null || bus.to == null || typeof maplibregl === "undefined") return;
+  const b = new maplibregl.LngLatBounds(); for (const g of [busG(bus.from), busG(bus.to)]) b.extend([g.lon, g.lat]); bus.map.fitBounds(b, {padding: 70, duration: 600, maxZoom: 16});
+}
 function busPickRoute(li) {
   bus.route = li; bus.veh = [];
   busPaintMap(); busRender();
@@ -3311,20 +3443,25 @@ function busPickRoute(li) {
 function busSelect(i, o = {}) {
   if (bus.sel !== i) bus.side = null;
   bus.sel = i; if (o.side != null) bus.side = o.side;
+  bus.show = "stop"; bus.back = null;
   if (!o.keepRoute) { bus.route = null; bus.veh = []; }
   if (bus.etaFor !== i) { bus.etaAt = 0; bus.err = ""; }
-  const g = busG(i), S = bus.side != null ? bus.data.stations[bus.side] : g;
+  const g = busG(i), S = bus.side != null && bus.side >= 0 ? bus.data.stations[bus.side] : g;
+  busRecentAdd(g);
   if (o.fly && bus.map) bus.map.flyTo({center: [S.lon, S.lat], zoom: Math.max(bus.map.getZoom(), 16.6), duration: 650});
   busPaintMap(); busRender(); busFetchETA(true);
   if (matchMedia("(max-width: 979px)").matches) setTimeout(() => $("busSheet").scrollIntoView({behavior: "smooth", block: "nearest"}), 120);
 }
 let busQT = 0;
 $("busQ").addEventListener("input", () => { $("busQx").hidden = !$("busQ").value; clearTimeout(busQT); busQT = setTimeout(() => { bus.q = $("busQ").value; busRender(); }, 150); });
-$("busQ").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("busQ").blur(); } });
+$("busQ").addEventListener("keydown", e => {   // Enter：直接打開第一筆結果
+  if (e.key !== "Enter") return; e.preventDefault(); clearTimeout(busQT);
+  bus.q = $("busQ").value; busRender(); $("busQ").blur();
+  if (bus.q.trim()) { const f = $("busSheet").querySelector(".bus-rrow,.bus-srow"); if (f) f.click(); }
+});
 $("busQx").onclick = () => { $("busQ").value = ""; $("busQx").hidden = true; bus.q = ""; busRender(); };
 $("busNear").onclick = () => busLocate(() => {
-  bus.sel = null; bus.route = null; bus.q = ""; $("busQ").value = ""; $("busQx").hidden = true;
-  if (bus.from != null && bus.to != null) { bus.to = null; busTripSave(); busTripPaint(); }
+  bus.sel = null; bus.route = null; bus.veh = []; bus.show = null; bus.back = null; bus.q = ""; $("busQ").value = ""; $("busQx").hidden = true;
   if (bus.map) bus.map.flyTo({center: [bus.me.lon, bus.me.lat], zoom: 16, duration: 700});
   busPaintMap(); busRender();
 });
@@ -3378,8 +3515,8 @@ function busRenderTrip(el) {
   const D = bus.data, F = busG(bus.from), T = busG(bus.to);
   const res = bus.tripRes && bus.tripRes.key === bus.from + ">" + bus.to ? bus.tripRes : (bus.tripRes = {key: bus.from + ">" + bus.to, ...busTrips(bus.from, bus.to)});
   const fresh = !bus.err || Date.now() - bus.etaAt < 120e3, ETA = bus.etaFor === bus.from && fresh ? bus.eta : null;
-  const etaOf = leg => busETAText(ETA && ETA.get(leg.L.i + "|" + leg.so));
-  const opts = [...res.direct, ...res.transfer].map((r, k) => ({...r, k, t: etaOf(r.legs[0])}));
+  const at = bus.etaFor === bus.from ? bus.etaAt : 0, xOf = leg => ETA && ETA.get(leg.L.i + "|" + leg.so);
+  const opts = [...res.direct, ...res.transfer].map((r, k) => ({...r, k, x: xOf(r.legs[0]), t: busETAText(busLive(xOf(r.legs[0]), at))}));
   // 依「現在出發大概幾點到」排：等車＋坐車
   for (const o of opts) o.score = (o.t.sec < 1e8 ? o.t.sec / 60 : 30) + o.min;
   opts.sort((p, q) => p.score - q.score);
@@ -3396,7 +3533,7 @@ function busRenderTrip(el) {
     return `<button type="button" class="bus-trow${on ? " on" : ""}" data-trip="${optKey(o)}" style="--bc:${b0.color}">
       <span class="tb">${o.legs.map((l, i) => (i ? '<i class="arr">›</i>' : "") + busBadgeHTML(l.L.n)).join("")}</span>
       <span class="t"><b>往 ${esc(L0.dest)}</b><small>${sub}</small></span>
-      <span class="eta ${o.t.cls}">${esc(o.t.big)}</span></button>
+      ${busEtaSpan(o.x, at)}</button>
       ${on ? busTripSteps(o) : ""}`;
   };
   const d = res.direct.length, tr = res.transfer.length;
@@ -3411,7 +3548,7 @@ function busTripSteps(o) {
   const D = bus.data;
   return `<ol class="bus-steps">${o.legs.map((l, i) => {
     const mid = l.L.stops.slice(l.a + 1, l.b);
-    return `<li class="st on" style="--bc:${busBadge(l.L.n).color}"><b>${i ? "換搭" : "搭"} ${esc(l.L.n)}</b>・在「${esc(busG(D.stations[l.so].g).n)}」上車</li>
+    return `<li class="st on" style="--bc:${busBadge(l.L.n).color}"><b>${i ? "換搭" : "搭"} ${esc(l.L.n)}</b>・在「${esc(busG(D.stations[l.so].g).n)}」上車 <button type="button" class="bus-rvlink" data-rv="${l.L.i}">每站到站 ›</button></li>
       ${mid.length ? `<li class="mid" style="--bc:${busBadge(l.L.n).color}"><details><summary>經過 ${mid.length} 站</summary>${mid.map(([, gi]) => esc(busG(gi).n)).join("、")}</details></li>` : ""}
       <li class="st" style="--bc:${busBadge(l.L.n).color}">在「${esc(busG(D.stations[l.sd].g).n)}」下車</li>`;
   }).join("")}</ol>`;
@@ -3423,13 +3560,13 @@ function busTripCoords() {
   return o.legs.map(l => ({c: busBadge(l.L.n).color, coords: l.L.stops.slice(l.a, l.b + 1).map(([, , si]) => [bus.data.stations[si].lon, bus.data.stations[si].lat])}));
 }
 function busSetEnd(which, gi) {
+  if (bus[which === "from" ? "to" : "from"] === gi) bus[which === "from" ? "to" : "from"] = null;   // 上下車選到同一站：另一邊清掉
   bus[which] = gi; bus.trip = null; bus.tripManual = false; bus.tripRes = null; bus.route = null; bus.veh = [];
   busTripSave(); busTripPaint();
   if (bus.from != null && bus.to != null) {
     bus.q = ""; $("busQ").value = ""; $("busQx").hidden = true;
-    bus.sel = bus.from; bus.side = null; bus.etaAt = 0; bus.err = "";
-    busPaintMap(); busRender(); busFetchETA(true);
-    if (bus.map) { const b = new maplibregl.LngLatBounds(); for (const g of [busG(bus.from), busG(bus.to)]) b.extend([g.lon, g.lat]); bus.map.fitBounds(b, {padding: 70, duration: 600, maxZoom: 16}); }
+    bus.sel = bus.from; bus.side = null; bus.etaAt = 0; bus.err = ""; bus.show = "trip"; bus.back = null;
+    busPaintMap(); busRender(); busFetchETA(true); busFitTrip();
   } else busSelect(gi, {fly: true});
 }
 // 選站面板
@@ -3451,6 +3588,8 @@ function busPickList() {
     if (bus.me) html += `<h4>離你最近</h4>` + near.map(([d, g]) => row(g, `<span class="d"><b>${Math.max(1, Math.round(d / 80))}</b>分鐘</span>`)).join("");
     else html += `<button type="button" class="bp-near" id="bpNear">用目前位置找最近的站牌</button>`;
     if (favs.length) html += `<h4>收藏的站</h4>` + favs.map(i => row(busG(i))).join("");
+    const rec = bus.recent.map(busFindGroup).filter(x => x != null && !favs.includes(x)).slice(0, 5);
+    if (rec.length) html += `<h4>最近查過</h4>` + rec.map(i => row(busG(i))).join("");
     html += `<p class="hint">也可以關掉這個面板，直接點地圖上的站牌，再按「設為上車站／下車站」。</p>`;
   }
   $("bpList").innerHTML = html;
@@ -3475,16 +3614,20 @@ function busOpen() {
   bus.open = true;
   busRender();
   busLoad().then(() => {   // 站牌資料和地圖分開載：地圖載不到時清單、搜尋照樣能用
-    if (bus.from == null && bus.to == null && !bus.tripLoaded) { bus.tripLoaded = true; busTripLoad(); if (bus.from != null && bus.to != null) bus.sel = bus.from; }
+    if (bus.from == null && bus.to == null && !bus.tripLoaded) { bus.tripLoaded = true; busTripLoad(); if (bus.from != null && bus.to != null) { bus.sel = bus.from; bus.show = "trip"; } }
     busTripPaint(); busRenderFavs(); busRender();
-    if (bus.sel != null) busFetchETA();
+    if (busTarget()) busFetchETA();
     return loadMapLib().then(() => { if (!bus.map) busInitMap(); else setTimeout(() => bus.map.resize(), 60); })
       .catch(() => { $("busMsg").textContent = "地圖第一次載入需要網路；站牌清單和搜尋可以先用"; });
   }).catch(() => { $("busSheet").innerHTML = `<p class="hint">公車資料第一次載入需要網路，連上網路後再點一次「公車」。</p>`; });
 }
 function busPause() { bus.open = false; clearTimeout(bus.timer); }
-setInterval(() => { if (bus.open && bus.sel != null && !document.hidden && bus.etaAt && !bus.err) { const u = document.querySelector("#busSheet .bus-upd"); if (u) u.outerHTML = busStatusLine(); } }, 5000);
-document.addEventListener("visibilitychange", () => { if (bus.open && !document.hidden && bus.sel != null) busFetchETA(); });
+setInterval(() => {
+  if (!bus.open || document.hidden || !busCurAt()) return;
+  const u = document.querySelector("#busSheet .bus-upd"); if (u && !bus.err) u.outerHTML = busStatusLine();
+  busTick();
+}, 5000);
+document.addEventListener("visibilitychange", () => { if (bus.open && !document.hidden && busTarget()) busFetchETA(); });
 // 設定：交通部金鑰
 (() => {
   const k = store.get("krtc-tdx-key", null);
@@ -3775,7 +3918,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-20-v70";
+const APP_VER = "krtc-2026-11-20-v71";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
