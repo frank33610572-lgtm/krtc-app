@@ -3077,8 +3077,9 @@ function busPaintMap() {
   m.getSource("bus-rstops").setData(fc(L ? L.stops.map(([, gi, si]) => { const S = bus.data.stations[si]; return {type: "Feature", properties: {i: gi, s: si, n: busG(gi).n, c}, geometry: {type: "Point", coordinates: [S.lon, S.lat]}}; }) : []));
   m.getSource("bus-veh").setData(fc(L ? bus.veh.map(v => ({type: "Feature", properties: {c, p: v.p}, geometry: {type: "Point", coordinates: [v.lon, v.lat]}})) : []));
   // 選了路線時，其他站變淡，地圖只剩這條線
-  for (const l of ["bus-all", "bus-mid", "bus-hub", "bus-pole"]) m.setPaintProperty(l, "circle-opacity", L ? .25 : 1), m.setPaintProperty(l, "circle-stroke-opacity", L ? .25 : 1);
-  for (const l of ["bus-label", "bus-pole-label"]) m.setLayoutProperty(l, "visibility", L ? "none" : "visible");
+  const dim = !!L || (bus.from != null && bus.to != null && !bus.q);   // 看單一路線或上下車方案時，其他站變淡
+  for (const l of ["bus-all", "bus-mid", "bus-hub", "bus-pole"]) m.setPaintProperty(l, "circle-opacity", dim ? .25 : 1), m.setPaintProperty(l, "circle-stroke-opacity", dim ? .25 : 1);
+  for (const l of ["bus-label", "bus-pole-label"]) m.setLayoutProperty(l, "visibility", dim ? "none" : "visible");
 }
 // encoded polyline → 座標
 function decodePoly(s) {
@@ -3382,7 +3383,9 @@ function busRenderTrip(el) {
   // 依「現在出發大概幾點到」排：等車＋坐車
   for (const o of opts) o.score = (o.t.sec < 1e8 ? o.t.sec / 60 : 30) + o.min;
   opts.sort((p, q) => p.score - q.score);
+  const was = bus.trip;
   if ((bus.trip == null || !bus.tripManual) && opts.length) bus.trip = opts[0].type + ":" + opts[0].legs.map(l => l.L.i).join(">");
+  if (bus.trip !== was) setTimeout(busPaintMap, 0);   // 選定的方案變了：地圖重畫路段
   const optKey = o => o.type + ":" + o.legs.map(l => l.L.i).join(">");
   const sideTxt = si => { const g = busG(D.stations[si].g); if (g.st.length < 2) return ""; return busSideTag(g.st.indexOf(si)); };
   const row = o => {
