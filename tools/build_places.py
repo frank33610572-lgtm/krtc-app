@@ -29,7 +29,8 @@ CAT = {"tea": 0, "cafe": 1, "bar": 2, "food": 3}
 # 「飲酒店」登記裡有不少是視聽歌唱、會館、茶室類，不是一般人要找的酒吧
 NOT_BAR = __import__("re").compile(r"會館|視聽|小吃部|小吃店|卡拉|KTV|好樂迪|錢櫃|娛樂|茶室|冷飲|飲料|美食|俱樂部|聯誼|食品", __import__("re").I)
 shops, miss, dropped = [], 0, 0
-for (uid, name, addr, cat), e in zip(need["shops"], ents[:n_shop]):
+SUB = {"561111": 4, "561112": 5, "561113": 6, "561114": 7, "561200": 8}   # 餐廳細類（其餘餐廳是 3）
+for (uid, name, addr, cat, *code), e in zip(need["shops"], ents[:n_shop]):
     if not e:
         miss += 1
         continue
@@ -38,7 +39,7 @@ for (uid, name, addr, cat), e in zip(need["shops"], ents[:n_shop]):
         continue
     a, o = off(e[0], e[1])
     addr = addr.translate({0xFF10 + i: 0x30 + i for i in range(10)}).replace("－", "-").replace("高雄市", "", 1)
-    shops.append([name, addr, CAT[cat], a, o])
+    shops.append([name, addr, SUB.get(code[0] if code else "", CAT[cat]) if cat == "food" else CAT[cat], a, o])
 
 hl = []
 for row, e in zip(stores["hl"], ents[n_shop:]):

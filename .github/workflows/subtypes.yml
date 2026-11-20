@@ -1,0 +1,18 @@
+name: subtypes
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: |
+          python tools/add_subtypes.py data/stores_base.json
+          cp data/stores_base.json stores.json
+          python tools/build_hours.py stores.json data/osm_hours.txt data/chain_hours.txt data/chain_hours2.txt
+      - run: |
+          git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/stores_base.json stores.json && git commit -m "資料：餐廳分成餐廳、早餐、便當自助餐、麵店小吃、速食、小吃攤" && git push

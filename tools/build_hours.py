@@ -1,6 +1,6 @@
 """Merge opening hours (OSM + Starbucks official) into krtc-app/stores.json.
 
-shop rows become [name, addr, cat(0 手搖飲 1 咖啡廳 2 酒吧 3 餐廳), a, o, oh, display]; fam rows get oh at [5]; hl rows get oh at [6].
+shop rows become [name, addr, cat(0 手搖飲 1 咖啡廳 2 酒吧 3 餐廳 4 早餐 5 便當自助餐 6 麵店小吃 7 速食 8 小吃攤), a, o, oh, display]; fam rows get oh at [5]; hl rows get oh at [6].
 Unmatched tea/cafe shops that have hours are added as new shop rows.
 """
 import json, math, re, sys
@@ -140,7 +140,7 @@ for c in [c for c in chains if not c["p"]]:
     want = 1 if c["k"] == "f" else 0
     ks = [k for k in by_addr.get(c["akey"], []) if k not in used]
     if not ks: continue
-    same = [k for k in ks if shops[k][2] == want]
+    same = [k for k in ks if min(shops[k][2], 3) == want]
     if same:   # 同地址有同類的登記店家：就是這間
         k = same[0]; used.add(k); oh_of[k] = c["oh"]; disp_of[k] = c["name"]; src_of[k] = "c"; amatch += 1
     else:      # 同地址只有別類的店（例如百貨美食街）：不要蓋掉那間，借它的座標另外加一間
@@ -162,11 +162,11 @@ for o in src:
         if re.search(r"公司|股份", reg): return d <= 30          # 登記的是公司名，看不出店名
         return d <= 6                                            # 名字對不上，只接受幾乎同一點
     near = [(d, k) for d, k in G.near(o["p"], 40) if k not in used]
-    same = [(d, k) for d, k in near if shops[k][2] == want and ok(d, k)]
+    same = [(d, k) for d, k in near if min(shops[k][2], 3) == want and ok(d, k)]
     # 別類的登記店家只有在店名對得上時才算同一間（避免星巴克蓋掉同棟美食街的餐廳）
-    other = [(d, k) for d, k in near if shops[k][2] != want and len(words & set(shops[k][0])) >= 2]
+    other = [(d, k) for d, k in near if min(shops[k][2], 3) != want and len(words & set(shops[k][0])) >= 2]
     pick = (same or other or [None])[0]
-    if not pick and any(shops[k][2] == want for d, k in G.near(o["p"], 8)): continue   # 旁邊已有同類的店又對不上，寧可不加以免重複
+    if not pick and any(min(shops[k][2], 3) == want for d, k in G.near(o["p"], 8)): continue   # 旁邊已有同類的店又對不上，寧可不加以免重複
     if pick:
         k = pick[1]; used.add(k); oh_of[k] = o["oh"]; src_of[k] = {"sb": "s", "ch": "c"}.get(o["src"], "o")
         if name: disp_of[k] = name

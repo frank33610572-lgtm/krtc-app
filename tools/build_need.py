@@ -37,7 +37,8 @@ for r in rows:
     elif first == "cafe" or (COFFEE.search(name) and (first == "tea" or "cafe" in has)): cat = "cafe"
     else: cat = first
     stat[cat] += 1
-    shops.append([r[1], name, r[0].strip(), cat])
+    sub = next((c for c in codes if CODES[c] == "food"), "") if cat == "food" else ""   # 餐廳細類用的行業代號
+    shops.append([r[1], name, r[0].strip(), cat, sub])
 hl = [l.split(" ") for l in open("tools/hilife.txt", encoding="utf-8").read().strip().split("\n")]
 hl = [[p[1], " ".join(p[2:-1]), int(p[-1])] for p in hl]
 out = {"v": date_row[0], "built": datetime.date.today().isoformat(), "shops": shops, "hl": hl}
