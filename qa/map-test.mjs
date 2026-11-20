@@ -150,14 +150,15 @@ await step("bus tab", async () => {
   await p.waitForFunction(() => bus.data && bus.ready, null, { timeout: 30000 }); await sleep(2500); await shot("15-bus-home");
   const z = [];
   const C = await p.evaluate(() => { const g = bus.data.groups.find(x => x.n === "高雄車站(建國路)") || bus.data.groups[0]; return [g.lon, g.lat]; });
-  for (const [zm, name] of [[13.3, "16-bus-z13"], [15.2, "17-bus-z15"], [16.8, "18-bus-z17"]]) {
+  for (const [zm, name] of [[13.3, "16-bus-z13"], [15.2, "17-bus-z15"], [17.2, "18-bus-z17"]]) {
     await p.evaluate(([zm, C]) => { bus.map.jumpTo({ center: C, zoom: zm }); }, [zm, C]); await sleep(2200); await shot(name);
-    z.push(await p.evaluate(() => ["bus-hub", "bus-mid", "bus-all", "bus-label"].map(l => l + ":" + bus.map.queryRenderedFeatures({ layers: [l] }).length).join(" ")));
+    z.push(await p.evaluate(() => ["bus-hub", "bus-mid", "bus-all", "bus-label", "bus-pole", "bus-pole-label"].map(l => l + ":" + bus.map.queryRenderedFeatures({ layers: [l] }).length).join(" ")));
   }
   const f = C;
   const pt = await p.evaluate(ll => { const r = bus.map.getContainer().getBoundingClientRect(), q = bus.map.project(ll); return [r.left + q.x, r.top + q.y]; }, f);
   await p.touchscreen.tap(pt[0], pt[1]); await sleep(2500);
   const sheet = await p.evaluate(() => $("busSheet").innerText.replace(/\s+/g, " ").slice(0, 220));
+  await shot("18b-bus-selected");
   await p.evaluate(() => { document.querySelector(".bus-erow").click(); }); await sleep(3000);
   await p.evaluate(() => window.scrollTo(0, 0)); await sleep(300); await shot("19-bus-route");
   const route = await p.evaluate(() => ({ route: bus.route, rstops: bus.map.querySourceFeatures("bus-rstops").length, shapes: !!bus.shapes }));

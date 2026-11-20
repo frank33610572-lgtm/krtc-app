@@ -1,5 +1,5 @@
 # 把 TDX 高雄市公車資料轉成 App 用的小檔
-#   bus.json       路線方向、站牌群組（同名且 250 公尺內合併成一個站，兩側月台／各月台都算）
+#   bus.json       路線方向、實體站位（真實位置）、站牌群組（同名且 250 公尺內的站位）
 #   bus_shape.json 每個路線方向的線型（Google encoded polyline，App 點路線時才載入）
 # 用法：python tools/build_bus.py <StopOfRoute.json> <Route.json> <Shape.json>
 import json, sys, math, collections, datetime
@@ -24,10 +24,10 @@ for e in sor:
         x = st.setdefault(s["StationID"], {"n": s["StopName"]["Zh_tw"], "p": p, "e": []})
         x["e"].append([li, s["StopSequence"], s["StopID"]])
 
-# 同名、250 公尺內的站位併成一個站
+# 同名、250 公尺內的站位併成一個站（地圖縮小時顯示一個點），但每個實體站位（馬路兩側、各月台）都保留真實位置
 by_name = collections.defaultdict(list)
 for sid, x in st.items(): by_name[x["n"]].append(x)
-groups = []
+stations, groups = [], []
 for n, xs in by_name.items():
     left = xs[:]
     while left:
@@ -37,16 +37,20 @@ for n, xs in by_name.items():
             changed = False
             for x in left[:]:
                 if any(dist(x["p"], y["p"]) < 250 for y in g): g.append(x); left.remove(x); changed = True
-        lat = sum(x["p"][0] for x in g) / len(g); lon = sum(x["p"][1] for x in g) / len(g)
-        ent = sorted({tuple(e) for x in g for e in x["e"]})
-        groups.append([n, round(lat * 1e5), round(lon * 1e5), [v for e in ent for v in (e[0], e[1], int(e[2]))]])
-groups.sort(key=lambda g: (g[1], g[2]))
+        g.sort(key=lambda x: -len(x["e"]))           # 路線最多的站位排第一，地圖縮小時點就放在它的位置
+        idx = []
+        for x in g:
+            ent = sorted({tuple(e) for e in x["e"]})
+            idx.append(len(stations))
+            stations.append([round(x["p"][0] * 1e5), round(x["p"][1] * 1e5), [v for e in ent for v in (e[0], e[1], int(e[2]))]])
+        groups.append([n, idx])
+groups.sort(key=lambda g: (stations[g[1][0]][0], stations[g[1][0]][1]))
 
 shape = {}
 for s in shapes:
     li = lkey.get((s.get("SubRouteUID") or s["RouteUID"], s.get("Direction", 0)))
     if li is not None and s.get("EncodedPolyline"): shape[li] = s["EncodedPolyline"]
 v = max(e.get("UpdateTime", "") for e in sor)[:10]
-json.dump({"v": v, "lines": lines, "groups": groups}, open("bus.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+json.dump({"v": v, "lines": lines, "stations": stations, "groups": groups}, open("bus.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
 json.dump({"v": v, "shape": {str(k): s for k, s in shape.items()}}, open("bus_shape.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
-print("lines", len(lines), "stations", len(st), "groups", len(groups), "shapes", len(shape), "version", v)
+print("lines", len(lines), "stations", len(stations), "groups", len(groups), "shapes", len(shape), "version", v)

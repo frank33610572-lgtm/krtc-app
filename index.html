@@ -849,6 +849,21 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .tdx-form input{border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:10px;padding:10px 12px;font:inherit;font-size:15px;min-height:44px}
 .tdx-btns{display:flex;gap:8px}
 .btn.ghost{background:none}
+
+.bus-side{margin-top:6px}
+.bus-sidehd{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:color-mix(in srgb,var(--bus) 6%,transparent);border-radius:12px;padding:9px 10px;margin-top:8px;color:var(--ink);font:inherit;cursor:pointer}
+.bus-side.on .bus-sidehd{background:color-mix(in srgb,var(--bus) 14%,transparent);box-shadow:inset 3px 0 0 var(--bus)}
+.bus-sidehd .tag{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--bus);color:#fff;font-family:var(--font-display);font-size:15px;font-weight:700;flex:none}
+.bus-side:not(.on) .bus-sidehd .tag{background:color-mix(in srgb,var(--bus) 45%,var(--muted))}
+.bus-sidehd .t{display:grid;gap:1px;min-width:0}
+.bus-sidehd b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bus-sidehd small{font-size:11.5px;color:var(--muted)}
+.bus-key{margin:10px 0 6px;padding:12px 13px;border-radius:14px;border:1px solid color-mix(in srgb,#e0a200 45%,var(--line));background:color-mix(in srgb,#e0a200 10%,var(--surface));display:grid;gap:8px}
+.bus-key b{font-size:14.5px}
+.bus-key p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.55}
+.bus-key ol{margin:0;padding-left:20px;font-size:12.5px;line-height:1.7}
+.bus-key input{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 12px;font:inherit;font-size:15px;min-height:44px}
+.bus-key .bk-st{font-size:12.5px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -2849,7 +2864,7 @@ const hasTdxKey = () => { const k = store.get("krtc-tdx-key", null); return !!(k
 
 const BUS_API = "https://tdx.transportdata.tw/api/basic/v2/Bus/";
 const bus = {data: null, loading: null, map: null, ready: false, sel: null, route: null, rdir: 0, eta: null, etaFor: null, etaAt: 0, err: "",
-  timer: 0, shapes: null, veh: [], q: "", me: null, favs: store.get("krtc-bus-fav", []), open: false, lastFetch: 0};
+  timer: 0, shapes: null, veh: [], q: "", me: null, side: null, favs: store.get("krtc-bus-fav", []), open: false, lastFetch: 0};
 // 路線號碼徽章：紅33 → 紅系、100百貨幹線 → 100 + 百貨幹線
 const BUS_FAM = {"紅": "--red", "橘": "--orange", "綠": "#2e9b5f", "黃": "#c99a06", "藍": "#2f6fd6"};
 function busBadge(name) {
@@ -2864,20 +2879,36 @@ function busLoad() {
   return bus.loading ||= fetch("bus.json").then(r => { if (!r.ok) throw new Error("bus.json"); return r.json(); }).then(d => {
     const lines = d.lines.map(([n, dir, dest, sub], i) => ({i, n, dir, dest, sub, key: sub + "|" + dir, stops: []}));
     const byKey = new Map(lines.map(l => [l.key, l]));
-    const groups = d.groups.map(([n, a, o, flat], i) => {
+    // 實體站位：真實位置；群組：同名、250 公尺內的站位（馬路兩側、各月台）
+    const stations = d.stations.map(([a, o, flat], i) => {
       const e = []; for (let k = 0; k < flat.length; k += 3) e.push({li: flat[k], seq: flat[k + 1], sid: String(flat[k + 2])});
-      const g = {i, n, lat: a / 1e5, lon: o / 1e5, e, names: [...new Set(e.map(x => lines[x.li].n))]};
-      for (const x of e) lines[x.li].stops.push([x.seq, i]);
-      return g;
+      return {i, lat: a / 1e5, lon: o / 1e5, e, g: -1};
+    });
+    const sidAt = new Map();   // StopID → 站位
+    const groups = d.groups.map(([n, sts], i) => {
+      const e = [];
+      for (const si of sts) { const S = stations[si]; S.g = i; for (const x of S.e) { e.push({...x, si}); sidAt.set(x.sid, si); lines[x.li].stops.push([x.seq, i, si]); } }
+      return {i, n, st: sts, lat: stations[sts[0]].lat, lon: stations[sts[0]].lon, e, names: [...new Set(e.map(x => lines[x.li].n))]};
     });
     for (const l of lines) l.stops.sort((a, b) => a[0] - b[0]);
-    bus.data = {v: d.v, lines, groups, byKey};
+    // 每個站位往哪個方向：經過的路線最常見的終點（自己是終點站的不算）
+    for (const S of stations) {
+      const c = new Map();
+      for (const x of S.e) { const L = lines[x.li]; if (L.stops.length && L.stops[L.stops.length - 1][2] === S.i) continue; c.set(L.dest, (c.get(L.dest) || 0) + 1); }
+      S.dests = [...c.entries()].sort((a, b) => b[1] - a[1]).map(x => x[0]);
+    }
+    bus.data = {v: d.v, lines, stations, groups, byKey, sidAt};
   });
 }
 const busG = i => bus.data.groups[i];
 function busStopsFC() {
   return fc(bus.data.groups.map(g => ({type: "Feature", properties: {i: g.i, n: g.n, k: g.names.length}, geometry: {type: "Point", coordinates: [g.lon, g.lat]}})));
 }
+function busPolesFC() {   // 放大後：每個站牌的真實位置
+  return fc(bus.data.stations.map(S => ({type: "Feature", properties: {i: S.g, s: S.i, n: busG(S.g).n, k: new Set(S.e.map(x => bus.data.lines[x.li].n)).size}, geometry: {type: "Point", coordinates: [S.lon, S.lat]}})));
+}
+const BUS_POLE_Z = 16.2;
+const busSideTag = k => "ABCDEFGH"[k] || String(k + 1);   // 同一站的各個站牌：A、B…（地圖上也標同樣的字）   // 這個縮放以上改顯示每一個實體站牌
 // ---------- 地圖 ----------
 const BUS_BOUNDS = [[119.95, 22.38], [121.08, 23.48]];   // 只看高雄
 function busInitMap() {
@@ -2890,12 +2921,12 @@ function busInitMap() {
   bus.map.on("styleimagemissing", e => { if (!bus.map.hasImage(e.id)) bus.map.addImage(e.id, {width: 1, height: 1, data: new Uint8Array(4)}); });
   bus.map.on("click", e => {   // 點擊容錯：附近 14px 內最近的站
     const p = e.point, box = [[p.x - 14, p.y - 14], [p.x + 14, p.y + 14]];
-    const fs = bus.map.queryRenderedFeatures(box, {layers: ["bus-hub", "bus-mid", "bus-all", "bus-rstop"].filter(l => bus.map.getLayer(l))});
+    const fs = bus.map.queryRenderedFeatures(box, {layers: ["bus-hub", "bus-mid", "bus-all", "bus-pole", "bus-rstop"].filter(l => bus.map.getLayer(l))});
     if (!fs.length) return;
     const best = fs.map(f => { const q = bus.map.project(f.geometry.coordinates); return [Math.hypot(q.x - p.x, q.y - p.y), f]; }).sort((a, b) => a[0] - b[0])[0][1];
-    busSelect(+best.properties.i, {fly: false});
+    const pr = best.properties; busSelect(+pr.i, {fly: false, side: pr.s != null ? +pr.s : undefined, keepRoute: best.layer.id === "bus-rstop"});
   });
-  for (const l of ["bus-hub", "bus-mid", "bus-all", "bus-rstop"]) {
+  for (const l of ["bus-hub", "bus-mid", "bus-all", "bus-pole", "bus-rstop"]) {
     bus.map.on("mouseenter", l, () => { bus.map.getCanvas().style.cursor = "pointer"; });
     bus.map.on("mouseleave", l, () => { bus.map.getCanvas().style.cursor = ""; });
   }
@@ -2914,14 +2945,20 @@ function busLayers() {
   m.addSource("bus-stops", {type: "geojson", data: busStopsFC()});
   // 依「經過幾條路線」分三層：大站先出現，小站放大才出現，避免一開始滿地都是點
   const r = (a, b, c) => ["interpolate", ["linear"], ["zoom"], 11, a, 15, b, 18, c];
-  m.addLayer({id: "bus-all", type: "circle", source: "bus-stops", minzoom: 14.6, filter: ["<", ["get", "k"], 6],
+  m.addLayer({id: "bus-all", type: "circle", source: "bus-stops", minzoom: 14.6, maxzoom: BUS_POLE_Z, filter: ["<", ["get", "k"], 6],
     paint: {"circle-radius": r(2, 3.2, 6), "circle-color": surf, "circle-stroke-color": acc, "circle-stroke-width": 1.6}});
-  m.addLayer({id: "bus-mid", type: "circle", source: "bus-stops", minzoom: 13.2, filter: ["all", [">=", ["get", "k"], 6], ["<", ["get", "k"], 16]],
+  m.addLayer({id: "bus-mid", type: "circle", source: "bus-stops", minzoom: 13.2, maxzoom: BUS_POLE_Z, filter: ["all", [">=", ["get", "k"], 6], ["<", ["get", "k"], 16]],
     paint: {"circle-radius": r(2.5, 4.2, 7.5), "circle-color": surf, "circle-stroke-color": acc, "circle-stroke-width": 2}});
-  m.addLayer({id: "bus-hub", type: "circle", source: "bus-stops", filter: [">=", ["get", "k"], 16],
+  m.addLayer({id: "bus-hub", type: "circle", source: "bus-stops", maxzoom: BUS_POLE_Z, filter: [">=", ["get", "k"], 16],
     paint: {"circle-radius": r(3.2, 6, 9.5), "circle-color": acc, "circle-stroke-color": surf, "circle-stroke-width": 2}});
-  m.addLayer({id: "bus-label", type: "symbol", source: "bus-stops", minzoom: 14,
-    filter: ["any", [">=", ["get", "k"], 16], ["all", [">=", ["zoom"], 15.4], [">=", ["get", "k"], 6]], [">=", ["zoom"], 16.6]],
+  m.addSource("bus-poles", {type: "geojson", data: busPolesFC()});
+  m.addLayer({id: "bus-pole", type: "circle", source: "bus-poles", minzoom: BUS_POLE_Z,
+    paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], BUS_POLE_Z, 5, 19, 9], "circle-color": ["case", [">=", ["get", "k"], 16], acc, surf], "circle-stroke-color": ["case", [">=", ["get", "k"], 16], surf, acc], "circle-stroke-width": 2.2}});
+  m.addLayer({id: "bus-pole-label", type: "symbol", source: "bus-poles", minzoom: BUS_POLE_Z,
+    layout: {"text-field": ["get", "n"], "text-font": font, "text-size": 12, "text-offset": [0, 1.1], "text-anchor": "top", "text-max-width": 7, "text-padding": 3, "symbol-sort-key": ["-", 100, ["get", "k"]]},
+    paint: {"text-color": ink, "text-halo-color": surf, "text-halo-width": 1.6}});
+  m.addLayer({id: "bus-label", type: "symbol", source: "bus-stops", minzoom: 14, maxzoom: BUS_POLE_Z,
+    filter: ["any", [">=", ["get", "k"], 16], ["all", [">=", ["zoom"], 15.4], [">=", ["get", "k"], 6]]],
     layout: {"text-field": ["get", "n"], "text-font": font, "text-size": ["interpolate", ["linear"], ["zoom"], 14, 10.5, 17, 12.5], "text-offset": [0, 1.05], "text-anchor": "top",
       "text-max-width": 7, "symbol-sort-key": ["-", 100, ["get", "k"]], "text-padding": 4},
     paint: {"text-color": ink, "text-halo-color": surf, "text-halo-width": 1.6}});
@@ -2939,7 +2976,10 @@ function busLayers() {
     paint: {"text-color": ink, "text-halo-color": surf, "text-halo-width": 1.6}});
   // 選中的站、我的位置
   m.addSource("bus-sel", {type: "geojson", data: fc([])});
-  m.addLayer({id: "bus-sel", type: "circle", source: "bus-sel", paint: {"circle-radius": 15, "circle-color": acc, "circle-opacity": .16, "circle-stroke-color": acc, "circle-stroke-width": 2.5}});
+  m.addLayer({id: "bus-sel", type: "circle", source: "bus-sel", paint: {"circle-radius": ["case", ["==", ["get", "on"], 1], 17, 11], "circle-color": acc, "circle-opacity": ["case", ["==", ["get", "on"], 1], .2, .08],
+    "circle-stroke-color": acc, "circle-stroke-width": ["case", ["==", ["get", "on"], 1], 3, 1.5]}});
+  m.addLayer({id: "bus-sel-n", type: "symbol", source: "bus-sel", filter: ["has", "t"], layout: {"text-field": ["get", "t"], "text-font": font, "text-size": 11.5, "text-offset": [0, -1.9], "text-anchor": "bottom", "text-allow-overlap": true},
+    paint: {"text-color": acc, "text-halo-color": surf, "text-halo-width": 2}});
   m.addSource("bus-me", {type: "geojson", data: fc([])});
   m.addLayer({id: "bus-me", type: "circle", source: "bus-me", paint: {"circle-radius": 7, "circle-color": cssVar("--focus"), "circle-stroke-color": "#fff", "circle-stroke-width": 2.5}});
   bus.ready = true;
@@ -2948,16 +2988,17 @@ function busLayers() {
 function busPaintMap() {
   if (!bus.ready) return;
   const m = bus.map, g = bus.sel != null ? busG(bus.sel) : null, L = bus.route != null ? bus.data.lines[bus.route] : null;
-  m.getSource("bus-sel").setData(fc(g ? [{type: "Feature", properties: {}, geometry: {type: "Point", coordinates: [g.lon, g.lat]}}] : []));
+  m.getSource("bus-sel").setData(fc(g ? g.st.map((si, k) => { const S = bus.data.stations[si];
+    return {type: "Feature", properties: {on: si === bus.side ? 1 : 0, ...(g.st.length > 1 ? {t: busSideTag(k)} : {})}, geometry: {type: "Point", coordinates: [S.lon, S.lat]}}; }) : []));
   m.getSource("bus-me").setData(fc(bus.me ? [{type: "Feature", properties: {}, geometry: {type: "Point", coordinates: [bus.me.lon, bus.me.lat]}}] : []));
   const c = L ? busBadge(L.n).color : "#888";
   const coords = L ? busShape(L) : null;
   m.getSource("bus-route").setData(fc(coords ? [{type: "Feature", properties: {c}, geometry: {type: "LineString", coordinates: coords}}] : []));
-  m.getSource("bus-rstops").setData(fc(L ? L.stops.map(([, gi]) => { const x = busG(gi); return {type: "Feature", properties: {i: gi, n: x.n, c}, geometry: {type: "Point", coordinates: [x.lon, x.lat]}}; }) : []));
+  m.getSource("bus-rstops").setData(fc(L ? L.stops.map(([, gi, si]) => { const S = bus.data.stations[si]; return {type: "Feature", properties: {i: gi, s: si, n: busG(gi).n, c}, geometry: {type: "Point", coordinates: [S.lon, S.lat]}}; }) : []));
   m.getSource("bus-veh").setData(fc(L ? bus.veh.map(v => ({type: "Feature", properties: {c, p: v.p}, geometry: {type: "Point", coordinates: [v.lon, v.lat]}})) : []));
   // 選了路線時，其他站變淡，地圖只剩這條線
-  for (const l of ["bus-all", "bus-mid", "bus-hub"]) m.setPaintProperty(l, "circle-opacity", L ? .25 : 1), m.setPaintProperty(l, "circle-stroke-opacity", L ? .25 : 1);
-  m.setLayoutProperty("bus-label", "visibility", L ? "none" : "visible");
+  for (const l of ["bus-all", "bus-mid", "bus-hub", "bus-pole"]) m.setPaintProperty(l, "circle-opacity", L ? .25 : 1), m.setPaintProperty(l, "circle-stroke-opacity", L ? .25 : 1);
+  for (const l of ["bus-label", "bus-pole-label"]) m.setLayoutProperty(l, "visibility", L ? "none" : "visible");
 }
 // encoded polyline → 座標
 function decodePoly(s) {
@@ -2975,7 +3016,7 @@ function busShape(L) {
   const enc = bus.shapes && bus.shapes[L.i];
   if (enc) return decodePoly(enc);
   if (!bus.shapes && !bus.shapesP) bus.shapesP = fetch("bus_shape.json").then(r => r.json()).then(d => { bus.shapes = d.shape; busPaintMap(); }).catch(() => { bus.shapes = {}; });
-  return L.stops.map(([, gi]) => [busG(gi).lon, busG(gi).lat]);   // 線型還沒載到：先用站和站連起來
+  return L.stops.map(([, , si]) => [bus.data.stations[si].lon, bus.data.stations[si].lat]);   // 線型還沒載到：先用站和站連起來
 }
 // ---------- 即時到站 ----------
 function busSched(ms) { clearTimeout(bus.timer); if (bus.open && bus.sel != null) bus.timer = setTimeout(() => busFetchETA(), ms); }
@@ -2993,20 +3034,22 @@ async function busFetchETA(force) {
       rows.push(...await tdxJSON(`${BUS_API}EstimatedTimeOfArrival/City/Kaohsiung?${sel}&$filter=${encodeURIComponent(f)}&$format=JSON`));
     }
     if (bus.sel !== want) return;
-    const eta = new Map();
+    const eta = new Map();   // 鍵：路線方向|站位
     for (const r of rows) {
       const L = bus.data.byKey.get(String(r.SubRouteUID).replace("KHH", "") + "|" + r.Direction); if (!L) continue;
+      const si = bus.data.sidAt.get(String(r.StopUID).replace("KHH", "")); if (si == null) continue;
       const ests = (r.Estimates || []).filter(x => x.EstimateTime != null).sort((a, b) => a.EstimateTime - b.EstimateTime);
-      const cur = eta.get(L.i);
-      if (!cur || (r.EstimateTime ?? 1e9) < (cur.t ?? 1e9)) eta.set(L.i, {t: r.EstimateTime, st: r.StopStatus, next: r.NextBusTime, ests});
+      const k = L.i + "|" + si, cur = eta.get(k);
+      if (!cur || (r.EstimateTime ?? 1e9) < (cur.t ?? 1e9)) eta.set(k, {t: r.EstimateTime, st: r.StopStatus, next: r.NextBusTime, ests});
     }
     bus.eta = eta; bus.etaFor = want; bus.etaAt = Date.now(); bus.err = "";
   } catch (e) {
     if (bus.sel !== want) return;
-    bus.err = e.code === 429 ? "limit" : "net";
+    bus.err = e.code === 429 ? "limit" : e.code === 401 && hasTdxKey() ? "key" : "net";
   }
-  busRender();
-  if (bus.route != null) busFetchVeh();
+  const typing = document.activeElement && /^bk/.test(document.activeElement.id || "");
+  if (!typing) busRender();
+  if (bus.route != null && !bus.err) busFetchVeh();
   busSched(bus.err === "limit" ? 180e3 : gap);
 }
 async function busFetchVeh() {
@@ -3051,12 +3094,32 @@ function busNearList(n) {
   return bus.data.groups.map(g => [haversine([bus.me.lat, bus.me.lon], [g.lat, g.lon]), g]).sort((a, b) => a[0] - b[0]).slice(0, n);
 }
 function busStatusLine() {
-  if (bus.err === "limit") return `<p class="bus-err">即時到站暫時抓不到：交通部的免費額度用完了（大家共用）。${hasTdxKey() ? "你的金鑰額度也滿了，稍後會自動再試。" : `<button type="button" class="linkbtn" data-go="settings">加上自己的金鑰</button>就不會再遇到。`}</p>`;
+  if (bus.err === "limit") return hasTdxKey() ? `<p class="bus-err">即時到站暫時抓不到：你的金鑰額度也滿了，3 分鐘後自動再試。</p>` : busKeyCard();
+  if (bus.err === "key") return `<p class="bus-err">金鑰被交通部拒絕，請到「設定」檢查 Client Id、Client Secret 有沒有貼錯。</p>`;
   if (bus.err === "net") return `<p class="bus-err">即時到站抓不到（可能沒有網路），稍後自動再試。</p>`;
   if (!bus.etaAt || bus.etaFor !== bus.sel) return `<p class="bus-upd">正在抓即時到站…</p>`;
   const s = Math.round((Date.now() - bus.etaAt) / 1000);
   return `<p class="bus-upd"><i class="led"></i>${s < 10 ? "剛剛更新" : s + " 秒前更新"}・每 ${hasTdxKey() ? 30 : 60} 秒自動更新</p>`;
 }
+// 沒有金鑰又被限流時，直接在這裡教怎麼申請、貼上
+function busKeyCard() {
+  return `<div class="bus-key" data-keyform="1">
+    <b>即時到站暫時抓不到：交通部的免費額度用完了</b>
+    <p>沒有金鑰時，同一個網路的所有人共用很少的額度。申請一組自己的免費金鑰（約 3 分鐘），之後就會穩定顯示，還能看到公車現在的位置。</p>
+    <ol><li>到 <a href="https://tdx.transportdata.tw/register" target="_blank" rel="noopener">TDX 註冊會員</a>，收驗證信</li><li>登入後到「會員中心 → API 金鑰」，按「新增」</li><li>把 Client Id、Client Secret 貼在下面</li></ol>
+    <input id="bkId" type="text" autocomplete="off" spellcheck="false" placeholder="Client Id" aria-label="TDX Client Id">
+    <input id="bkSecret" type="password" autocomplete="off" spellcheck="false" placeholder="Client Secret" aria-label="TDX Client Secret">
+    <button type="button" class="btn" id="bkSave">儲存並重新抓取</button><span class="bk-st" id="bkSt"></span>
+  </div>`;
+}
+document.addEventListener("click", async e => {
+  if (e.target.id !== "bkSave") return;
+  const id = $("bkId").value.trim(), secret = $("bkSecret").value.trim(), st = $("bkSt");
+  if (!id || !secret) { st.textContent = "兩個都要填"; return; }
+  store.set("krtc-tdx-key", {id, secret}); store.set("krtc-tdx-tok", null); st.textContent = "測試中…";
+  try { await tdxToken(); $("tdxId").value = id; $("tdxSecret").value = secret; $("tdxStatus").textContent = "已設定金鑰"; bus.err = ""; busFetchETA(true); }
+  catch (er) { store.set("krtc-tdx-key", null); st.textContent = "交通部拒絕這組金鑰，請檢查有沒有貼錯"; }
+});
 function busRender() {
   const el = $("busSheet"); if (!bus.data) { el.innerHTML = `<p class="hint">公車站牌資料載入中…</p>`; return; }
   const D = bus.data, q = bus.q.trim();
@@ -3076,7 +3139,7 @@ function busRender() {
     const L = D.lines[bus.route], sib = D.lines.filter(x => x.n === L.n);
     el.innerHTML = `<div class="bus-head">${busBadgeHTML(L.n, true)}<div><h3>${esc(L.n)}</h3><p>往 ${esc(L.dest)}・${L.stops.length} 站</p></div><button type="button" class="bus-x" data-act="close" aria-label="關閉">×</button></div>
       ${sib.length > 1 ? `<div class="bus-dirs">${sib.map(x => `<button type="button" data-line="${x.i}" aria-pressed="${x.i === L.i}">往 ${esc(x.dest)}</button>`).join("")}</div>` : ""}
-      <ol class="bus-seq" style="--bc:${busBadge(L.n).color}">${L.stops.map(([seq, gi]) => `<li><button type="button" data-g="${gi}" data-keep="1"><i></i>${esc(busG(gi).n)}</button></li>`).join("")}</ol>`;
+      <ol class="bus-seq" style="--bc:${busBadge(L.n).color}">${L.stops.map(([seq, gi, si]) => `<li><button type="button" data-g="${gi}" data-s="${si}" data-keep="1"><i></i>${esc(busG(gi).n)}</button></li>`).join("")}</ol>`;
     return;
   }
   if (bus.sel == null) {   // 什麼都沒選：附近站牌
@@ -3085,30 +3148,47 @@ function busRender() {
       : `<div class="bus-empty"><b>點地圖上的站牌，就會看到經過的公車和還要等多久</b><p>大站（很多路線經過）一開始就看得到，小站放大地圖才會出現。也可以按「附近」找離你最近的站，或直接搜尋路線號碼。</p><p class="hint">共 ${D.groups.length.toLocaleString()} 個站、${new Set(D.lines.map(l => l.n)).size} 條路線（資料 ${D.v}）</p></div>`;
     return;
   }
-  // 選了站：每條路線往哪、還要等多久
-  const g = busG(bus.sel), ETA = bus.etaFor === g.i ? bus.eta : null;
-  const lis = [...new Set(g.e.map(x => x.li))].map(li => {
-    const L = D.lines[li], x = ETA && ETA.get(li), t = busETAText(x);
-    const last = L.stops.length && L.stops[L.stops.length - 1][1] === g.i;
-    return {L, x, t, last};
-  }).filter(r => !r.last).sort((a, b) => a.t.sec - b.t.sec || a.L.n.localeCompare(b.L.n, "zh-Hant", {numeric: true}));
-  el.innerHTML = `<div class="bus-head"><span class="bus-dot big${g.names.length >= 16 ? " hub" : ""}"></span><div><h3>${esc(g.n)}</h3><p>${lis.length} 條路線經過</p></div>
+  // 選了站：依站牌（馬路哪一側／哪個月台）分開列，每條路線往哪、還要等多久
+  const g = busG(bus.sel), fresh = !bus.err || Date.now() - bus.etaAt < 120e3, ETA = bus.etaFor === g.i && fresh ? bus.eta : null, multi = g.st.length > 1;
+  const sides = g.st.map((si, k) => {
+    const S = D.stations[si];
+    const rows = [...new Set(S.e.map(x => x.li))].map(li => {
+      const L = D.lines[li], x = ETA && ETA.get(li + "|" + si), t = busETAText(x);
+      const last = L.stops.length && L.stops[L.stops.length - 1][2] === si;
+      return {L, x, t, last};
+    }).filter(r => !r.last).sort((a, b) => a.t.sec - b.t.sec || a.L.n.localeCompare(b.L.n, "zh-Hant", {numeric: true}));
+    const d = bus.me ? haversine([bus.me.lat, bus.me.lon], [S.lat, S.lon]) : null;
+    return {S, k, rows, d};
+  }).filter(x => x.rows.length);
+  if (bus.side == null || !sides.some(x => x.S.i === bus.side)) bus.side = (sides.slice().sort((a, b) => (a.d ?? 0) - (b.d ?? 0))[0] || {S: {i: g.st[0]}}).S.i;
+  const nRoutes = new Set(sides.flatMap(x => x.rows.map(r => r.L.i))).size;
+  const rowHTML = ({L, x, t}) => {
+    const b = busBadge(L.n), more = x && x.st === 0 && x.ests && x.ests.length > 1 ? x.ests.slice(1, 3).map(e => Math.round(e.EstimateTime / 60) + " 分").join("、") : "";
+    const lastBus = x && x.ests && x.ests[0] && x.ests[0].IsLastBus;
+    const sub = [b.rest, t.sub, more ? "下一班 " + more : ""].filter(Boolean).join("・");
+    return `<button type="button" class="bus-erow${bus.route === L.i ? " on" : ""}" data-line="${L.i}" data-keep="1" style="--bc:${b.color}">
+      ${busBadgeHTML(L.n)}<span class="t"><b>往 ${esc(L.dest)}</b><small>${esc(sub)}${lastBus ? '<em class="lastbus">末班</em>' : ""}</small></span>
+      <span class="eta ${t.cls}">${esc(t.big)}</span></button>`;
+  };
+  el.innerHTML = `<div class="bus-head"><span class="bus-dot big${g.names.length >= 16 ? " hub" : ""}"></span><div><h3>${esc(g.n)}</h3><p>${nRoutes} 條路線${multi ? `・${sides.length} 個站牌` : ""}</p></div>
       <button type="button" class="bus-star" data-act="fav" aria-pressed="${busFavHas(g)}" aria-label="收藏這個站">${busFavHas(g) ? "★" : "☆"}</button><button type="button" class="bus-x" data-act="close" aria-label="關閉">×</button></div>
     ${busStatusLine()}
-    <div class="bus-eta">${lis.map(({L, x, t}) => {
-      const more = x && x.st === 0 && x.ests && x.ests.length > 1 ? x.ests.slice(1, 3).map(e => Math.round(e.EstimateTime / 60) + " 分").join("、") : "";
-      const lastBus = x && x.ests && x.ests[0] && x.ests[0].IsLastBus;
-      return `<button type="button" class="bus-erow${bus.route === L.i ? " on" : ""}" data-line="${L.i}" data-keep="1" style="--bc:${busBadge(L.n).color}">
-        ${busBadgeHTML(L.n)}<span class="t"><b>往 ${esc(L.dest)}</b><small>${esc(busBadge(L.n).rest)}${t.sub ? (busBadge(L.n).rest ? "・" : "") + t.sub : ""}${more ? `${busBadge(L.n).rest || t.sub ? "・" : ""}下一班 ${more}` : ""}${lastBus ? '<em class="lastbus">末班</em>' : ""}</small></span>
-        <span class="eta ${t.cls}">${esc(t.big)}</span></button>`;
-    }).join("")}</div>
+    ${sides.map(({S, k, rows, d}) => `<section class="bus-side${multi && S.i === bus.side ? " on" : ""}">
+      ${multi ? `<button type="button" class="bus-sidehd" data-side="${S.i}"><span class="tag">${busSideTag(k)}</span><span class="t"><b>往 ${esc(S.dests.slice(0, 2).join("、") || "—")} 方向</b><small>${d != null ? `離你 ${distText(d)}・` : ""}點這裡在地圖上看這個站牌的位置</small></span></button>` : ""}
+      <div class="bus-eta">${rows.map(rowHTML).join("")}</div></section>`).join("")}
     <p class="hint bus-tip">點路線會在地圖上畫出整條路線${hasTdxKey() ? "和公車現在的位置" : ""}，再點一次取消。</p>`;
 }
 $("busSheet").addEventListener("click", e => {
   const go = e.target.closest("[data-go]"); if (go) return showView(go.dataset.go);
   const act = e.target.closest("[data-act]");
   if (act) { if (act.dataset.act === "close") { bus.sel = null; bus.route = null; bus.veh = []; busPaintMap(); busRender(); } else if (act.dataset.act === "fav") busFavToggle(busG(bus.sel)); return; }
-  const gl = e.target.closest("[data-g]"); if (gl) { if (!gl.dataset.keep) { bus.q = ""; $("busQ").value = ""; $("busQx").hidden = true; } busSelect(+gl.dataset.g, {fly: true, keepRoute: !!gl.dataset.keep}); return; }
+  const sd = e.target.closest("[data-side]"); if (sd) {
+    bus.side = +sd.dataset.side; const S = bus.data.stations[bus.side];
+    if (bus.map) bus.map.flyTo({center: [S.lon, S.lat], zoom: Math.max(bus.map.getZoom(), 17.2), duration: 600});
+    busPaintMap(); busRender(); return;
+  }
+  const kf = e.target.closest("[data-keyform]"); if (kf) return;
+  const gl = e.target.closest("[data-g]"); if (gl) { if (!gl.dataset.keep) { bus.q = ""; $("busQ").value = ""; $("busQx").hidden = true; } busSelect(+gl.dataset.g, {fly: true, keepRoute: !!gl.dataset.keep, side: gl.dataset.s != null ? +gl.dataset.s : undefined}); return; }
   const ln = e.target.closest("[data-line]"); if (ln) {
     const li = +ln.dataset.line;
     if (bus.q) { bus.q = ""; $("busQ").value = ""; $("busQx").hidden = true; bus.sel = null; }
@@ -3120,15 +3200,17 @@ function busPickRoute(li) {
   busPaintMap(); busRender();
   if (li == null) return;
   const L = bus.data.lines[li], b = new maplibregl.LngLatBounds();
-  for (const [, gi] of L.stops) b.extend([busG(gi).lon, busG(gi).lat]);
+  for (const [, , si] of L.stops) b.extend([bus.data.stations[si].lon, bus.data.stations[si].lat]);
   if (bus.map && !b.isEmpty()) bus.map.fitBounds(b, {padding: 50, duration: 600, maxZoom: 15});
   busFetchVeh();
 }
 function busSelect(i, o = {}) {
-  bus.sel = i; if (!o.keepRoute) { bus.route = null; bus.veh = []; }
+  if (bus.sel !== i) bus.side = null;
+  bus.sel = i; if (o.side != null) bus.side = o.side;
+  if (!o.keepRoute) { bus.route = null; bus.veh = []; }
   if (bus.etaFor !== i) { bus.etaAt = 0; bus.err = ""; }
-  const g = busG(i);
-  if (o.fly && bus.map) bus.map.flyTo({center: [g.lon, g.lat], zoom: Math.max(bus.map.getZoom(), 15.6), duration: 650});
+  const g = busG(i), S = bus.side != null ? bus.data.stations[bus.side] : g;
+  if (o.fly && bus.map) bus.map.flyTo({center: [S.lon, S.lat], zoom: Math.max(bus.map.getZoom(), 16.6), duration: 650});
   busPaintMap(); busRender(); busFetchETA(true);
   if (matchMedia("(max-width: 979px)").matches) setTimeout(() => $("busSheet").scrollIntoView({behavior: "smooth", block: "nearest"}), 120);
 }
@@ -3157,7 +3239,7 @@ function busOpen() {
   }).catch(() => { $("busSheet").innerHTML = `<p class="hint">公車資料第一次載入需要網路，連上網路後再點一次「公車」。</p>`; });
 }
 function busPause() { bus.open = false; clearTimeout(bus.timer); }
-setInterval(() => { if (bus.open && bus.sel != null && !document.hidden && bus.etaAt) { const u = document.querySelector("#busSheet .bus-upd"); if (u) u.outerHTML = busStatusLine(); } }, 5000);
+setInterval(() => { if (bus.open && bus.sel != null && !document.hidden && bus.etaAt && !bus.err) { const u = document.querySelector("#busSheet .bus-upd"); if (u) u.outerHTML = busStatusLine(); } }, 5000);
 document.addEventListener("visibilitychange", () => { if (bus.open && !document.hidden && bus.sel != null) busFetchETA(); });
 // 設定：交通部金鑰
 (() => {
@@ -3448,7 +3530,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-20-v67";
+const APP_VER = "krtc-2026-11-20-v68";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
