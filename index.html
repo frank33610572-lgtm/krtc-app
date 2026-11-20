@@ -864,6 +864,12 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .bus-key ol{margin:0;padding-left:20px;font-size:12.5px;line-height:1.7}
 .bus-key input{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 12px;font:inherit;font-size:15px;min-height:44px}
 .bus-key .bk-st{font-size:12.5px;color:var(--muted)}
+
+.bus-gmap{display:flex;align-items:center;gap:11px;margin:12px 0 2px;padding:11px 13px;border-radius:14px;border:1px solid var(--line);background:var(--soft);color:var(--ink);text-decoration:none}
+.bus-gmap svg{width:22px;height:22px;color:#1a73e8;flex:none}
+.bus-gmap span{display:grid;gap:1px}
+.bus-gmap b{font-size:14px}
+.bus-gmap small{font-size:11.5px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -3019,7 +3025,18 @@ function busShape(L) {
   return L.stops.map(([, , si]) => [bus.data.stations[si].lon, bus.data.stations[si].lat]);   // 線型還沒載到：先用站和站連起來
 }
 // ---------- 即時到站 ----------
-function busSched(ms) { clearTimeout(bus.timer); if (bus.open && bus.sel != null) bus.timer = setTimeout(() => busFetchETA(), ms); }
+// 自動更新：沒有金鑰時，8 分鐘沒碰公車頁就先停（省免費額度），一碰就恢復
+bus.act = Date.now();
+function busSched(ms) {
+  clearTimeout(bus.timer);
+  if (!bus.open || bus.sel == null) return;
+  if (!hasTdxKey() && Date.now() - bus.act > 8 * 60e3) { bus.idle = true; return; }
+  bus.timer = setTimeout(() => busFetchETA(), ms);
+}
+["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, () => {
+  bus.act = Date.now();
+  if (bus.idle && bus.open && bus.sel != null) { bus.idle = false; busFetchETA(true); }
+}, {passive: true}));
 async function busFetchETA(force) {
   const g = bus.sel != null ? busG(bus.sel) : null; if (!g) return;
   const key = hasTdxKey(), gap = key ? 25e3 : 55e3;
@@ -3099,13 +3116,14 @@ function busStatusLine() {
   if (bus.err === "net") return `<p class="bus-err">即時到站抓不到（可能沒有網路），稍後自動再試。</p>`;
   if (!bus.etaAt || bus.etaFor !== bus.sel) return `<p class="bus-upd">正在抓即時到站…</p>`;
   const s = Math.round((Date.now() - bus.etaAt) / 1000);
+  if (bus.idle) return `<p class="bus-upd">${Math.round(s / 60)} 分鐘前更新・暫停自動更新（點一下畫面就繼續）</p>`;
   return `<p class="bus-upd"><i class="led"></i>${s < 10 ? "剛剛更新" : s + " 秒前更新"}・每 ${hasTdxKey() ? 30 : 60} 秒自動更新</p>`;
 }
 // 沒有金鑰又被限流時，直接在這裡教怎麼申請、貼上
 function busKeyCard() {
   return `<div class="bus-key" data-keyform="1">
-    <b>即時到站暫時抓不到：交通部的免費額度用完了</b>
-    <p>沒有金鑰時，同一個網路的所有人共用很少的額度。申請一組自己的免費金鑰（約 3 分鐘），之後就會穩定顯示，還能看到公車現在的位置。</p>
+    <b>即時到站暫時抓不到：交通部今天的免費額度用完了</b>
+    <p>不用登入的額度是同一個網路的人一起用，通常隔天就恢復；這段時間可以先按下面的「在 Google 地圖看這站的即時班次」。想要一直穩定顯示（還能看公車位置），可以申請一組自己的免費金鑰，約 3 分鐘：</p>
     <ol><li>到 <a href="https://tdx.transportdata.tw/register" target="_blank" rel="noopener">TDX 註冊會員</a>，收驗證信</li><li>登入後到「會員中心 → API 金鑰」，按「新增」</li><li>把 Client Id、Client Secret 貼在下面</li></ol>
     <input id="bkId" type="text" autocomplete="off" spellcheck="false" placeholder="Client Id" aria-label="TDX Client Id">
     <input id="bkSecret" type="password" autocomplete="off" spellcheck="false" placeholder="Client Secret" aria-label="TDX Client Secret">
@@ -3176,7 +3194,13 @@ function busRender() {
     ${sides.map(({S, k, rows, d}) => `<section class="bus-side${multi && S.i === bus.side ? " on" : ""}">
       ${multi ? `<button type="button" class="bus-sidehd" data-side="${S.i}"><span class="tag">${busSideTag(k)}</span><span class="t"><b>往 ${esc(S.dests.slice(0, 2).join("、") || "—")} 方向</b><small>${d != null ? `離你 ${distText(d)}・` : ""}點這裡在地圖上看這個站牌的位置</small></span></button>` : ""}
       <div class="bus-eta">${rows.map(rowHTML).join("")}</div></section>`).join("")}
+    <a class="bus-gmap" href="${busGmap(g)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span><b>在 Google 地圖看這站的即時班次</b><small>不用登入；這裡抓不到即時資料時可以用</small></span></a>
     <p class="hint bus-tip">點路線會在地圖上畫出整條路線${hasTdxKey() ? "和公車現在的位置" : ""}，再點一次取消。</p>`;
+}
+// Google 地圖：用站牌座標搜尋「站名 公車站」，打開後點站牌就有即將到站的班次
+function busGmap(g) {
+  const S = bus.side != null ? bus.data.stations[bus.side] : g;
+  return `https://www.google.com/maps/search/${encodeURIComponent(g.n.replace(/\(.*?\)/g, "") + " 公車站")}/@${S.lat.toFixed(6)},${S.lon.toFixed(6)},18z`;
 }
 $("busSheet").addEventListener("click", e => {
   const go = e.target.closest("[data-go]"); if (go) return showView(go.dataset.go);
@@ -3530,7 +3554,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-20-v68";
+const APP_VER = "krtc-2026-11-20-v69";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
