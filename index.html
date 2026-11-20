@@ -769,6 +769,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .poiquick button{flex:none;min-height:32px;padding:0 12px;border-radius:999px;border:1px dashed color-mix(in srgb,var(--ink) 20%,transparent);background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer}
 .poiquick button:active{background:var(--soft)}
 .poisearch:has(input:not(:placeholder-shown)) + .poiquick{display:none}
+.poibar.sub-on .poicats{opacity:.45;filter:saturate(.4)}
+.poibar.sub-on .poicats .poichip[data-cat="food"]{opacity:1}
 </style>
 </head>
 <body>
@@ -2272,8 +2274,8 @@ function ohStatus(it) {
   return {known: true, open, text: today && today.length ? "今天 " + today.map(span).join("、") : lateYest ? "今天公休（營業到凌晨）" : "今天公休"};
 }
 function poiPass(it, st) { // 分類、休息中、ATM 篩選
-  if (!poi.cats[it.c]) return false;
-  if (poi.sub != null && it.c === "food" && (it.sub || 0) !== poi.sub) return false;
+  if (poi.sub != null) { if (it.c !== "food" || (it.sub || 0) !== poi.sub) return false; }   // 選了餐廳類型：只看那一種
+  else if (!poi.cats[it.c]) return false;
   if (poi.hideClosed && st.known && !st.open) return false;
   if (poi.atm && it.c === "conv" && !hasATM(it)) return false;
   return true;
@@ -2485,7 +2487,8 @@ document.querySelectorAll("#poiGoogle a[data-gq]").forEach(a => {
 });
 // 餐廳類型：全部、早餐、麵・小吃…（只在餐廳開著時出現，一次選一種）
 function poiSubPaint() {
-  const el = $("poiSub"); el.hidden = !poi.cats.food;
+  const el = $("poiSub"); el.hidden = !poi.cats.food && poi.sub == null;
+  $("poiChips").classList.toggle("sub-on", poi.sub != null);
   el.innerHTML = [["", "全部"], ...SUB_ORDER.map(i => [String(i), FOOD_SUB[i].short])].map(([v, t]) =>
     `<button type="button" data-sub="${v}" aria-pressed="${String(v === "" ? poi.sub == null : poi.sub === +v)}">${v === "" ? "" : `<span class="g">${FOOD_SUB[+v].glyph}</span>`}${t}<i></i></button>`).join("");
   if (map) poiChipCounts();
@@ -2494,7 +2497,7 @@ $("poiSub").addEventListener("click", e => {
   const b = e.target.closest("[data-sub]"); if (!b) return;
   poi.sub = b.dataset.sub === "" ? null : +b.dataset.sub;
   store.set("krtc-poi-sub", poi.sub); poiSubPaint(); poiDraw(); poiRenderList();
-  if (poi.sub != null) $("locMsg").textContent = `只看${FOOD_SUB[poi.sub].label}，其他分類照常顯示`;
+  if (poi.sub != null) $("locMsg").textContent = `只看${FOOD_SUB[poi.sub].label}，點「全部」恢復`;
 });
 poiSubPaint();
 // 快速搜尋：點了就填進搜尋框
@@ -2526,6 +2529,7 @@ document.querySelectorAll(".poichip[data-cat]").forEach(b => {
   b.addEventListener("contextmenu", e => e.preventDefault());
   b.onclick = () => {
     if (held) { held = false; return; }
+    if (poi.sub != null) { poi.sub = null; store.set("krtc-poi-sub", null); poiCatsApply("已顯示全部餐廳類型"); return; }
     poi.cats[c] = !poi.cats[c];
     const none = POI_KEYS.every(k => !poi.cats[k]);
     poiCatsApply(none ? "五類都隱藏了，點任一類就會再顯示" : "");
