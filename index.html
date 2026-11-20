@@ -769,8 +769,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .poiquick button{flex:none;min-height:32px;padding:0 12px;border-radius:999px;border:1px dashed color-mix(in srgb,var(--ink) 20%,transparent);background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer}
 .poiquick button:active{background:var(--soft)}
 .poisearch:has(input:not(:placeholder-shown)) + .poiquick{display:none}
-.poibar.sub-on .poicats{opacity:.45;filter:saturate(.4)}
-.poibar.sub-on .poicats .poichip[data-cat="food"]{opacity:1}
+.poibar.sub-on .poichip:not([data-cat="food"]){opacity:.4;filter:saturate(.3)}
 </style>
 </head>
 <body>
