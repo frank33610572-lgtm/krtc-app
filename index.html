@@ -43,6 +43,7 @@
   --lrt:#4fa83d;
   --good:#128556;
   --focus:#2f6fd6;
+  --bus:#0b7fab;
   /* 好用地圖的五個分類：同一個亮度、低彩度，彼此分得出來但不搶路線的紅、橘、綠 */
   --c-food:#589194;--c-tea:#a86935;--c-cafe:#7f6aab;--c-bar:#ab587a;--c-conv:#4b79b4;--sg-ink:#fff;
   --font-display:"Big Shoulders Display","Barlow Condensed","Arial Narrow",sans-serif;
@@ -53,14 +54,14 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#090d13; --surface:#131922; --ink:#e9edf3; --muted:#9aa3b1; --line:#252d39; --soft:#1a212c;
-    --board:#05080d; --board-ink:#e8edf5; --amber:#ffb84d; --red:#ff4b55; --orange:#ffa526; --lrt:#6cc756; --good:#3fcf8e; --focus:#7fb0ff;
+    --board:#05080d; --board-ink:#e8edf5; --amber:#ffb84d; --red:#ff4b55; --orange:#ffa526; --lrt:#6cc756; --good:#3fcf8e; --focus:#7fb0ff; --bus:#5cc4ec;
     --c-food:#75c0c2;--c-tea:#e0a26f;--c-cafe:#b8a4e6;--c-bar:#e993b3;--c-conv:#85b4f0;--sg-ink:#0e131a;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#090d13; --surface:#131922; --ink:#e9edf3; --muted:#9aa3b1; --line:#252d39; --soft:#1a212c;
-  --board:#05080d; --board-ink:#e8edf5; --amber:#ffb84d; --red:#ff4b55; --orange:#ffa526; --lrt:#6cc756; --good:#3fcf8e; --focus:#7fb0ff;
+  --board:#05080d; --board-ink:#e8edf5; --amber:#ffb84d; --red:#ff4b55; --orange:#ffa526; --lrt:#6cc756; --good:#3fcf8e; --focus:#7fb0ff; --bus:#5cc4ec;
   --c-food:#75c0c2;--c-tea:#e0a26f;--c-cafe:#b8a4e6;--c-bar:#e993b3;--c-conv:#85b4f0;--sg-ink:#0e131a;
   color-scheme:dark;
 }
@@ -666,7 +667,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .about p{margin:0}
 
 /* ---------- 底部分頁 ---------- */
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);padding:6px max(10px,env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom))}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:6px max(10px,env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom))}
 .tabbar button{border:0;background:none;cursor:pointer;display:grid;justify-items:center;gap:2px;font-size:11px;font-weight:500;color:var(--muted);padding:6px 0;min-height:52px}
 .tabbar svg{width:24px;height:24px}
 .tabbar button[aria-current="page"]{color:var(--ink);font-weight:700}
@@ -770,6 +771,84 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .poiquick button:active{background:var(--soft)}
 .poisearch:has(input:not(:placeholder-shown)) + .poiquick{display:none}
 .poibar.sub-on .poichip:not([data-cat="food"]){opacity:.4;filter:saturate(.3)}
+
+/* ===== 公車查詢 =====
+   地圖只放站牌點：大站（16 條以上路線）一開始就看得到，中站放大到 13 級、小站放大到 14.6 級才出現；
+   站名放大才顯示、互相不重疊。選了路線，其他站變淡，只剩那條線。 */
+.busview{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.busview>*{min-width:0}
+.bus-search input::-webkit-search-cancel-button{-webkit-appearance:none;display:none}
+.bus-top{display:flex;gap:8px}
+.bus-search{flex:1;min-width:0;display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0 6px 0 13px;min-height:48px;color:var(--muted)}
+.bus-search:focus-within{border-color:var(--bus)}
+.bus-search svg{width:18px;height:18px;flex:none}
+.bus-search input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:inherit;font-size:16px;outline:none;-webkit-appearance:none;appearance:none}
+.bus-search input::placeholder{color:var(--muted)}
+.bus-search button{border:0;background:var(--soft);color:var(--muted);width:30px;height:30px;border-radius:50%;font-size:18px;cursor:pointer}
+.bus-near{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:14px;padding:0 14px;min-height:48px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.bus-near svg{width:18px;height:18px;color:var(--bus)}
+.bus-favs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.bus-favs::-webkit-scrollbar{display:none}
+.bus-favs button{flex:none;display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:0 13px;border-radius:999px;border:1px solid color-mix(in srgb,var(--bus) 35%,var(--line));background:color-mix(in srgb,var(--bus) 8%,var(--surface));color:var(--ink);font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.bus-favs span{color:var(--bus)}
+.buswrap{border-color:color-mix(in srgb,var(--bus) 30%,var(--line))}
+#busMap{height:max(300px,46dvh);background:var(--soft)}
+@media (min-width:980px){#busMap{height:calc(100vh - 360px);min-height:420px}}
+.bus-sheet{padding:14px 14px 10px}
+.bus-h{margin:2px 2px 8px;font-size:13px;color:var(--muted);font-weight:700}
+.bus-list{display:grid;margin-bottom:10px}
+.bus-srow,.bus-rrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;text-align:left;border:0;border-bottom:1px solid color-mix(in srgb,var(--ink) 8%,transparent);background:none;padding:11px 4px;color:var(--ink);font:inherit;cursor:pointer}
+.bus-srow:last-child,.bus-rrow:last-child{border-bottom:0}
+.bus-srow .t,.bus-rrow .t,.bus-erow .t{display:grid;gap:2px;min-width:0;overflow:hidden}
+.bus-srow b,.bus-rrow b{font-size:15.5px}
+.bus-srow small,.bus-rrow small{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bus-srow .d{text-align:right;font-size:11px;color:var(--muted)}
+.bus-srow .d b{display:block;font-family:var(--font-display);font-size:22px;color:var(--ink);line-height:1}
+.bus-dot{width:14px;height:14px;border-radius:50%;border:2.5px solid var(--bus);background:var(--surface);flex:none}
+.bus-dot.hub{background:var(--bus);border-color:var(--surface);box-shadow:0 0 0 2px var(--bus)}
+.bus-dot.big{width:20px;height:20px}
+.bb{display:inline-grid;place-items:center;min-width:46px;height:30px;padding:0 8px;border-radius:9px;background:var(--bc);color:#fff;font-family:var(--font-display);font-size:17px;font-weight:700;letter-spacing:.01em;line-height:1;white-space:nowrap}
+.bb.big{min-width:58px;height:40px;font-size:22px;border-radius:11px}
+.bus-head{display:flex;align-items:center;gap:12px;padding:2px 2px 10px;border-bottom:1px solid var(--line)}
+.bus-head>div{flex:1;min-width:0}
+.bus-head h3{margin:0;font-size:19px;line-height:1.25}
+.bus-head p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+.bus-star,.bus-x{border:1px solid var(--line);background:var(--surface);color:var(--muted);width:40px;height:40px;border-radius:12px;font-size:20px;cursor:pointer;flex:none}
+.bus-star[aria-pressed="true"]{color:#e0a200;border-color:color-mix(in srgb,#e0a200 50%,var(--line))}
+.bus-upd,.bus-err{margin:10px 2px 4px;font-size:12px;color:var(--muted)}
+.bus-err{color:var(--ink);background:color-mix(in srgb,#e0a200 14%,var(--surface));border:1px solid color-mix(in srgb,#e0a200 40%,var(--line));border-radius:10px;padding:9px 11px;line-height:1.5}
+.bus-err .linkbtn{font-size:12px;min-height:0;padding:0;font-weight:700}
+.bus-upd .led{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 6px 1px var(--good);margin-right:6px;vertical-align:.08em}
+.bus-eta{display:grid}
+.bus-erow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;text-align:left;border:0;border-bottom:1px solid color-mix(in srgb,var(--ink) 8%,transparent);background:none;padding:12px 4px;color:var(--ink);font:inherit;cursor:pointer;position:relative}
+.bus-erow:last-child{border-bottom:0}
+.bus-erow.on{background:color-mix(in srgb,var(--bc) 9%,transparent);border-radius:12px}
+.bus-erow.on::before{content:"";position:absolute;left:-6px;top:10px;bottom:10px;width:3px;border-radius:3px;background:var(--bc)}
+.bus-erow b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bus-erow small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bus-erow .lastbus{font-style:normal;margin-left:6px;padding:1px 6px;border-radius:6px;background:color-mix(in srgb,var(--red) 14%,transparent);color:var(--red);font-weight:700}
+.bus-erow .eta{font-family:var(--font-display);font-size:24px;font-weight:700;line-height:1;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.bus-erow .eta.now{color:var(--red);font-family:var(--font-body);font-size:15px}
+.bus-erow .eta.soon{color:#d9480f}
+.bus-erow .eta.wait{font-size:19px;color:var(--muted)}
+.bus-erow .eta.off,.bus-erow .eta.none{font-family:var(--font-body);font-size:13px;font-weight:700;color:var(--muted)}
+.bus-tip{margin:8px 2px 0}
+.bus-dirs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px}
+.bus-dirs button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:0 13px;min-height:36px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+.bus-dirs button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.bus-seq{list-style:none;margin:8px 0 0;padding:0}
+.bus-seq li{position:relative}
+.bus-seq li::before{content:"";position:absolute;left:13px;top:0;bottom:0;width:4px;background:var(--bc);opacity:.85}
+.bus-seq li:first-child::before{top:50%}.bus-seq li:last-child::before{bottom:50%}
+.bus-seq button{position:relative;display:flex;align-items:center;gap:14px;width:100%;border:0;background:none;color:var(--ink);font:inherit;font-size:15px;text-align:left;padding:10px 4px;cursor:pointer}
+.bus-seq i{width:14px;height:14px;border-radius:50%;background:var(--surface);border:3px solid var(--bc);margin-left:6px;z-index:1;flex:none}
+.bus-empty{padding:6px 2px}
+.bus-empty b{font-size:15.5px;line-height:1.45;display:block}
+.bus-empty p{font-size:13px;color:var(--muted);line-height:1.6;margin:6px 0 0}
+.tdx-form{display:grid;gap:8px;margin-top:10px}
+.tdx-form input{border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:10px;padding:10px 12px;font:inherit;font-size:15px;min-height:44px}
+.tdx-btns{display:flex;gap:8px}
+.btn.ghost{background:none}
 </style>
 </head>
 <body>
@@ -876,6 +955,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
     <nav class="tabbar" aria-label="主選單">
       <button type="button" data-tab="list" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>班次</button>
       <button type="button" data-tab="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>地圖</button>
+      <button type="button" data-tab="bus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="14" rx="3"/><path d="M4 11h16M8 21v-3.5M16 21v-3.5"/><circle cx="8.5" cy="14.3" r=".6" fill="currentColor"/><circle cx="15.5" cy="14.3" r=".6" fill="currentColor"/></svg>公車</button>
       <button type="button" data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>設定</button>
     </nav>
   </div>
@@ -968,6 +1048,17 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
       <div class="near" id="nearList"></div>
     </section>
 
+    <section class="view busview" data-view="bus" hidden>
+      <div class="bus-top">
+        <label class="bus-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
+          <input id="busQ" type="search" placeholder="搜尋站牌或路線，例如 紅33、高雄車站" enterkeyhint="search" autocomplete="off" aria-label="搜尋公車站牌或路線">
+          <button type="button" id="busQx" hidden aria-label="清除搜尋">×</button></label>
+        <button type="button" class="bus-near" id="busNear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></svg>附近</button>
+      </div>
+      <div class="bus-favs" id="busFavs" hidden></div>
+      <div class="mapwrap buswrap"><div id="busMap" role="application" aria-label="高雄公車站牌地圖"></div><div class="maptoast" id="busMsg" role="status"></div></div>
+      <div class="bus-sheet card" id="busSheet" aria-live="polite"></div>
+    </section>
     <section class="view" data-view="settings" hidden>
       <div style="display:grid;gap:12px">
         <div class="card">
@@ -983,6 +1074,16 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
             <button type="button" id="xPlus" aria-label="增加一分鐘">+</button>
           </div>
           <p class="hint">紅線、橘線互轉時，在美麗島站換月台需要的時間。走得快可以調低。</p>
+        </div>
+        <div class="card" id="tdxCard">
+          <h2>公車即時到站（交通部金鑰，選填）</h2>
+          <p class="hint">公車站牌、路線不需要金鑰。即時到站要向交通部 TDX 抓資料，沒有金鑰時大家共用很少的免費額度，常會抓不到。到 <a href="https://tdx.transportdata.tw/register" target="_blank" rel="noopener">TDX 註冊</a>（免費），在「會員中心 → API 金鑰」拿到 Client Id 和 Client Secret 貼在這裡，就會用你自己的額度。金鑰只存在這支手機。</p>
+          <div class="tdx-form">
+            <input id="tdxId" type="text" autocomplete="off" spellcheck="false" placeholder="Client Id" aria-label="TDX Client Id">
+            <input id="tdxSecret" type="password" autocomplete="off" spellcheck="false" placeholder="Client Secret" aria-label="TDX Client Secret">
+            <div class="tdx-btns"><button type="button" class="btn" id="tdxSave">儲存並測試</button><button type="button" class="btn ghost" id="tdxClear">清除</button></div>
+            <p class="hint" id="tdxStatus"></p>
+          </div>
         </div>
         <div class="card" id="ybCard" hidden>
           <h2>直接開啟 YouBike App</h2>
@@ -1983,7 +2084,7 @@ if (ybCached && Date.now() - ybCached.t < 7 * 864e5) { yb.stations = ybCached.li
 const ybAvCached = store.get("krtc-yb-av", null);
 if (ybAvCached) { yb.avail = ybAvCached.map; yb.availAt = ybAvCached.t; }
 async function tdxGet(path) {
-  const r = await fetch(TDX + path + (path.includes("?") ? "&" : "?") + "$format=JSON");
+  const r = await tdxRaw(TDX + path + (path.includes("?") ? "&" : "?") + "$format=JSON");
   if (r.status === 429) throw new Error("limit");
   if (!r.ok) throw new Error("http " + r.status);
   return r.json();
@@ -2722,12 +2823,363 @@ $("locate").onclick = () => {
 };
 
 // ---------- 分頁 ----------
+// ================= 公車查詢 =================
+// 站牌、路線是靜態檔（bus.json），即時到站向交通部 TDX 抓。有使用者自己的金鑰就用金鑰，沒有就用免登入額度。
+const TDX_TOKEN_URL = "https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token";
+async function tdxToken() {
+  const k = store.get("krtc-tdx-key", null); if (!k || !k.id || !k.secret) return null;
+  const c = store.get("krtc-tdx-tok", null); if (c && c.exp > Date.now() + 6e4 && c.id === k.id) return c.t;
+  const r = await fetch(TDX_TOKEN_URL, {method: "POST", headers: {"content-type": "application/x-www-form-urlencoded"},
+    body: new URLSearchParams({grant_type: "client_credentials", client_id: k.id, client_secret: k.secret})});
+  if (!r.ok) throw Object.assign(new Error("金鑰無效"), {code: "key"});
+  const j = await r.json(); store.set("krtc-tdx-tok", {t: j.access_token, exp: Date.now() + (j.expires_in || 3600) * 1000, id: k.id});
+  return j.access_token;
+}
+async function tdxRaw(url) {
+  let t = null; try { t = await tdxToken(); } catch (e) { /* 金鑰錯就退回免登入 */ }
+  return fetch(url, t ? {headers: {authorization: "Bearer " + t}} : undefined);
+}
+async function tdxJSON(url) {
+  const r = await tdxRaw(url);
+  if (r.status === 429) throw Object.assign(new Error("limit"), {code: 429});
+  if (!r.ok) throw Object.assign(new Error("http " + r.status), {code: r.status});
+  return r.json();
+}
+const hasTdxKey = () => { const k = store.get("krtc-tdx-key", null); return !!(k && k.id && k.secret); };
+
+const BUS_API = "https://tdx.transportdata.tw/api/basic/v2/Bus/";
+const bus = {data: null, loading: null, map: null, ready: false, sel: null, route: null, rdir: 0, eta: null, etaFor: null, etaAt: 0, err: "",
+  timer: 0, shapes: null, veh: [], q: "", me: null, favs: store.get("krtc-bus-fav", []), open: false, lastFetch: 0};
+// 路線號碼徽章：紅33 → 紅系、100百貨幹線 → 100 + 百貨幹線
+const BUS_FAM = {"紅": "--red", "橘": "--orange", "綠": "#2e9b5f", "黃": "#c99a06", "藍": "#2f6fd6"};
+function busBadge(name) {
+  const m = name.match(/^([紅橘綠黃藍]?[A-Za-z]*\d+[A-Za-z]?)(.*)$/) || name.match(/^([A-Za-z]+\d*)(.*)$/);
+  const num = m ? m[1] : name.slice(0, 4), rest = m ? m[2].trim() : name.slice(4);
+  const f = BUS_FAM[num[0]];
+  const color = f ? (f.startsWith("--") ? cssVar(f) : f) : /幹線|快線/.test(name) ? "#3d4b63" : "#5b6b80";
+  return {num, rest, color};
+}
+const busBadgeHTML = (name, big) => { const b = busBadge(name); return `<span class="bb${big ? " big" : ""}" style="--bc:${b.color}">${esc(b.num)}</span>`; };
+function busLoad() {
+  return bus.loading ||= fetch("bus.json").then(r => { if (!r.ok) throw new Error("bus.json"); return r.json(); }).then(d => {
+    const lines = d.lines.map(([n, dir, dest, sub], i) => ({i, n, dir, dest, sub, key: sub + "|" + dir, stops: []}));
+    const byKey = new Map(lines.map(l => [l.key, l]));
+    const groups = d.groups.map(([n, a, o, flat], i) => {
+      const e = []; for (let k = 0; k < flat.length; k += 3) e.push({li: flat[k], seq: flat[k + 1], sid: String(flat[k + 2])});
+      const g = {i, n, lat: a / 1e5, lon: o / 1e5, e, names: [...new Set(e.map(x => lines[x.li].n))]};
+      for (const x of e) lines[x.li].stops.push([x.seq, i]);
+      return g;
+    });
+    for (const l of lines) l.stops.sort((a, b) => a[0] - b[0]);
+    bus.data = {v: d.v, lines, groups, byKey};
+  });
+}
+const busG = i => bus.data.groups[i];
+function busStopsFC() {
+  return fc(bus.data.groups.map(g => ({type: "Feature", properties: {i: g.i, n: g.n, k: g.names.length}, geometry: {type: "Point", coordinates: [g.lon, g.lat]}})));
+}
+// ---------- 地圖 ----------
+const BUS_BOUNDS = [[119.95, 22.38], [121.08, 23.48]];   // 只看高雄
+function busInitMap() {
+  if (bus.map || typeof maplibregl === "undefined") return;
+  bus.map = new maplibregl.Map({container: "busMap", style: styleURL(), center: [120.31, 22.635], zoom: 12.4, minZoom: 9.6, maxBounds: BUS_BOUNDS,
+    attributionControl: false, pitchWithRotate: false, dragRotate: false, fadeDuration: 120});
+  bus.map.addControl(new maplibregl.NavigationControl({showCompass: false}), "top-right");
+  bus.map.addControl(new maplibregl.AttributionControl({compact: true}), "bottom-left");
+  bus.map.on("style.load", busLayers);
+  bus.map.on("styleimagemissing", e => { if (!bus.map.hasImage(e.id)) bus.map.addImage(e.id, {width: 1, height: 1, data: new Uint8Array(4)}); });
+  bus.map.on("click", e => {   // 點擊容錯：附近 14px 內最近的站
+    const p = e.point, box = [[p.x - 14, p.y - 14], [p.x + 14, p.y + 14]];
+    const fs = bus.map.queryRenderedFeatures(box, {layers: ["bus-hub", "bus-mid", "bus-all", "bus-rstop"].filter(l => bus.map.getLayer(l))});
+    if (!fs.length) return;
+    const best = fs.map(f => { const q = bus.map.project(f.geometry.coordinates); return [Math.hypot(q.x - p.x, q.y - p.y), f]; }).sort((a, b) => a[0] - b[0])[0][1];
+    busSelect(+best.properties.i, {fly: false});
+  });
+  for (const l of ["bus-hub", "bus-mid", "bus-all", "bus-rstop"]) {
+    bus.map.on("mouseenter", l, () => { bus.map.getCanvas().style.cursor = "pointer"; });
+    bus.map.on("mouseleave", l, () => { bus.map.getCanvas().style.cursor = ""; });
+  }
+}
+function busLayers() {
+  const m = bus.map, style = m.getStyle();
+  const font = JSON.stringify(style.layers.map(l => l.layout?.["text-font"]).filter(Boolean)).includes("Noto Sans Bold") ? ["Noto Sans Bold"] : ["Noto Sans Regular"];
+  const surf = cssVar("--surface"), ink = cssVar("--ink"), acc = cssVar("--bus");
+  // 捷運輕軌路線淡淡的畫著當參考
+  m.addSource("bus-mrt", {type: "geojson", data: linesFC()});
+  m.addLayer({id: "bus-mrt", type: "line", source: "bus-mrt", layout: {"line-cap": "round", "line-join": "round"},
+    paint: {"line-color": ["match", ["get", "line"], "R", cssVar("--red"), "O", cssVar("--orange"), cssVar("--lrt")], "line-width": 3, "line-opacity": .28}});
+  m.addSource("bus-route", {type: "geojson", data: fc([])});
+  m.addLayer({id: "bus-route-case", type: "line", source: "bus-route", layout: {"line-cap": "round", "line-join": "round"}, paint: {"line-color": surf, "line-width": 9, "line-opacity": .9}});
+  m.addLayer({id: "bus-route", type: "line", source: "bus-route", layout: {"line-cap": "round", "line-join": "round"}, paint: {"line-color": ["get", "c"], "line-width": 5}});
+  m.addSource("bus-stops", {type: "geojson", data: busStopsFC()});
+  // 依「經過幾條路線」分三層：大站先出現，小站放大才出現，避免一開始滿地都是點
+  const r = (a, b, c) => ["interpolate", ["linear"], ["zoom"], 11, a, 15, b, 18, c];
+  m.addLayer({id: "bus-all", type: "circle", source: "bus-stops", minzoom: 14.6, filter: ["<", ["get", "k"], 6],
+    paint: {"circle-radius": r(2, 3.2, 6), "circle-color": surf, "circle-stroke-color": acc, "circle-stroke-width": 1.6}});
+  m.addLayer({id: "bus-mid", type: "circle", source: "bus-stops", minzoom: 13.2, filter: ["all", [">=", ["get", "k"], 6], ["<", ["get", "k"], 16]],
+    paint: {"circle-radius": r(2.5, 4.2, 7.5), "circle-color": surf, "circle-stroke-color": acc, "circle-stroke-width": 2}});
+  m.addLayer({id: "bus-hub", type: "circle", source: "bus-stops", filter: [">=", ["get", "k"], 16],
+    paint: {"circle-radius": r(3.2, 6, 9.5), "circle-color": acc, "circle-stroke-color": surf, "circle-stroke-width": 2}});
+  m.addLayer({id: "bus-label", type: "symbol", source: "bus-stops", minzoom: 14,
+    filter: ["any", [">=", ["get", "k"], 16], ["all", [">=", ["zoom"], 15.4], [">=", ["get", "k"], 6]], [">=", ["zoom"], 16.6]],
+    layout: {"text-field": ["get", "n"], "text-font": font, "text-size": ["interpolate", ["linear"], ["zoom"], 14, 10.5, 17, 12.5], "text-offset": [0, 1.05], "text-anchor": "top",
+      "text-max-width": 7, "symbol-sort-key": ["-", 100, ["get", "k"]], "text-padding": 4},
+    paint: {"text-color": ink, "text-halo-color": surf, "text-halo-width": 1.6}});
+  // 選了路線：這條線的站
+  m.addSource("bus-rstops", {type: "geojson", data: fc([])});
+  m.addLayer({id: "bus-rstop", type: "circle", source: "bus-rstops", paint: {"circle-radius": ["interpolate", ["linear"], ["zoom"], 11, 2.6, 16, 5.5], "circle-color": surf, "circle-stroke-color": ["get", "c"], "circle-stroke-width": 2.2}});
+  m.addLayer({id: "bus-rlabel", type: "symbol", source: "bus-rstops", minzoom: 13.4,
+    layout: {"text-field": ["get", "n"], "text-font": font, "text-size": 11, "text-offset": [0, .9], "text-anchor": "top", "text-max-width": 7, "text-padding": 3},
+    paint: {"text-color": ink, "text-halo-color": surf, "text-halo-width": 1.6}});
+  // 公車目前位置
+  m.addSource("bus-veh", {type: "geojson", data: fc([])});
+  m.addLayer({id: "bus-veh-halo", type: "circle", source: "bus-veh", paint: {"circle-radius": 13, "circle-color": ["get", "c"], "circle-opacity": .22}});
+  m.addLayer({id: "bus-veh", type: "circle", source: "bus-veh", paint: {"circle-radius": 7, "circle-color": ["get", "c"], "circle-stroke-color": surf, "circle-stroke-width": 2.5}});
+  m.addLayer({id: "bus-veh-t", type: "symbol", source: "bus-veh", minzoom: 12.5, layout: {"text-field": ["get", "p"], "text-font": font, "text-size": 10.5, "text-offset": [0, -1.5], "text-anchor": "bottom", "text-allow-overlap": true},
+    paint: {"text-color": ink, "text-halo-color": surf, "text-halo-width": 1.6}});
+  // 選中的站、我的位置
+  m.addSource("bus-sel", {type: "geojson", data: fc([])});
+  m.addLayer({id: "bus-sel", type: "circle", source: "bus-sel", paint: {"circle-radius": 15, "circle-color": acc, "circle-opacity": .16, "circle-stroke-color": acc, "circle-stroke-width": 2.5}});
+  m.addSource("bus-me", {type: "geojson", data: fc([])});
+  m.addLayer({id: "bus-me", type: "circle", source: "bus-me", paint: {"circle-radius": 7, "circle-color": cssVar("--focus"), "circle-stroke-color": "#fff", "circle-stroke-width": 2.5}});
+  bus.ready = true;
+  busPaintMap();
+}
+function busPaintMap() {
+  if (!bus.ready) return;
+  const m = bus.map, g = bus.sel != null ? busG(bus.sel) : null, L = bus.route != null ? bus.data.lines[bus.route] : null;
+  m.getSource("bus-sel").setData(fc(g ? [{type: "Feature", properties: {}, geometry: {type: "Point", coordinates: [g.lon, g.lat]}}] : []));
+  m.getSource("bus-me").setData(fc(bus.me ? [{type: "Feature", properties: {}, geometry: {type: "Point", coordinates: [bus.me.lon, bus.me.lat]}}] : []));
+  const c = L ? busBadge(L.n).color : "#888";
+  const coords = L ? busShape(L) : null;
+  m.getSource("bus-route").setData(fc(coords ? [{type: "Feature", properties: {c}, geometry: {type: "LineString", coordinates: coords}}] : []));
+  m.getSource("bus-rstops").setData(fc(L ? L.stops.map(([, gi]) => { const x = busG(gi); return {type: "Feature", properties: {i: gi, n: x.n, c}, geometry: {type: "Point", coordinates: [x.lon, x.lat]}}; }) : []));
+  m.getSource("bus-veh").setData(fc(L ? bus.veh.map(v => ({type: "Feature", properties: {c, p: v.p}, geometry: {type: "Point", coordinates: [v.lon, v.lat]}})) : []));
+  // 選了路線時，其他站變淡，地圖只剩這條線
+  for (const l of ["bus-all", "bus-mid", "bus-hub"]) m.setPaintProperty(l, "circle-opacity", L ? .25 : 1), m.setPaintProperty(l, "circle-stroke-opacity", L ? .25 : 1);
+  m.setLayoutProperty("bus-label", "visibility", L ? "none" : "visible");
+}
+// encoded polyline → 座標
+function decodePoly(s) {
+  const out = []; let i = 0, lat = 0, lon = 0;
+  while (i < s.length) {
+    for (const k of [0, 1]) {
+      let b, sh = 0, r = 0; do { b = s.charCodeAt(i++) - 63; r |= (b & 31) << sh; sh += 5; } while (b >= 32);
+      const d = r & 1 ? ~(r >> 1) : r >> 1; if (k) lon += d; else lat += d;
+    }
+    out.push([lon / 1e5, lat / 1e5]);
+  }
+  return out;
+}
+function busShape(L) {
+  const enc = bus.shapes && bus.shapes[L.i];
+  if (enc) return decodePoly(enc);
+  if (!bus.shapes && !bus.shapesP) bus.shapesP = fetch("bus_shape.json").then(r => r.json()).then(d => { bus.shapes = d.shape; busPaintMap(); }).catch(() => { bus.shapes = {}; });
+  return L.stops.map(([, gi]) => [busG(gi).lon, busG(gi).lat]);   // 線型還沒載到：先用站和站連起來
+}
+// ---------- 即時到站 ----------
+function busSched(ms) { clearTimeout(bus.timer); if (bus.open && bus.sel != null) bus.timer = setTimeout(() => busFetchETA(), ms); }
+async function busFetchETA(force) {
+  const g = bus.sel != null ? busG(bus.sel) : null; if (!g) return;
+  const key = hasTdxKey(), gap = key ? 25e3 : 55e3;
+  if (!force && bus.etaFor === g.i && Date.now() - bus.lastFetch < gap) return busSched(gap - (Date.now() - bus.lastFetch));
+  bus.lastFetch = Date.now(); const want = g.i;
+  const ids = [...new Set(g.e.map(x => x.sid))];
+  const sel = "$select=StopUID,SubRouteUID,Direction,EstimateTime,StopStatus,NextBusTime,Estimates";
+  try {
+    const rows = [];
+    for (let k = 0; k < ids.length; k += 45) {
+      const f = ids.slice(k, k + 45).map(id => `StopUID eq 'KHH${id}'`).join(" or ");
+      rows.push(...await tdxJSON(`${BUS_API}EstimatedTimeOfArrival/City/Kaohsiung?${sel}&$filter=${encodeURIComponent(f)}&$format=JSON`));
+    }
+    if (bus.sel !== want) return;
+    const eta = new Map();
+    for (const r of rows) {
+      const L = bus.data.byKey.get(String(r.SubRouteUID).replace("KHH", "") + "|" + r.Direction); if (!L) continue;
+      const ests = (r.Estimates || []).filter(x => x.EstimateTime != null).sort((a, b) => a.EstimateTime - b.EstimateTime);
+      const cur = eta.get(L.i);
+      if (!cur || (r.EstimateTime ?? 1e9) < (cur.t ?? 1e9)) eta.set(L.i, {t: r.EstimateTime, st: r.StopStatus, next: r.NextBusTime, ests});
+    }
+    bus.eta = eta; bus.etaFor = want; bus.etaAt = Date.now(); bus.err = "";
+  } catch (e) {
+    if (bus.sel !== want) return;
+    bus.err = e.code === 429 ? "limit" : "net";
+  }
+  busRender();
+  if (bus.route != null) busFetchVeh();
+  busSched(bus.err === "limit" ? 180e3 : gap);
+}
+async function busFetchVeh() {
+  const L = bus.data.lines[bus.route]; if (!L) return;
+  try {
+    const f = `SubRouteUID eq 'KHH${L.sub}' and Direction eq ${L.dir}`;
+    const rows = await tdxJSON(`${BUS_API}RealTimeByFrequency/City/Kaohsiung?$select=PlateNumb,BusPosition,GPSTime&$filter=${encodeURIComponent(f)}&$format=JSON`);
+    if (bus.data.lines[bus.route] !== L) return;
+    bus.veh = rows.filter(v => v.BusPosition).map(v => ({p: v.PlateNumb, lat: v.BusPosition.PositionLat, lon: v.BusPosition.PositionLon}));
+  } catch (e) { bus.veh = []; }
+  busPaintMap();
+}
+function busETAText(x) {
+  if (!x) return {big: "—", cls: "none", sec: 1e9};
+  if (x.st === 0 && x.t != null) return x.t < 60 ? {big: "進站中", cls: "now", sec: x.t} : x.t < 180 ? {big: `${Math.round(x.t / 60)} 分`, cls: "soon", sec: x.t} : {big: `${Math.round(x.t / 60)} 分`, cls: "", sec: x.t};
+  const nt = x.next ? x.next.slice(11, 16) : "";
+  if (x.st === 1) { const d = x.next ? (new Date(x.next) - Date.now()) / 1000 : 1e8; return {big: nt || "未發車", cls: "wait", sub: "尚未發車", sec: d > 0 ? d : 1e8}; }
+  if (x.st === 2) return {big: "不停靠", cls: "off", sub: "交管不停靠", sec: 2e9};
+  if (x.st === 3) return {big: "末班已過", cls: "off", sec: 3e9};
+  if (x.st === 4) return {big: "今日停駛", cls: "off", sec: 4e9};
+  return {big: "—", cls: "none", sec: 1e9};
+}
+// ---------- 畫面 ----------
+function busFavHas(g) { return bus.favs.some(f => f.n === g.n && Math.abs(f.a - g.lat) < .002 && Math.abs(f.o - g.lon) < .002); }
+function busFavToggle(g) {
+  if (busFavHas(g)) bus.favs = bus.favs.filter(f => !(f.n === g.n && Math.abs(f.a - g.lat) < .002 && Math.abs(f.o - g.lon) < .002));
+  else bus.favs.unshift({n: g.n, a: +g.lat.toFixed(5), o: +g.lon.toFixed(5)});
+  store.set("krtc-bus-fav", bus.favs); busRenderFavs(); busRender();
+}
+function busRenderFavs() {
+  const el = $("busFavs"); el.hidden = !bus.favs.length || !bus.data;
+  if (el.hidden) return;
+  el.innerHTML = bus.favs.map((f, k) => `<button type="button" data-fav="${k}"><span aria-hidden="true">★</span>${esc(f.n)}</button>`).join("");
+}
+$("busFavs").addEventListener("click", e => {
+  const b = e.target.closest("[data-fav]"); if (!b || !bus.data) return; const f = bus.favs[+b.dataset.fav];
+  let best = null, bd = 1e9; for (const g of bus.data.groups) if (g.n === f.n) { const d = Math.hypot(g.lat - f.a, g.lon - f.o); if (d < bd) { bd = d; best = g; } }
+  if (best) busSelect(best.i, {fly: true});
+});
+function busNearList(n) {
+  if (!bus.me) return [];
+  return bus.data.groups.map(g => [haversine([bus.me.lat, bus.me.lon], [g.lat, g.lon]), g]).sort((a, b) => a[0] - b[0]).slice(0, n);
+}
+function busStatusLine() {
+  if (bus.err === "limit") return `<p class="bus-err">即時到站暫時抓不到：交通部的免費額度用完了（大家共用）。${hasTdxKey() ? "你的金鑰額度也滿了，稍後會自動再試。" : `<button type="button" class="linkbtn" data-go="settings">加上自己的金鑰</button>就不會再遇到。`}</p>`;
+  if (bus.err === "net") return `<p class="bus-err">即時到站抓不到（可能沒有網路），稍後自動再試。</p>`;
+  if (!bus.etaAt || bus.etaFor !== bus.sel) return `<p class="bus-upd">正在抓即時到站…</p>`;
+  const s = Math.round((Date.now() - bus.etaAt) / 1000);
+  return `<p class="bus-upd"><i class="led"></i>${s < 10 ? "剛剛更新" : s + " 秒前更新"}・每 ${hasTdxKey() ? 30 : 60} 秒自動更新</p>`;
+}
+function busRender() {
+  const el = $("busSheet"); if (!bus.data) { el.innerHTML = `<p class="hint">公車站牌資料載入中…</p>`; return; }
+  const D = bus.data, q = bus.q.trim();
+  if (q) {   // 搜尋：站牌＋路線
+    const qs = q.toLowerCase();
+    const stops = []; const seen = new Set();
+    for (const g of D.groups) if (g.n.toLowerCase().includes(qs) && !seen.has(g.n + Math.round(g.lat * 100))) { seen.add(g.n + Math.round(g.lat * 100)); stops.push(g); }
+    stops.sort((a, b) => (a.n.indexOf(q) - b.n.indexOf(q)) || b.names.length - a.names.length);
+    const rts = new Map(); for (const L of D.lines) if (L.n.toLowerCase().includes(qs) || busBadge(L.n).num.toLowerCase() === qs) { if (!rts.has(L.n)) rts.set(L.n, []); rts.get(L.n).push(L); }
+    const rl = [...rts.entries()].sort((a, b) => (busBadge(a[0]).num.toLowerCase() === qs ? -1 : 0) - (busBadge(b[0]).num.toLowerCase() === qs ? -1 : 0) || a[0].localeCompare(b[0], "zh-Hant", {numeric: true})).slice(0, 12);
+    el.innerHTML = `${rl.length ? `<h3 class="bus-h">路線</h3><div class="bus-list">${rl.map(([n, ls]) => `<button type="button" class="bus-rrow" data-line="${ls[0].i}">${busBadgeHTML(n)}<span class="t"><b>${esc(busBadge(n).rest || n)}</b><small>${ls.map(L => "往 " + esc(L.dest)).join("／")}</small></span></button>`).join("")}</div>` : ""}
+      ${stops.length ? `<h3 class="bus-h">站牌</h3><div class="bus-list">${stops.slice(0, 12).map(g => `<button type="button" class="bus-srow" data-g="${g.i}"><span class="bus-dot${g.names.length >= 16 ? " hub" : ""}"></span><span class="t"><b>${esc(g.n)}</b><small>${g.names.length} 條路線・${esc(g.names.slice(0, 6).join("、"))}${g.names.length > 6 ? "…" : ""}</small></span></button>`).join("")}</div>` : ""}
+      ${!rl.length && !stops.length ? `<p class="hint">找不到「${esc(q)}」的站牌或路線。</p>` : ""}`;
+    return;
+  }
+  if (bus.route != null && bus.sel == null) {   // 只選了路線：看整條線的站
+    const L = D.lines[bus.route], sib = D.lines.filter(x => x.n === L.n);
+    el.innerHTML = `<div class="bus-head">${busBadgeHTML(L.n, true)}<div><h3>${esc(L.n)}</h3><p>往 ${esc(L.dest)}・${L.stops.length} 站</p></div><button type="button" class="bus-x" data-act="close" aria-label="關閉">×</button></div>
+      ${sib.length > 1 ? `<div class="bus-dirs">${sib.map(x => `<button type="button" data-line="${x.i}" aria-pressed="${x.i === L.i}">往 ${esc(x.dest)}</button>`).join("")}</div>` : ""}
+      <ol class="bus-seq" style="--bc:${busBadge(L.n).color}">${L.stops.map(([seq, gi]) => `<li><button type="button" data-g="${gi}" data-keep="1"><i></i>${esc(busG(gi).n)}</button></li>`).join("")}</ol>`;
+    return;
+  }
+  if (bus.sel == null) {   // 什麼都沒選：附近站牌
+    const near = busNearList(8);
+    el.innerHTML = near.length ? `<h3 class="bus-h">離你最近的站牌</h3><div class="bus-list">${near.map(([d, g]) => `<button type="button" class="bus-srow" data-g="${g.i}"><span class="bus-dot${g.names.length >= 16 ? " hub" : ""}"></span><span class="t"><b>${esc(g.n)}</b><small>${g.names.length} 條路線・${esc(g.names.slice(0, 5).join("、"))}${g.names.length > 5 ? "…" : ""}</small></span><span class="d"><b>${Math.max(1, Math.round(d / 80))}</b>分鐘</span></button>`).join("")}</div>`
+      : `<div class="bus-empty"><b>點地圖上的站牌，就會看到經過的公車和還要等多久</b><p>大站（很多路線經過）一開始就看得到，小站放大地圖才會出現。也可以按「附近」找離你最近的站，或直接搜尋路線號碼。</p><p class="hint">共 ${D.groups.length.toLocaleString()} 個站、${new Set(D.lines.map(l => l.n)).size} 條路線（資料 ${D.v}）</p></div>`;
+    return;
+  }
+  // 選了站：每條路線往哪、還要等多久
+  const g = busG(bus.sel), ETA = bus.etaFor === g.i ? bus.eta : null;
+  const lis = [...new Set(g.e.map(x => x.li))].map(li => {
+    const L = D.lines[li], x = ETA && ETA.get(li), t = busETAText(x);
+    const last = L.stops.length && L.stops[L.stops.length - 1][1] === g.i;
+    return {L, x, t, last};
+  }).filter(r => !r.last).sort((a, b) => a.t.sec - b.t.sec || a.L.n.localeCompare(b.L.n, "zh-Hant", {numeric: true}));
+  el.innerHTML = `<div class="bus-head"><span class="bus-dot big${g.names.length >= 16 ? " hub" : ""}"></span><div><h3>${esc(g.n)}</h3><p>${lis.length} 條路線經過</p></div>
+      <button type="button" class="bus-star" data-act="fav" aria-pressed="${busFavHas(g)}" aria-label="收藏這個站">${busFavHas(g) ? "★" : "☆"}</button><button type="button" class="bus-x" data-act="close" aria-label="關閉">×</button></div>
+    ${busStatusLine()}
+    <div class="bus-eta">${lis.map(({L, x, t}) => {
+      const more = x && x.st === 0 && x.ests && x.ests.length > 1 ? x.ests.slice(1, 3).map(e => Math.round(e.EstimateTime / 60) + " 分").join("、") : "";
+      const lastBus = x && x.ests && x.ests[0] && x.ests[0].IsLastBus;
+      return `<button type="button" class="bus-erow${bus.route === L.i ? " on" : ""}" data-line="${L.i}" data-keep="1" style="--bc:${busBadge(L.n).color}">
+        ${busBadgeHTML(L.n)}<span class="t"><b>往 ${esc(L.dest)}</b><small>${esc(busBadge(L.n).rest)}${t.sub ? (busBadge(L.n).rest ? "・" : "") + t.sub : ""}${more ? `${busBadge(L.n).rest || t.sub ? "・" : ""}下一班 ${more}` : ""}${lastBus ? '<em class="lastbus">末班</em>' : ""}</small></span>
+        <span class="eta ${t.cls}">${esc(t.big)}</span></button>`;
+    }).join("")}</div>
+    <p class="hint bus-tip">點路線會在地圖上畫出整條路線${hasTdxKey() ? "和公車現在的位置" : ""}，再點一次取消。</p>`;
+}
+$("busSheet").addEventListener("click", e => {
+  const go = e.target.closest("[data-go]"); if (go) return showView(go.dataset.go);
+  const act = e.target.closest("[data-act]");
+  if (act) { if (act.dataset.act === "close") { bus.sel = null; bus.route = null; bus.veh = []; busPaintMap(); busRender(); } else if (act.dataset.act === "fav") busFavToggle(busG(bus.sel)); return; }
+  const gl = e.target.closest("[data-g]"); if (gl) { if (!gl.dataset.keep) { bus.q = ""; $("busQ").value = ""; $("busQx").hidden = true; } busSelect(+gl.dataset.g, {fly: true, keepRoute: !!gl.dataset.keep}); return; }
+  const ln = e.target.closest("[data-line]"); if (ln) {
+    const li = +ln.dataset.line;
+    if (bus.q) { bus.q = ""; $("busQ").value = ""; $("busQx").hidden = true; bus.sel = null; }
+    busPickRoute(bus.route === li && bus.sel != null ? null : li);
+  }
+});
+function busPickRoute(li) {
+  bus.route = li; bus.veh = [];
+  busPaintMap(); busRender();
+  if (li == null) return;
+  const L = bus.data.lines[li], b = new maplibregl.LngLatBounds();
+  for (const [, gi] of L.stops) b.extend([busG(gi).lon, busG(gi).lat]);
+  if (bus.map && !b.isEmpty()) bus.map.fitBounds(b, {padding: 50, duration: 600, maxZoom: 15});
+  busFetchVeh();
+}
+function busSelect(i, o = {}) {
+  bus.sel = i; if (!o.keepRoute) { bus.route = null; bus.veh = []; }
+  if (bus.etaFor !== i) { bus.etaAt = 0; bus.err = ""; }
+  const g = busG(i);
+  if (o.fly && bus.map) bus.map.flyTo({center: [g.lon, g.lat], zoom: Math.max(bus.map.getZoom(), 15.6), duration: 650});
+  busPaintMap(); busRender(); busFetchETA(true);
+  if (matchMedia("(max-width: 979px)").matches) setTimeout(() => $("busSheet").scrollIntoView({behavior: "smooth", block: "nearest"}), 120);
+}
+let busQT = 0;
+$("busQ").addEventListener("input", () => { $("busQx").hidden = !$("busQ").value; clearTimeout(busQT); busQT = setTimeout(() => { bus.q = $("busQ").value; busRender(); }, 150); });
+$("busQ").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("busQ").blur(); } });
+$("busQx").onclick = () => { $("busQ").value = ""; $("busQx").hidden = true; bus.q = ""; busRender(); };
+$("busNear").onclick = () => {
+  if (!navigator.geolocation) return;
+  $("busMsg").textContent = "定位中…";
+  navigator.geolocation.getCurrentPosition(p => {
+    bus.me = {lat: p.coords.latitude, lon: p.coords.longitude}; $("busMsg").textContent = "";
+    bus.sel = null; bus.route = null; bus.q = ""; $("busQ").value = ""; $("busQx").hidden = true;
+    if (bus.map) bus.map.flyTo({center: [bus.me.lon, bus.me.lat], zoom: 16, duration: 700});
+    busPaintMap(); busRender();
+  }, () => { $("busMsg").textContent = "沒辦法定位，請確認已允許定位"; }, {enableHighAccuracy: true, timeout: 10000, maximumAge: 30000});
+};
+function busOpen() {
+  bus.open = true;
+  busRender();
+  busLoad().then(() => {   // 站牌資料和地圖分開載：地圖載不到時清單、搜尋照樣能用
+    busRenderFavs(); busRender();
+    if (bus.sel != null) busFetchETA();
+    return loadMapLib().then(() => { if (!bus.map) busInitMap(); else setTimeout(() => bus.map.resize(), 60); })
+      .catch(() => { $("busMsg").textContent = "地圖第一次載入需要網路；站牌清單和搜尋可以先用"; });
+  }).catch(() => { $("busSheet").innerHTML = `<p class="hint">公車資料第一次載入需要網路，連上網路後再點一次「公車」。</p>`; });
+}
+function busPause() { bus.open = false; clearTimeout(bus.timer); }
+setInterval(() => { if (bus.open && bus.sel != null && !document.hidden && bus.etaAt) { const u = document.querySelector("#busSheet .bus-upd"); if (u) u.outerHTML = busStatusLine(); } }, 5000);
+document.addEventListener("visibilitychange", () => { if (bus.open && !document.hidden && bus.sel != null) busFetchETA(); });
+// 設定：交通部金鑰
+(() => {
+  const k = store.get("krtc-tdx-key", null);
+  if (k) { $("tdxId").value = k.id || ""; $("tdxSecret").value = k.secret || ""; $("tdxStatus").textContent = "已設定金鑰"; }
+  $("tdxSave").onclick = async () => {
+    const id = $("tdxId").value.trim(), secret = $("tdxSecret").value.trim();
+    if (!id || !secret) { $("tdxStatus").textContent = "Client Id 和 Client Secret 都要填"; return; }
+    store.set("krtc-tdx-key", {id, secret}); store.set("krtc-tdx-tok", null); $("tdxStatus").textContent = "測試中…";
+    try { await tdxToken(); $("tdxStatus").textContent = "金鑰可以用，公車即時到站會用你自己的額度"; }
+    catch (e) { $("tdxStatus").textContent = "金鑰不對（交通部拒絕），請檢查有沒有貼錯"; }
+  };
+  $("tdxClear").onclick = () => { store.set("krtc-tdx-key", null); store.set("krtc-tdx-tok", null); $("tdxId").value = ""; $("tdxSecret").value = ""; $("tdxStatus").textContent = "已清除，改用免登入額度"; };
+})();
+
 function showView(v) {
   state.view = v;
   document.querySelectorAll(".view").forEach(s => { s.hidden = s.dataset.view !== v; });
   if (typeof paintTT === "function") paintTT();
   document.querySelectorAll(".tabbar button").forEach(b => { if (b.dataset.tab === v) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
   if (v === "favs") renderFavView();
+  if (v === "bus") busOpen(); else busPause();
   if (v === "map") {
     if (!map) {
       $("locMsg").textContent = "地圖載入中…";
@@ -2941,6 +3393,7 @@ function applyTheme(t) {
   $({auto: "thAuto", light: "thLight", dark: "thDark"}[t] || "thAuto").checked = true;
   document.querySelector('meta[name="theme-color"]').content = isDark() ? "#05080d" : "#0d1420";
   if (map) { styleReady = false; map.setStyle(styleURL(), {diff: false}); }
+  if (bus.map) { bus.ready = false; bus.map.setStyle(styleURL(), {diff: false}); }
   render();
 }
 document.querySelectorAll('input[name="theme"]').forEach(r => r.onchange = () => applyTheme(r.value));
@@ -2995,7 +3448,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-20-v66";
+const APP_VER = "krtc-2026-11-20-v67";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;

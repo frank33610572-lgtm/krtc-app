@@ -145,6 +145,25 @@ await step("back to list + board", async () => {
   await p.locator("nav button", { hasText: "班次" }).click(); await sleep(1500); await shot("13-list");
   return await p.evaluate(() => document.querySelector(".board")?.innerText.replace(/\s+/g, " ").slice(0, 160));
 });
+await step("bus tab", async () => {
+  await p.locator("nav button", { hasText: "公車" }).click();
+  await p.waitForFunction(() => bus.data && bus.ready, null, { timeout: 30000 }); await sleep(2500); await shot("15-bus-home");
+  const z = [];
+  for (const [zm, name] of [[13.3, "16-bus-z13"], [15.2, "17-bus-z15"], [16.8, "18-bus-z17"]]) {
+    await p.evaluate(zm => { bus.map.jumpTo({ center: [120.3022, 22.6318], zoom: zm }); }, zm); await sleep(2200); await shot(name);
+    z.push(await p.evaluate(() => ["bus-hub", "bus-mid", "bus-all", "bus-label"].map(l => l + ":" + bus.map.queryRenderedFeatures({ layers: [l] }).length).join(" ")));
+  }
+  const f = await p.evaluate(() => { const fs = bus.map.queryRenderedFeatures({ layers: ["bus-hub", "bus-mid"] }); return fs.length ? fs[0].geometry.coordinates : null; });
+  const pt = await p.evaluate(ll => { const r = bus.map.getContainer().getBoundingClientRect(), q = bus.map.project(ll); return [r.left + q.x, r.top + q.y]; }, f);
+  await p.touchscreen.tap(pt[0], pt[1]); await sleep(2500);
+  const sheet = await p.evaluate(() => $("busSheet").innerText.replace(/\s+/g, " ").slice(0, 220));
+  await p.evaluate(() => { document.querySelector(".bus-erow").click(); }); await sleep(3000);
+  await p.evaluate(() => window.scrollTo(0, 0)); await sleep(300); await shot("19-bus-route");
+  const route = await p.evaluate(() => ({ route: bus.route, rstops: bus.map.querySourceFeatures("bus-rstops").length, shapes: !!bus.shapes }));
+  await p.fill("#busQ", "紅33"); await sleep(500);
+  const search = await p.evaluate(() => $("busSheet").innerText.replace(/\s+/g, " ").slice(0, 120));
+  return { z, sheet, route, search };
+});
 await step("settings", async () => {
   await p.locator("nav button", { hasText: "設定" }).click(); await sleep(1000); await shot("14-settings");
   return await p.evaluate(() => document.querySelector("#ttStatus")?.innerText);
