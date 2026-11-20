@@ -166,6 +166,16 @@ await step("bus tab", async () => {
   const search = await p.evaluate(() => $("busSheet").innerText.replace(/\s+/g, " ").slice(0, 120));
   return { z, sheet, route, search };
 });
+await step("bus trip", async () => {
+  await p.click("#busQx").catch(() => {});
+  const r = await p.evaluate(async () => {
+    const F = bus.data.groups.find(g => g.n === "長庚醫院"), T = bus.data.groups.find(g => g.n === "高雄車站(建國路)");
+    busSetEnd("from", F.i); busSetEnd("to", T.i); await new Promise(r => setTimeout(r, 2500));
+    return { d: bus.tripRes.direct.length, t: bus.tripRes.transfer.length, od: bus.map.querySourceFeatures("bus-od").length, trip: bus.map.querySourceFeatures("bus-trip").length, journeyHidden: getComputedStyle(document.querySelector(".journey")).display };
+  });
+  await p.evaluate(() => window.scrollTo(0, 0)); await sleep(800); await shot("20-bus-trip");
+  return r;
+});
 await step("settings", async () => {
   await p.locator("nav button", { hasText: "設定" }).click(); await sleep(1000); await shot("14-settings");
   return await p.evaluate(() => document.querySelector("#ttStatus")?.innerText);
