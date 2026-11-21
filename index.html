@@ -1,9 +1,12 @@
 <!DOCTYPE html>
+<!-- 捷運輕軌班次 © 2026 彭數學・保留所有權利。未經同意請勿複製、修改或散布本 App 的程式、設計與整理後的資料。 -->
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>捷運輕軌班次</title>
+<meta name="author" content="彭數學">
+<meta name="copyright" content="© 2026 彭數學・保留所有權利">
 <meta name="description" content="高雄捷運紅線、橘線與環狀輕軌班次查詢：下一班倒數、到站時間、美麗島轉乘、最近車站與地圖。可離線使用。">
 <meta name="theme-color" content="#0d1420">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1038,6 +1041,12 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
           <p>標「約」的時間是終點站到站時間，由站間行駛時間推算，誤差約一分鐘。實際以高雄捷運現場公告為準。</p>
           <p>即時車廂擁擠度請看高雄捷運官方 App「高雄捷運—通勤助理」。常用路線與車廂備註只存在這支手機。</p>
         </div>
+        <div class="card about copyright">
+          <h2 style="color:var(--ink)">版權</h2>
+          <p><b>© 2026 彭數學・保留所有權利</b></p>
+          <p>本 App 的程式、介面設計，以及店家分類、座標比對、營業時間整理等資料整理成果，未經同意請勿複製、修改、轉載或散布。</p>
+          <p class="hint">交通部 TDX、財政部營業稅籍、高雄市門牌座標、OpenStreetMap 等原始資料依各自的開放授權使用。</p>
+        </div>
       </div>
     </section>
     <p class="footer" id="footer"></p>
@@ -1321,7 +1330,8 @@ function setRange(r) {
 }
 setRange(60);
 $("srcText").textContent = "資料來源：" + DATA.src + "；輕軌：" + LRT.src + "，時刻表版本 " + LRT.v + "。輕軌只有平日、假日兩種時刻表，抵達時間依官方站間行駛時間推算，和實際可能差 1、2 分鐘。";
-$("footer").textContent = "資料：" + DATA.src;
+$("footer").textContent = "© 2026 彭數學・保留所有權利　資料：" + DATA.src;
+console.info("%c捷運輕軌班次 © 2026 彭數學・保留所有權利", "font-weight:700");
 
 // ---------- 主要畫面 ----------
 const joinsOf = r => r.joins || (r.legs.length > 1 ? [{at: "美麗島", label: "美麗島轉乘", how: "走到另一線月台", wait: r.wait}] : []);
@@ -2161,6 +2171,7 @@ function loadOfficial() {
     });
     // 餐廳、手搖飲、咖啡廳、酒吧：財政部營業稅籍登記（行業代碼）＋高雄市門牌座標
     (d.shop || []).forEach(([n, addr, cat, a, o, oh, disp, hs], i) => {
+      if (hs === "Z") return;
       const [lat, lon] = ll(a, o), isNew = hs === "O" || hs === "S" || hs === "C";
       poi.items.set("oS" + i, {id: "oS" + i, c: SHOP_CAT[cat] || "tea", sub: cat >= 3 ? cat - 3 : 0, lat, lon, n: disp || (isNew ? n : cleanReg(n)), reg: isNew ? "" : n, b: "", oh: oh || "", ohs: (hs || "").toLowerCase(),
         addr, src: isNew ? ({S: "星巴克官網", C: "品牌官網"}[hs] || "OpenStreetMap") : "財政部營業登記", off: 1, gov: isNew ? 0 : 1, newSrc: isNew});
@@ -3090,7 +3101,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-21-v73";
+const APP_VER = "krtc-2026-11-21-v74";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;

@@ -1,0 +1,38 @@
+捷運輕軌班次
+Copyright © 2026 彭數學. All rights reserved.
+
+版權所有，保留一切權利。
+
+本儲存庫中的程式碼、介面設計、圖示，以及經整理、分類、比對與加工後的資料
+（包括但不限於 stores.json、bus.json、bus_shape.json、data/ 與 tools/ 內的檔案），
+均為彭數學之著作。未經彭數學事先書面同意，任何人不得以任何方式複製、修改、
+改作、轉載、散布、公開傳輸、再授權或作商業使用，亦不得以本專案為基礎製作
+衍生作品或相似之 App、網站。
+
+本專案可公開瀏覽，僅因網站代管之需要，不代表授予任何使用權。
+GitHub 服務條款所允許之瀏覽與 Fork 行為，不構成上述權利之授權。
+
+本專案使用之原始資料（交通部 TDX 運輸資料流通服務、財政部營業稅籍登記資料、
+高雄市政府門牌坐標資料、OpenStreetMap 等），其權利屬原提供者，依各自之開放
+授權條款使用；本聲明不影響任何人依該等條款直接向原提供者取得與使用原始資料之權利。
+
+如需授權或合作，請先聯繫作者。
+
+----------------------------------------------------------------------
+
+Copyright © 2026 彭數學 (Peng Shuxue). All rights reserved.
+
+The source code, user-interface design, icons, and the processed, classified,
+matched and compiled data in this repository are the work of the author.
+No permission is granted to copy, modify, adapt, redistribute, publicly transmit,
+sublicense or commercially use any part of this repository, or to create
+derivative or substantially similar apps or websites, without the author's
+prior written consent.
+
+Public visibility of this repository exists only for website hosting and does
+not grant any license. Viewing and forking permitted by the GitHub Terms of
+Service do not constitute a license to use this work.
+
+Third-party source data (MOTC TDX, Ministry of Finance business registry,
+Kaohsiung City address coordinates, OpenStreetMap, etc.) remains the property of
+its respective providers and is used under their open-data licenses.

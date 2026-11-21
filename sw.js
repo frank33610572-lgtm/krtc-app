@@ -1,5 +1,6 @@
+// 捷運輕軌班次 © 2026 彭數學・保留所有權利。
 // 高捷班次：離線快取。改版時更新 CACHE 版本號（也寫進 version.json），App 會自動換新版。
-const CACHE = "krtc-2026-11-21-v73";
+const CACHE = "krtc-2026-11-21-v74";
 const TILE_CACHE = "krtc-tiles-v2";
 const LIB_CACHE = "krtc-lib-v1";    // 地圖程式庫、字型：網址本身帶版本，改版不用重下載
 const DATA_CACHE = "krtc-data-v1";  // 店家等資料：先給快取、背景更新，改版不用重下載 2 MB

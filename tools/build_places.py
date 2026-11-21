@@ -49,5 +49,7 @@ for row, e in zip(stores["hl"], ents[n_shop:]):
 stores["hl"] = hl
 stores["shop"] = shops
 stores["src"]["shop"] = "財政部營業稅籍登記（" + need["v"] + "）＋高雄市門牌座標"
+import os, sys; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from mark import add_marks
+add_marks(stores)   # 版權欄位＋資料暗記（App 不顯示）
 json.dump(stores, open(stores_path, "w"), ensure_ascii=False, separators=(",", ":"))
 print("shops", len(shops), "miss", miss, "bar dropped", dropped, "by cat", __import__("collections").Counter(r[2] for r in shops), "hl with coords", sum(len(r) > 4 for r in hl), "/", len(hl))

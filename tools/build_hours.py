@@ -182,4 +182,6 @@ print("registry shops given hours:", len(oh_of), " new shops added:", len(added)
 for r in S["shop"]:                     # 去掉尾端空欄位，檔案小一點
     while r and r[-1] == "": r.pop()
 S["src"]["hours"] = "營業時間：OpenStreetMap、星巴克官網（2026-11-15）"
+import os, sys; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from mark import add_marks
+add_marks(S)   # 版權欄位＋資料暗記（App 不顯示）
 json.dump(S, open(stores_path, "w"), ensure_ascii=False, separators=(",", ":"))
