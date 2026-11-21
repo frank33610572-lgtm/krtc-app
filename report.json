@@ -1,0 +1,283 @@
+{
+ "log": [
+  [
+   "OK open map",
+   ""
+  ],
+  [
+   "OK poi on",
+   {
+    "items": 24852,
+    "chips": [
+     "餐 餐廳 999+",
+     "茶 手搖飲 999+",
+     "咖 咖啡廳 501",
+     "酒 酒吧 146",
+     "超 超商 663"
+    ],
+    "msg": "圓圈裡是那一區的店家數，點圓圈或放大就會看到單一店家"
+   }
+  ],
+  [
+   "OK closeup",
+   ""
+  ],
+  [
+   "OK pie clusters",
+   {
+    "pies": 105,
+    "feats": 51
+   }
+  ],
+  [
+   "OK tap cluster",
+   {
+    "z0": 13,
+    "z1": 14.4
+   }
+  ],
+  [
+   "OK popup food",
+   "麵 恆香餐飲文化 麵店・小吃 營業時間 未提供 補上營業時間 地址 新興區振華里民享街152號1樓 ☆ 導航過去 Google 地圖 位置：財政部營業登記＋高雄市門牌座標 ×"
+  ],
+  [
+   "OK popup tea",
+   "餐 貝迪夏朵法式食品行 餐廳 營業時間 未提供 補上營業時間 地址 苓雅區仁政里中山二路440號 ☆ 導航過去 Google 地圖 位置：財政部營業登記＋高雄市門牌座標 ×"
+  ],
+  [
+   "OK popup cafe",
+   "咖 同良工作室 咖啡廳 營業時間 未提供 補上營業時間 地址 新興區振成里林森一路43巷27號1樓 ☆ 導航過去 Google 地圖 位置：財政部營業登記＋高雄市門牌座標 ×"
+  ],
+  [
+   "OK popup bar",
+   "酒 翊集萬 酒吧 營業時間 未提供 補上營業時間 地址 新興區文橫二路169號2樓 登記名稱：翊集萬有限公司 ☆ 導航過去 Google 地圖 位置：財政部營業登記＋高雄市門牌座標 ×"
+  ],
+  [
+   "OK popup conv",
+   "超 7-ELEVEN 新仁政門市 超商 營業中 24 小時營業 修改 ATM 中國信託 ☆ 導航過去 Google 地圖 資料：7-ELEVEN 官網 ×"
+  ],
+  [
+   "OK fav star",
+   {
+    "favs": 1
+   }
+  ],
+  [
+   "OK list rows",
+   [
+    "咖 公寓咖啡 營業中 到 21:00・前金區文東里仁義街223號 35 公尺",
+    "餐 菊島國際實業前金 餐廳・前金區文東里仁義街202號 37 公尺",
+    "酒 里約館 前金區文東里中山二路507號地下一樓 39 公尺",
+    "餐 劉家酸白菜火鍋 餐廳・前金區文東里中山二路507號1樓 39 公尺",
+    "餐 公寓咖啡店 餐廳・前金區文東里仁義街227號1樓2樓 40 公尺",
+    "餐 日兆餐飲 餐廳・前金區仁義街231號 45 公尺"
+   ]
+  ],
+  [
+   "OK sheet-list",
+   ""
+  ],
+  [
+   "OK search",
+   [
+    "咖 星巴克 中央公園門市 營業中 到 21:00・前金區文東里五福三路31號1樓、2樓、3樓及33號2樓、3樓 277 公尺",
+    "咖 星巴克 青年門市 營業中 到 21:30・苓雅區苓昇里成功一路221號1樓、夾層、地下層 608 公尺",
+    "咖 星巴克 三多門市 營業中 到 22:00・苓雅區廣澤里三多三路234、236號1樓 807 公尺",
+    "咖 星巴克 高雄遠百門市 營業中 到 22:00・苓雅區意誠里三多四路21號8樓 876 公尺"
+   ]
+  ],
+  [
+   "OK from station",
+   [
+    "超 全家 左營高鐵店 從 1 號出口 1 分鐘",
+    "餐 樂雅樂食品左營營業所 餐廳・從 1 號出口 1 分鐘",
+    "餐 爭鮮左營高鐵外門市部 餐廳・從 1 號出口 1 分鐘",
+    "餐 台灣一風堂一風堂左營高鐵店 餐廳・從 1 號出口 1 分鐘"
+   ]
+  ],
+  [
+   "OK fav tab",
+   "咖\n★咖啡覺醒\n營業中 到午夜\n7.5\n公里"
+  ],
+  [
+   "OK long press solo",
+   {
+    "st": {
+     "cats": {
+      "food": false,
+      "tea": false,
+      "cafe": false,
+      "bar": true,
+      "conv": false
+     },
+     "msg": "只看酒吧，長按一次恢復全部"
+    },
+    "after": {
+     "food": true,
+     "tea": true,
+     "cafe": true,
+     "bar": true,
+     "conv": true
+    }
+   }
+  ],
+  [
+   "OK food subtype",
+   {
+    "sub": 1,
+    "pills": "全部50 早早餐0 麵麵・小吃9 便便當1 餐餐廳34 速速食0 攤小吃攤6",
+    "kinds": "food1",
+    "rows": [
+     "早 活力炸雞店 早餐・苓雅區美田里林森二路75號 205 公尺",
+     "早 早餐屋 早餐・新興區振華里青年一路460號 241 公尺",
+     "早 隆川商行 早餐・苓雅區仁政里苓雅一路404―3號 244 公尺"
+    ]
+   }
+  ],
+  [
+   "OK quick search",
+   [
+    "餐 叢林拉麵 餐廳・休息中 18:00 開・新興區忠孝一路10號1樓 302 公尺",
+    "麵 幸花雞白湯拉麵專門店 麵・小吃・新興區仁愛二街122號1樓 491 公尺",
+    "餐 翎羽軒拉麵 餐廳・前金區新田路239巷12號1樓 500 公尺"
+   ]
+  ],
+  [
+   "OK hide closed + atm",
+   {
+    "hide": true,
+    "atm": true
+   }
+  ],
+  [
+   "OK hours editor",
+   {
+    "open": true
+   }
+  ],
+  [
+   "OK theme dark/light",
+   {
+    "layers": [
+     true,
+     true,
+     true
+    ],
+    "feats": 0
+   }
+  ],
+  [
+   "OK youbike",
+   {
+    "view": "bike",
+    "yb": true,
+    "poi": false,
+    "intro": true,
+    "chips": false,
+    "msg": "YouBike 資料暫時抓不到，請稍後再試",
+    "n": 0
+   }
+  ],
+  [
+   "OK locate",
+   {
+    "msg": "最近的車站是三多商圈",
+    "list": ""
+   }
+  ],
+  [
+   "OK tabs switch",
+   {
+    "a": {
+     "view": "food",
+     "yb": false,
+     "poi": true,
+     "intro": false
+    },
+    "b": {
+     "view": "bike",
+     "yb": true,
+     "poi": false
+    },
+    "tabs": [
+     "班次",
+     "好用地圖",
+     "YouBike",
+     "設定"
+    ]
+   }
+  ],
+  [
+   "OK back to list + board",
+   "下一班・左營 → 鳳山 假日 1 分鐘後 上車 14:40 → 抵達 15:12 現在 15:12 抵達 14:40 左營 上車 R 紅線往小港・6 站 12 分 14:52 美麗島 下車 同站換車 等 9 分 15:01 下一班 O 15:01 美麗島 上車 O 橘線往大寮・7 站 11 分 15:12 鳳山 抵達 "
+  ],
+  [
+   "OK settings",
+   ""
+  ]
+ ],
+ "errs": [
+  "warning: [GroupMarkerNotSet(crbug.com/242999)!:A0901C003C390000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader flag to opt in to lower security guarantees for trusted content.",
+  "warning: [.WebGL-0x3fc402a9e900]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+  "warning: [.WebGL-0x3fc402a9e900]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+  "warning: Expected value to be of type number, but found null instead.",
+  "error: Access to fetch at 'https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/StationTimeTable/KLRT?%24select=SrcUpdateTime&%24top=1&%24format=JSON' from origin 'http://localhost:8000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opa",
+  "requestfailed: https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/StationTimeTable/KLRT?%24select=SrcUpdateTime&%24top=1&%24format=JS net::ERR_FAILED",
+  "error: Failed to load resource: net::ERR_FAILED",
+  "requestfailed: https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/StationTimeTable/KRTC?%24select=SrcUpdateTime&%24top=1&%24format=JS net::ERR_CONNECTION_CLOSED",
+  "error: Failed to load resource: net::ERR_CONNECTION_CLOSED",
+  "error: Access to fetch at 'https://tdx.transportdata.tw/api/basic/v2/Bike/Station/City/Kaohsiung?$select=StationUID,StationName,StationPosition,BikesCapacity&$format=JSON' from origin 'http://localhost:8000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requeste",
+  "requestfailed: https://tdx.transportdata.tw/api/basic/v2/Bike/Station/City/Kaohsiung?$select=StationUID,StationName,StationPosition,Bik net::ERR_FAILED",
+  "requestfailed: https://tiles.openfreemap.org/planet/20261115_080022_pt/13/6833/3568.pbf net::ERR_ABORTED"
+ ],
+ "counts": [
+  [
+   "warning: Expected value to be of type number, but found null instead.",
+   9
+  ],
+  [
+   "error: Failed to load resource: net::ERR_FAILED",
+   4
+  ],
+  [
+   "warning: [.WebGL-0x3fc402a9e900]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+   3
+  ],
+  [
+   "error: Access to fetch at 'https://tdx.transportdata.tw/api/basic/v2/Bike/Station/City/Kaohsiung?$select=StationUID,StationName,StationPosition,BikesCapacity&$f",
+   3
+  ],
+  [
+   "requestfailed: https://tdx.transportdata.tw/api/basic/v2/Bike/Station/City/Kaohsiung?$select=StationUID,StationName,StationPosition,Bik net::ERR_FAILED",
+   3
+  ],
+  [
+   "warning: [GroupMarkerNotSet(crbug.com/242999)!:A0901C003C390000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftsh",
+   1
+  ],
+  [
+   "warning: [.WebGL-0x3fc402a9e900]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat",
+   1
+  ],
+  [
+   "error: Access to fetch at 'https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/StationTimeTable/KLRT?%24select=SrcUpdateTime&%24top=1&%24format=JSON' from orig",
+   1
+  ],
+  [
+   "requestfailed: https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/StationTimeTable/KLRT?%24select=SrcUpdateTime&%24top=1&%24format=JS net::ERR_FAILED",
+   1
+  ],
+  [
+   "requestfailed: https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/StationTimeTable/KRTC?%24select=SrcUpdateTime&%24top=1&%24format=JS net::ERR_CONNECTION_CLOS",
+   1
+  ],
+  [
+   "error: Failed to load resource: net::ERR_CONNECTION_CLOSED",
+   1
+  ],
+  [
+   "requestfailed: https://tiles.openfreemap.org/planet/20261115_080022_pt/13/6833/3568.pbf net::ERR_ABORTED",
+   1
+  ]
+ ]
+}
