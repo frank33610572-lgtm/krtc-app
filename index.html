@@ -3035,7 +3035,7 @@ function applyTheme(t) {
   $({auto: "thAuto", light: "thLight", dark: "thDark"}[t] || "thAuto").checked = true;
   document.querySelector('meta[name="theme-color"]').content = isDark() ? "#05080d" : "#0d1420";
   if (map) { styleReady = false; map.setStyle(styleURL(), {diff: false}); }
-  if (bus.map) { bus.ready = false; bus.map.setStyle(styleURL(), {diff: false}); }
+  
   render();
 }
 document.querySelectorAll('input[name="theme"]').forEach(r => r.onchange = () => applyTheme(r.value));
