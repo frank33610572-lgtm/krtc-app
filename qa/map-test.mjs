@@ -23,12 +23,11 @@ const tapMap = async lnglat => {
 await p.goto("http://localhost:8000/index.html", { waitUntil: "networkidle" });
 await sleep(1500); await shot("01-home");
 await step("open map", async () => {
-  await p.locator("nav button", { hasText: "地圖" }).click();
+  await p.locator("nav button", { hasText: "好用地圖" }).click();
   await p.waitForFunction(() => typeof map !== "undefined" && map && styleReady, null, { timeout: 30000 });
   await sleep(2500); await shot("02-map");
 });
 await step("poi on", async () => {
-  await p.click("#poiBtn");
   await p.waitForFunction(() => poi.official && poi.items.size > 20000, null, { timeout: 30000 });
   await sleep(4000); await shot("03-poi");
   return await p.evaluate(() => ({ items: poi.items.size, chips: [...document.querySelectorAll(".poichip")].map(b => b.innerText.replace(/\s+/g, " ")), msg: $("locMsg").textContent }));
@@ -134,47 +133,27 @@ await step("theme dark/light", async () => {
   await p.evaluate(() => { applyTheme("auto"); }); await p.waitForFunction(() => styleReady); return r;
 });
 await step("youbike", async () => {
-  await p.click("#ybToggle"); await sleep(6000); await shot("11-youbike");
-  return await p.evaluate(() => ({ yb: yb.on, poi: poi.on, msg: $("locMsg").textContent, n: (map.getSource("yb")?._data?.features || []).length }));
+  await p.locator("nav button", { hasText: "YouBike" }).click(); await sleep(6000); await shot("11-youbike");
+  const r = await p.evaluate(() => ({ view: state.view, yb: yb.on, poi: poi.on, intro: !$("ybIntro").hidden, chips: !$("poiChips").hidden, msg: $("locMsg").textContent, n: (map.getSource("yb")?._data?.features || []).length }));
+  if (!r.yb || r.poi || !r.intro || r.chips) throw new Error("youbike tab state " + JSON.stringify(r));
+  return r;
 });
 await step("locate", async () => {
   await p.click("#locate"); await sleep(4000); await shot("12-locate");
   return await p.evaluate(() => ({ msg: $("locMsg").textContent, list: (document.querySelector("#ybList, #nearList, .near") || {}).innerText?.slice(0, 160) }));
 });
+await step("tabs switch", async () => {
+  await p.locator("nav button", { hasText: "好用地圖" }).click(); await sleep(1500);
+  const a = await p.evaluate(() => ({ view: state.view, yb: yb.on, poi: poi.on, intro: !$("ybIntro").hidden }));
+  await p.locator("nav button", { hasText: "YouBike" }).click(); await sleep(1500);
+  const b = await p.evaluate(() => ({ view: state.view, yb: yb.on, poi: poi.on }));
+  const tabs = await p.evaluate(() => [...document.querySelectorAll("nav.tabbar button")].map(x => x.innerText.trim()));
+  if (!a.poi || a.yb || a.intro || b.poi || !b.yb || tabs.includes("公車")) throw new Error(JSON.stringify({ a, b, tabs }));
+  return { a, b, tabs };
+});
 await step("back to list + board", async () => {
   await p.locator("nav button", { hasText: "班次" }).click(); await sleep(1500); await shot("13-list");
   return await p.evaluate(() => document.querySelector(".board")?.innerText.replace(/\s+/g, " ").slice(0, 160));
-});
-await step("bus tab", async () => {
-  await p.locator("nav button", { hasText: "公車" }).click();
-  await p.waitForFunction(() => bus.data && bus.ready, null, { timeout: 30000 }); await sleep(2500); await shot("15-bus-home");
-  const z = [];
-  const C = await p.evaluate(() => { const g = bus.data.groups.find(x => x.n === "高雄車站(建國路)") || bus.data.groups[0]; return [g.lon, g.lat]; });
-  for (const [zm, name] of [[13.3, "16-bus-z13"], [15.2, "17-bus-z15"], [17.2, "18-bus-z17"]]) {
-    await p.evaluate(([zm, C]) => { bus.map.jumpTo({ center: C, zoom: zm }); }, [zm, C]); await sleep(2200); await shot(name);
-    z.push(await p.evaluate(() => ["bus-hub", "bus-mid", "bus-all", "bus-label", "bus-pole", "bus-pole-label"].map(l => l + ":" + bus.map.queryRenderedFeatures({ layers: [l] }).length).join(" ")));
-  }
-  const f = C;
-  const pt = await p.evaluate(ll => { const r = bus.map.getContainer().getBoundingClientRect(), q = bus.map.project(ll); return [r.left + q.x, r.top + q.y]; }, f);
-  await p.touchscreen.tap(pt[0], pt[1]); await sleep(2500);
-  const sheet = await p.evaluate(() => $("busSheet").innerText.replace(/\s+/g, " ").slice(0, 220));
-  await shot("18b-bus-selected");
-  await p.evaluate(() => { document.querySelector(".bus-erow").click(); }); await sleep(3000);
-  await p.evaluate(() => window.scrollTo(0, 0)); await sleep(300); await shot("19-bus-route");
-  const route = await p.evaluate(() => ({ route: bus.route, rstops: bus.map.querySourceFeatures("bus-rstops").length, shapes: !!bus.shapes }));
-  await p.fill("#busQ", "紅33"); await sleep(500);
-  const search = await p.evaluate(() => $("busSheet").innerText.replace(/\s+/g, " ").slice(0, 120));
-  return { z, sheet, route, search };
-});
-await step("bus trip", async () => {
-  await p.click("#busQx").catch(() => {});
-  const r = await p.evaluate(async () => {
-    const F = bus.data.groups.find(g => g.n === "長庚醫院"), T = bus.data.groups.find(g => g.n === "高雄車站(建國路)");
-    busSetEnd("from", F.i); busSetEnd("to", T.i); await new Promise(r => setTimeout(r, 2500));
-    return { d: bus.tripRes.direct.length, t: bus.tripRes.transfer.length, od: bus.map.querySourceFeatures("bus-od").length, trip: bus.map.querySourceFeatures("bus-trip").length, journeyHidden: getComputedStyle(document.querySelector(".journey")).display };
-  });
-  await p.evaluate(() => window.scrollTo(0, 0)); await sleep(800); await shot("20-bus-trip");
-  return r;
 });
 await step("settings", async () => {
   await p.locator("nav button", { hasText: "設定" }).click(); await sleep(1000); await shot("14-settings");

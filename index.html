@@ -670,6 +670,12 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;color:var(--in
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:6px max(10px,env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom))}
 .tabbar button{border:0;background:none;cursor:pointer;display:grid;justify-items:center;gap:2px;font-size:11px;font-weight:500;color:var(--muted);padding:6px 0;min-height:52px}
 .tabbar svg{width:24px;height:24px}
+#poiBtn,#ybToggle,.busview{display:none!important}
+.ybintro{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+.ybintro>div{flex:1;min-width:0}
+.ybintro b{font-size:15px}
+.ybintro p{margin:3px 0 0;font-size:12.5px;color:var(--muted);line-height:1.5}
+.ybintro .btn{flex:none;white-space:nowrap}
 .tabbar button[aria-current="page"]{color:var(--ink);font-weight:700}
 .tabbar button[aria-current="page"] svg{color:var(--red)}
 @media (min-width:980px){
@@ -1050,8 +1056,8 @@ body.bus-mode .journey,body.bus-mode .favwrap,body.bus-mode .when,body.bus-mode 
 
     <nav class="tabbar" aria-label="主選單">
       <button type="button" data-tab="list" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>班次</button>
-      <button type="button" data-tab="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>地圖</button>
-      <button type="button" data-tab="bus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="14" rx="3"/><path d="M4 11h16M8 21v-3.5M16 21v-3.5"/><circle cx="8.5" cy="14.3" r=".6" fill="currentColor"/><circle cx="15.5" cy="14.3" r=".6" fill="currentColor"/></svg>公車</button>
+      <button type="button" data-tab="food"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"/><path d="M5.5 12v8h13v-8M10 20v-5h4v5"/></svg>好用地圖</button>
+      <button type="button" data-tab="bike"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9 9h6l3.5 7.5M9 9 7.5 6H5M15 9l-2.5 7.5"/></svg>YouBike</button>
       <button type="button" data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>設定</button>
     </nav>
   </div>
@@ -1101,7 +1107,7 @@ body.bus-mode .journey,body.bus-mode .favwrap,body.bus-mode .when,body.bus-mode 
         </div>
       </div>
       <div class="mapwrap">
-        <div id="map" role="application" aria-label="高雄捷運與輕軌路線地圖"></div>
+        <div id="map" role="application" aria-label="地圖"></div>
         <div class="hud" aria-hidden="true"><i class="hc tl"></i><i class="hc tr"></i><i class="hc bl"></i><i class="hc br"></i>
           <div class="hud-read"><span><em id="hudN">0</em> 間在畫面內</span><span id="hudLL"></span></div></div>
         <div class="maptoast" id="locMsg" role="status"></div>
@@ -1140,6 +1146,7 @@ body.bus-mode .journey,body.bus-mode .favwrap,body.bus-mode .when,body.bus-mode 
         </div>
       </div>
       <div class="near" id="poiList"></div>
+      <div class="ybintro" id="ybIntro" hidden><div><b>YouBike 站</b><p>綠點有車可借、紅點沒車，點站看可借、可還幾台。</p></div><button type="button" class="btn" id="ybFind">找最近有車的站</button></div>
       <div class="near" id="ybList"></div>
       <div class="near" id="nearList"></div>
     </section>
@@ -1186,8 +1193,8 @@ body.bus-mode .journey,body.bus-mode .favwrap,body.bus-mode .when,body.bus-mode 
           <p class="hint">紅線、橘線互轉時，在美麗島站換月台需要的時間。走得快可以調低。</p>
         </div>
         <div class="card" id="tdxCard">
-          <h2>公車即時到站（交通部金鑰，選填）</h2>
-          <p class="hint">公車站牌、路線不需要金鑰。即時到站要向交通部 TDX 抓資料，沒有金鑰時大家共用很少的免費額度，常會抓不到。到 <a href="https://tdx.transportdata.tw/register" target="_blank" rel="noopener">TDX 註冊</a>（免費），在「會員中心 → API 金鑰」拿到 Client Id 和 Client Secret 貼在這裡，就會用你自己的額度。金鑰只存在這支手機。</p>
+          <h2>交通部金鑰（選填）</h2>
+          <p class="hint">YouBike 車位要向交通部 TDX 抓資料，沒有金鑰時大家共用免費額度，偶爾會抓不到。到 <a href="https://tdx.transportdata.tw/register" target="_blank" rel="noopener">TDX 註冊</a>（免費），在「會員中心 → API 金鑰」拿到 Client Id 和 Client Secret 貼在這裡，就會用你自己的額度。金鑰只存在這支手機。</p>
           <div class="tdx-form">
             <input id="tdxId" type="text" autocomplete="off" spellcheck="false" placeholder="Client Id" aria-label="TDX Client Id">
             <input id="tdxSecret" type="password" autocomplete="off" spellcheck="false" placeholder="Client Secret" aria-label="TDX Client Secret">
@@ -2238,11 +2245,11 @@ function ybDraw() {
   map.getSource("yb").setData(ybFC());
   map.setLayoutProperty("yb", "visibility", yb.on ? "visible" : "none");
 }
-$("ybToggle").onclick = async () => {
-  yb.on = !yb.on;
-  if (yb.on && poi.on) poiSet(false);
+async function ybSet(on) {
+  yb.on = on;
+  if (yb.on && poi.on) poiSet(false, true);
   const btn = $("ybToggle"); btn.setAttribute("aria-pressed", String(yb.on));
-  if (!yb.on) { ybDraw(); $("locMsg").textContent = "已隱藏 YouBike 站"; return; }
+  if (!yb.on) { ybDraw(); return; }
   btn.classList.add("busy"); $("locMsg").textContent = "載入 YouBike 站…";
   try {
     await ybLoad(true); ybDraw();
@@ -2250,7 +2257,9 @@ $("ybToggle").onclick = async () => {
     $("locMsg").textContent = `綠點有車可借、紅點沒車，${ybAge()}。按定位可找離你最近的 YouBike`;
   } catch (e) { ybDraw(); $("locMsg").textContent = ybErr(e); }
   finally { btn.classList.remove("busy"); }
-};
+}
+$("ybToggle").onclick = () => ybSet(!yb.on);
+$("ybFind").onclick = () => $("locate").click();
 async function ybNearest(me) {
   const box = $("ybList");
   box.innerHTML = `<div class="neartitle">最近的 YouBike<span>載入中…</span></div>`;
@@ -2665,7 +2674,7 @@ async function poiLoadView() {
   countMsg();
   poiRenderList();
 }
-function poiSet(on) {
+function poiSet(on, quiet) {
   poi.on = on;
   $("poiBtn").setAttribute("aria-pressed", String(on));
   $("poiChips").hidden = !on;
@@ -2682,7 +2691,7 @@ function poiSet(on) {
     if (map && map.getZoom() < 14) map.easeTo({zoom: 15, duration: 600}); else poiLoadView();
   } else {
     $("poiList").innerHTML = "";
-    $("locMsg").textContent = "已關閉好用地圖";
+    if (!quiet) $("locMsg").textContent = "已關閉好用地圖";
   }
   poiDraw();
 }
@@ -3636,26 +3645,39 @@ document.addEventListener("visibilitychange", () => { if (bus.open && !document.
     const id = $("tdxId").value.trim(), secret = $("tdxSecret").value.trim();
     if (!id || !secret) { $("tdxStatus").textContent = "Client Id 和 Client Secret 都要填"; return; }
     store.set("krtc-tdx-key", {id, secret}); store.set("krtc-tdx-tok", null); $("tdxStatus").textContent = "測試中…";
-    try { await tdxToken(); $("tdxStatus").textContent = "金鑰可以用，公車即時到站會用你自己的額度"; }
+    try { await tdxToken(); $("tdxStatus").textContent = "金鑰可以用，YouBike 車位會用你自己的額度"; }
     catch (e) { $("tdxStatus").textContent = "金鑰不對（交通部拒絕），請檢查有沒有貼錯"; }
   };
   $("tdxClear").onclick = () => { store.set("krtc-tdx-key", null); store.set("krtc-tdx-tok", null); $("tdxId").value = ""; $("tdxSecret").value = ""; $("tdxStatus").textContent = "已清除，改用免登入額度"; };
 })();
 
+// 好用地圖、YouBike 共用同一張地圖，只是開的圖層不同
+const MAP_TABS = {food: 1, bike: 1};
+function mapMode(v) {
+  if (v === "food") { if (!poi.on) poiSet(true); }
+  else if (v === "bike") { if (!yb.on) ybSet(true); }
+  $("ybIntro").hidden = v !== "bike";
+}
 function showView(v) {
+  if (v === "map") v = poi.on ? "food" : "bike";
+  if (v === "bus") v = "list";   // 公車功能先收起來
   state.view = v;
-  document.querySelectorAll(".view").forEach(s => { s.hidden = s.dataset.view !== v; });
+  const sec = MAP_TABS[v] ? "map" : v;
+  document.querySelectorAll(".view").forEach(s => { s.hidden = s.dataset.view !== sec; });
+  document.body.classList.toggle("mode-food", v === "food");
+  document.body.classList.toggle("mode-bike", v === "bike");
+  $("ybIntro").hidden = v !== "bike";
   if (typeof paintTT === "function") paintTT();
   document.querySelectorAll(".tabbar button").forEach(b => { if (b.dataset.tab === v) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
   if (v === "favs") renderFavView();
   document.body.classList.toggle("bus-mode", v === "bus");
   if (v === "bus") busOpen(); else busPause();
-  if (v === "map") {
+  if (MAP_TABS[v]) {
     if (!map) {
       $("locMsg").textContent = "地圖載入中…";
-      loadMapLib().then(() => { initMap(); $("locMsg").textContent = ""; mapHint("station", "點車站看下一班車，也能設成起站、終站或導航過去"); })
-        .catch(() => { $("locMsg").textContent = "地圖第一次載入需要網路，連上網路後再點一次「地圖」"; });
-    } else setTimeout(() => { map.resize(); drawRoute(); }, 60);
+      loadMapLib().then(() => { initMap(); $("locMsg").textContent = ""; if (state.view === v) mapMode(v); })
+        .catch(() => { $("locMsg").textContent = `地圖第一次載入需要網路，連上網路後再點一次「${v === "food" ? "好用地圖" : "YouBike"}」`; });
+    } else { mapMode(v); setTimeout(() => { map.resize(); drawRoute(); }, 60); }
   }
   if (matchMedia("(max-width: 979px)").matches) window.scrollTo({top: v === "list" ? 0 : document.querySelector(".col-main").offsetTop - 10, behavior: "instant"});
 }
@@ -3918,7 +3940,7 @@ $("ttNoteX").onclick = () => { const st = store.get("krtc-tt", {}); st.dismiss =
 addEventListener("load", () => setTimeout(checkTT, 3000));
 
 // ---------- 自動更新 ----------
-const APP_VER = "krtc-2026-11-20-v71";
+const APP_VER = "krtc-2026-11-21-v72";
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   const hadCtl = !!navigator.serviceWorker.controller;
   let reloading = false;
